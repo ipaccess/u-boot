@@ -162,10 +162,14 @@
 /*-----------------------------------------------------------------------------
  * Serial Port Stuff
  */
-#define CONFIG_DW_APB_UART
+#define CONFIG_SYS_NS16550
+#define CONFIG_SYS_NS16550_SERIAL
+#define CONFIG_SYS_NS16550_REG_SIZE (-4)
+#define CONFIG_SYS_NS16550_CLK      (3686400)
+#define CONFIG_SYS_NS16550_COM1     (PC302_UART1_BASE)
 
-/* Baud rate generators clock with a 3.6864 MHz clock */
-#define CONFIG_DW_APB_UART_CLOCK    (3686400)
+/* Our uart registers need 32 bit access */ 
+#define CONFIG_SYS_NS16550_MEM32
 
 /* Console on Uart #0 */
 #define CONFIG_CONS_INDEX	    (1)
