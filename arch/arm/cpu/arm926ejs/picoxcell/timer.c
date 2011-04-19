@@ -65,8 +65,10 @@
 
 #define TIMER_LOAD_VAL 0xFFFFFFFF
 
-static unsigned long long timestamp;
-static unsigned long lastdec;
+DECLARE_GLOBAL_DATA_PTR;
+
+#define timestamp gd->arch.timer_reset_value
+#define lastdec gd->arch.lastinc
 
 void reset_timer_masked (void)
 {
