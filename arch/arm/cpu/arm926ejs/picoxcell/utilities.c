@@ -21,6 +21,7 @@
 #include <asm/arch/picoxcell.h>
 #include <asm/arch/axi2cfg.h>
 #include <asm/arch/fuse.h>
+#include <asm/arch/timer.h>
 #include <asm/arch/utilities.h>
 
 /* Macros ------------------------------------------------------------------ */
@@ -199,4 +200,25 @@ __inline int is_pc3x3 (void)
 
 	return (dev_id == PC313_DEVICE_ID ||
 		dev_id == PC323_DEVICE_ID || dev_id == PC333_DEVICE_ID);
+}
+
+void picoxcell_timer_start (int timer)
+{
+	/* Make sure the timer is disabled */
+	picoxcell_write_register (0, (CONFIG_SYS_TIMERBASE +
+				      TIMERNCONTROLREGOFFSET (timer)));
+
+	/* Initialise the timer to all 1's.
+	 * We do this  because we want to run
+	 * the timer in free running mode.
+	 */
+	picoxcell_write_register (0xFFFFFFFF, (CONFIG_SYS_TIMERBASE +
+					       TIMERNLOADCOUNTREGOFFSET
+					       (timer)));
+
+	/* Start the timer in free running mode */
+	picoxcell_write_register ((TIMERINTERRUPTMASK | TIMERENABLE),
+				  (CONFIG_SYS_TIMERBASE +
+				   TIMERNCONTROLREGOFFSET (timer)));
+
 }

@@ -69,6 +69,9 @@
 /* Display cpu info */
 #define CONFIG_DISPLAY_CPUINFO
 
+/* Do not reboot the platform on a panic */
+#define CONFIG_PANIC_HANG
+
 /*-----------------------------------------------------------------------
  * Stack Sizes
  *

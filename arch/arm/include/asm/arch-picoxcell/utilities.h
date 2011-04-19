@@ -88,4 +88,12 @@ void syscfg_update (u32 mask, u32 val);
  */
 __inline int is_pc3x3 (void);
 
+/*!
+ * Start a timer in free running mode
+ *
+ * \param timer, the timer to start
+ */
+void picoxcell_timer_start (int timer);
+
+
 #endif /* __PICOXCELL_UTILS_H__ */
