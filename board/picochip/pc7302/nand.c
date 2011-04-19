@@ -3,8 +3,8 @@
  *****************************************************************************/
 
 /*!
-* \file .mt29f2g08aadwp.c
-* \brief Support for the NAND Flash device fitted on PC7302 platform.
+* \file nand.c
+* \brief Support for nand flash on pc7302 platform.
 *
 * Copyright (c) 2009-2011 Picochip Ltd
 *
@@ -43,12 +43,11 @@
 
 #ifdef CONFIG_CMD_NAND
 
-#include <asm/arch/picoxcell.h>
 #include <nand.h>
 #include <asm/arch/utilities.h>
 #include <asm/arch/picoxcell_gpio.h>
 #include <asm/arch/mux.h>
-#include <asm/arch/axi2cfg.h>
+#include <asm/io.h>
 
 /* Constants --------------------------------------------------------------- */
 static unsigned int cle;
@@ -64,42 +63,20 @@ static unsigned int rdy;
  * \param ctrl, control data to set up the transaction
  *
  */
-static void mt29f2g08aadwp_cmd_ctrl (struct mtd_info *mtd,
-				     int dat, unsigned int ctrl)
+static void nand_cmd_ctrl (struct mtd_info *mtd,
+		           int dat, unsigned int ctrl)
 {
 	struct nand_chip *this = mtd->priv;
 
-	if (ctrl & NAND_CTRL_CHANGE) {
-		if (ctrl & NAND_NCE) {
-			/* Assert the chip select */
-			picoxcell_gpio_set_value (nce, 0);
+        if (ctrl & NAND_CTRL_CHANGE) {
+                picoxcell_gpio_set_value(nce, !(ctrl & NAND_NCE));
+                picoxcell_gpio_set_value(cle, !!(ctrl & NAND_CLE));
+                picoxcell_gpio_set_value(ale, !!(ctrl & NAND_ALE));
+        }
+        if (dat == NAND_CMD_NONE)
+                return;
 
-			if (ctrl & NAND_CLE) {
-				/* Assert CLE */
-				picoxcell_gpio_set_value (cle, 1);
-			} else {
-				/* Negate CLE */
-				picoxcell_gpio_set_value (cle, 0);
-			}
-
-			if (ctrl & NAND_ALE) {
-				/* Assert ALE */
-				picoxcell_gpio_set_value (ale, 1);
-			} else {
-				/* Negate ALE */
-				picoxcell_gpio_set_value (ale, 0);
-			}
-		} else {
-			/* Negate the chip select */
-			picoxcell_gpio_set_value (nce, 1);
-		}
-	}
-
-	/* If we have data to write, write it */
-	if (dat != NAND_CMD_NONE) {
-		*(volatile unsigned char *)(this->IO_ADDR_W) =
-		    (unsigned char)dat;
-	}
+        writeb(dat, this->IO_ADDR_W);
 }
 
 /*!
@@ -109,7 +86,7 @@ static void mt29f2g08aadwp_cmd_ctrl (struct mtd_info *mtd,
  *         1 - nand ready
  *
  */
-static int mt29f2g08aadwp_dev_ready (struct mtd_info *mtd)
+static int nand_dev_ready (struct mtd_info *mtd)
 {
 	return picoxcell_gpio_get_value (rdy);
 }
@@ -134,11 +111,11 @@ static int mt29f2g08aadwp_dev_ready (struct mtd_info *mtd)
  */
 int board_nand_init (struct nand_chip *nand)
 {
-	/* Define which gpio bits are used to control the NAND Flash
+	/* Define which gpio bits are used to control the nand flash
 	 *
-	 * Note: These pin definitions mean that we can only use NAND
-	 *       Flash if we are running U-Boot from RAM and have NOT booted
-	 *       the device from parallel NOR Flash.
+	 * Note: These pin definitions mean that we can only use nand
+	 *       flash if we are running U-Boot from RAM and have NOT booted
+	 *       the Picoxcell device from parallel nor flash.
 	 */
 	if (is_pc3x3 ()) {
 		cle = PC3X3_GPIO_PIN_ARM_4;
@@ -172,9 +149,9 @@ int board_nand_init (struct nand_chip *nand)
 	(void)picoxcell_gpio_direction_output (cle, 0);
 
 	/* Populate some members of the nand structure */
-	nand->cmd_ctrl = mt29f2g08aadwp_cmd_ctrl;
+	nand->cmd_ctrl = nand_cmd_ctrl;
 	nand->ecc.mode = NAND_ECC_SOFT;
-	nand->dev_ready = mt29f2g08aadwp_dev_ready;
+	nand->dev_ready = nand_dev_ready;
 	nand->IO_ADDR_R = (void __iomem *)CONFIG_SYS_NAND_BASE;
 	nand->IO_ADDR_W = (void __iomem *)CONFIG_SYS_NAND_BASE;
 

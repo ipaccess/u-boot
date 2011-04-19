@@ -34,15 +34,15 @@
 /* Include support / commands for NAND Flash
  *
  * Note: Please read the comments in file
- *       board/picochip/pc7302/mt29f2g08aadwp.c about gpio pins used
- *       and PC302 booting modes before defining CONFIG_CMD_NAND
+ *       board/picochip/pc7302/nand.c about gpio pins used
+ *       and Picoxcell booting modes before defining CONFIG_CMD_NAND
  */
 
 /* Needed for nand_util.c */
 #define CONFIG_SYS_64BIT_VSPRINTF
 
 /* Do not perform any low level initialisation */
-#define CONFIG_SKIP_LOWLEVEL_INIT   1
+#define CONFIG_SKIP_LOWLEVEL_INIT
 
 /* No flash memory in the system */
 #define CONFIG_SYS_NO_FLASH
@@ -51,25 +51,27 @@
 
 /* NAND Flash memory map
  *
- *  Block 0-3 U-Boot image
- *  Block 4-7 Redundant U-Boot image
- *  Block 8 U-Boot environment
- *  Block 9 Redundant U-Boot environment
- *  Block 10 Not Used
- *  Block 11 Not Used
- *  Block 12 Linux kernel
+ *  Block 0-7   Reserved
+ *  Block 8-11  U-Boot image
+ *  Block 12-15 Reserved
+ *  Block 16-19 Redundant U-Boot image
+ *  Block 20-23 Reserved
+ *  Block 24    U-Boot env variables
+ *  Block 25    Redundant U-Boot env variables
+ *  Block 26-27 Reserved
+ *  Block 28    Linux kernel...
  *
  */
 #define CONFIG_ENV_IS_IN_NAND
 
 /* Offset address of environment variables */
-#define CONFIG_ENV_OFFSET           (NAND_FLASH_SECTOR_SIZE * 8)
+#define CONFIG_ENV_OFFSET           (NAND_FLASH_SECTOR_SIZE * 24)
 
 /* Size of environment variables */
 #define CONFIG_ENV_SIZE             (NAND_FLASH_SECTOR_SIZE)
 
 /* Offset address of the redundant envinronment variables */
-#define CONFIG_ENV_OFFSET_REDUND    (NAND_FLASH_SECTOR_SIZE * 9)
+#define CONFIG_ENV_OFFSET_REDUND    (NAND_FLASH_SECTOR_SIZE * 25)
 
 /* Turn off wite protection for vendor parameters */
 #define CONFIG_ENV_OVERWRITE

@@ -165,7 +165,7 @@
 #define CONFIG_SYS_NS16550_CLK      (3686400)
 #define CONFIG_SYS_NS16550_COM1     (PICOXCELL_UART1_BASE)
 
-/* Our uart registers need 32 bit access */ 
+/* Our uart registers need 32 bit access */
 #define CONFIG_SYS_NS16550_MEM32
 
 /* Console on Uart #0 */
@@ -303,7 +303,7 @@
 /* This is the offset from the start of NAND Flash
  * to where the Linux kernel can be found.
  */
-#define CONFIG_NAND_KERNEL_OFFSET  0x00180000
+#define CONFIG_NAND_KERNEL_OFFSET  0x00380000
 
 /* Time in seconds before autoboot, -1 disables auto-boot */
 #define CONFIG_BOOTDELAY        5
@@ -320,9 +320,6 @@
 /* Define the JFFS2 root filesystem partition (NOR Flash) */
 #define NOR_JFFS2_ROOT          /dev/mtdblock3
 
-/* Define the JFFS2 root filesystem partition (NAND Flash) */
-#define NAND_JFFS2_ROOT         /dev/mtdblock5
-
 /* Define the UBIFS root filesystem partition (NOR Flash) */
 #define NOR_UBIFS_ROOT          3
 
@@ -336,13 +333,10 @@
    "kernel_flash_addr=" __stringify(CONFIG_FLASH_KERNEL_BASE) "\0"		    \
    "kernel_nand_offset=" __stringify(CONFIG_NAND_KERNEL_OFFSET) "\0"             \
    "nor_jffs2_root=" __stringify(NOR_JFFS2_ROOT) "\0"		            \
-   "nand_jffs2_root=" __stringify(NAND_JFFS2_ROOT) "\0"		            \
    "nor_ubifs_root=" __stringify(NOR_UBIFS_ROOT) "\0"		            \
    "nand_ubifs_root=" __stringify(NAND_UBIFS_ROOT) "\0"		            \
    "flash_jffs2=run jffs2_args; bootm $kernel_flash_addr\0"		    \
    "flash_ubifs=run ubifs_args; bootm $kernel_flash_addr\0"		    \
-   "nand_jffs2=run nand_jffs2_args; nboot $loadaddr 0 "                     \
-   "$kernel_nand_offset; bootm $loadaddr\0"                                 \
    "nand_ubifs=run nand_ubifs_args; nboot $loadaddr 0 "                     \
    "$kernel_nand_offset; bootm $loadaddr\0"                                 \
    "fixed_nfs=run nfs_args; tftp; bootm\0"				    \
@@ -351,10 +345,6 @@
    "console=$consoledev,$baudrate $othbootargs;\0"                          \
    "ubifs_args=setenv bootargs root=ubi0:rootfs rw rootfstype=ubifs "       \
    "ubi.mtd=$nor_ubifs_root "                                               \
-   "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "        \
-   "console=$consoledev,$baudrate $othbootargs;\0"                          \
-   "nand_jffs2_args=setenv bootargs root=$nand_jffs2_root rw "              \
-   "rootfstype=jffs2 "                                                      \
    "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "        \
    "console=$consoledev,$baudrate $othbootargs;\0"                          \
    "nand_ubifs_args=setenv bootargs root=ubi0:rootfs rw rootfstype=ubifs "  \
@@ -367,17 +357,12 @@
 
 /* Define CONFIG_BOOTCOMMAND as
  * "run nand_ubifs" for boot from NAND flash with ubifs filesystem
- * "run nand_jffs2" for boot from NAND flash with jffs2 filesystem
  * "run flash_ubifs" for boot from NOR flash with ubifs filesystem
  * "run flash_jffs2" for boot from NOR flash with jffs2 filesystem
  * "run fixed_nfs" for standard NFS with fixed IP address.
  */
 #if defined(CONFIG_CMD_NAND)
-    #if defined(CONFIG_USE_UBIFS)
-        #define CONFIG_BOOTCOMMAND  "run nand_ubifs"
-    #else
-        #define CONFIG_BOOTCOMMAND  "run nand_jffs2"
-    #endif
+    #define CONFIG_BOOTCOMMAND  "run nand_ubifs"
 #else /* !defined(CONFIG_CMD_NAND) */
     #if defined(CONFIG_USE_UBIFS)
         #define CONFIG_BOOTCOMMAND  "run flash_ubifs"
