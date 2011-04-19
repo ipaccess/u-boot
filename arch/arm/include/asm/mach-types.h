@@ -14235,6 +14235,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_kzm9g()	(0)
 #endif
 
+#ifdef CONFIG_MACH_PC7308
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_PC7308
+# endif
+# define machine_is_pc7308()	(machine_arch_type == MACH_TYPE_PC7308)
+#else
+# define machine_is_pc7308()	(0)
+#endif
+
 /*
  * These have not yet been registered
  */
