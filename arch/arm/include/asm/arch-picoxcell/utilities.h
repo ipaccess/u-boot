@@ -44,6 +44,22 @@ unsigned int picoxcell_get_revision (void);
 unsigned int picoxcell_get_rmii_enabled (void);
 
 /*!
+ * \brief Read a 32 bit value from an axi2cfg register.
+ *
+ * \param offs The register offset to read from
+ * \return The value read
+ */
+unsigned long axi2cfg_readl(unsigned long offs);
+
+ /*!
+  * \brief Write a 32 bit value to an axi2cfg register
+  *
+  * \param The value to write.
+  * \param The register offset to write to
+  */
+void axi2cfg_writel(unsigned long val, unsigned long offs);
+
+/*!
  * \brief Read a number of 16 bit words from the PC3xx axi2cfg.
  *
  * \param caeid The CAEID of the AE to read from.
@@ -81,12 +97,27 @@ u32 syscfg_read (void);
 void syscfg_update (u32 mask, u32 val);
 
 /*!
+ * \brief Are we running on a PC3x2 ?
+ *
+ * \return 1 if running on a PC3x2 device
+ *         0 if not running on a PC3x2 device
+ */
+int picoxcell_is_pc3x2(void);
+
+/*!
  * \brief Are we running on a PC3x3 ?
  *
  * \return 1 if running on a PC3x3 device
  *         0 if not running on a PC3x3 device
  */
-__inline int is_pc3x3 (void);
+int picoxcell_is_pc3x3(void);
+/*!
+ * \brief Are we running on a PC30xx ?
+ *
+ * \return 1 if running on a PC30xx device
+ *         0 if not running on a PC30xx device
+ */
+int picoxcell_is_pc30xx(void);
 
 /*!
  * Start a timer in free running mode

@@ -99,21 +99,8 @@ static struct gpio_desc gpio_desc[ARCH_NR_GPIOS];
 /* Functions --------------------------------------------------------------- */
 static int armgpio_request (struct gpio_chip *chip, unsigned offset)
 {
-	enum mux_setting mux;
-
 	if (test_and_set_bit (offset + chip->base, pin_status))
 		return -EBUSY;
-
-	/* Check the pin has been correctly multiplexed. */
-	mux = picoxcell_get_pin_mux (offset + chip->base);
-	if (!(mux & (MUX_ARM | MUX_UNMUXED))) {
-		/* The pin has an inconsistent mux setting. */
-		printf
-		    ("attempt to request armgpio%u which is not correctly multiplexed\n",
-		     chip->base + offset);
-		test_and_clear_bit (offset + chip->base, pin_status);
-		return -EIO;
-	}
 
 	return 0;
 }
@@ -129,7 +116,7 @@ static void armgpio_free (struct gpio_chip *chip, unsigned offset)
 
 static inline int armgpio_block_nr (unsigned gpio_nr)
 {
-	if (!is_pc3x3 ()) {
+	if (picoxcell_is_pc3x2 ()) {
 		/*
 		 * PC3X2 has GPIOs numbered in non contiguous blocks.
 		 */
@@ -170,7 +157,7 @@ static inline int armgpio_block_nr (unsigned gpio_nr)
 
 static inline unsigned armgpio_offset (unsigned offset)
 {
-	if (is_pc3x3 ()) {
+	if (picoxcell_is_pc3x3 ()) {
 		/*
 		 * The arm gpios in PC3x3 are controlled via three sets of
 		 * registers. The register addressing is already taken care
@@ -476,7 +463,7 @@ static int sdgpio_reset_config (unsigned block_pin, int value)
 
 static inline int sdgpio_block_nr (unsigned gpio_nr)
 {
-	if (is_pc3x3 ()) {
+	if (picoxcell_is_pc3x3 ()) {
 		return gpio_nr - PC3X3_GPIO_PIN_SDGPIO_0;
 	} else {
 		if (gpio_nr >= PC302_GPIO_PIN_SDGPIO_0 &&
@@ -490,23 +477,11 @@ static inline int sdgpio_block_nr (unsigned gpio_nr)
 static int sdgpio_request (struct gpio_chip *chip, unsigned offset)
 {
 	unsigned block_pin = sdgpio_block_nr (chip->base + offset);
-	enum mux_setting mux;
 
 	if (test_and_set_bit (offset + chip->base, pin_status))
 		return -EBUSY;
 
 	if (sdgpio_reset_config (block_pin, 1)) {
-		test_and_clear_bit (offset + chip->base, pin_status);
-		return -EIO;
-	}
-
-	/* Check the pin has been correctly multiplexed. */
-	mux = picoxcell_get_pin_mux (offset + chip->base);
-	if (!(mux & (MUX_SD | MUX_UNMUXED))) {
-		/* The pin has an inconsistent mux setting. */
-		printf
-		    ("attempt to request sdgpio%u which is not correctly multiplexed\n",
-		     block_pin);
 		test_and_clear_bit (offset + chip->base, pin_status);
 		return -EIO;
 	}
@@ -536,7 +511,7 @@ static int sdgpio_get_digital_out_status (u32 * v)
 				      &data[0], 1))
 		return -EIO;
 
-	if (is_pc3x3 ()) {
+	if (picoxcell_is_pc3x3 ()) {
 		if (1 != axi2cfg_config_read (PICOXCELL_AXI2PICO_CAEID,
 					      PICOXCELL_GPIO_SD_OUTPUT_HI_VAL_REG,
 					      &data[1], 1))
@@ -557,7 +532,7 @@ static int sdgpio_set_digital_out_status (u32 v)
 				       &data[0], 1))
 		return -EIO;
 
-	if (is_pc3x3 ()) {
+	if (picoxcell_is_pc3x3 ()) {
 		if (1 != axi2cfg_config_write (PICOXCELL_AXI2PICO_CAEID,
 					       PICOXCELL_GPIO_SD_OUTPUT_HI_VAL_REG,
 					       &data[1], 1))
@@ -614,7 +589,7 @@ static int sdgpio_get_digital_in_status (u32 * v)
 				      1))
 		return -EIO;
 
-	if (is_pc3x3 ()) {
+	if (picoxcell_is_pc3x3 ()) {
 		if (1 != axi2cfg_config_read (PICOXCELL_AXI2PICO_CAEID,
 					      PICOXCELL_GPIO_SD_INPUT_VAL_HI_REG,
 					      &data[1], 1))
@@ -932,7 +907,7 @@ int picoxcell_gpio_init (void)
 		return -EIO;
 	}
 
-	if (is_pc3x3 ()) {
+	if (picoxcell_is_pc3x3 ()) {
 		num_chips = ARRAY_SIZE (pc3x3_chips);
 		all_chips = pc3x3_chips;
 	} else {

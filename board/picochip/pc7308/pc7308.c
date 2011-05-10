@@ -22,6 +22,56 @@
 #include <asm/arch/picoxcell_gpio.h>
 
 /* Macros ------------------------------------------------------------------ */
+static struct mux_def pc30xx_hnb_mux[] = {
+	/*	Name		ARM	SD	PERIPH	REG	BIT	PERREG	PERBIT	FLAGS */
+	MUXGPIO(usim_clk,	0,	16,	USIM,	0x34,	0,	0xc0,	4,	MUX_INVERT_PERIPH),
+	MUXGPIO(usim_io,	1,	17,	USIM,	0x34,	1,	0xc0,	1,	MUX_INVERT_PERIPH),
+	MUXGPIO(usim_vcc,	2,	18,	RSVD,	0x34,	2,	-1,	-1,	0),
+	MUXGPIO(usim_rst,	3,	19,	RSVD,	0x34,	3,	-1,	-1,	0),
+	MUXGPIO(usim_cd,	4,	20,	RSVD,	0x34,	4,	-1,	-1,	0),
+	MUXGPIO(shd_gpio5,	5,	21,	RSVD,	0x34,	5,	-1,	-1,	0),
+	MUXGPIO(shd_gpio6,	6,	22,	RSVD,	0x34,	6,	-1,	-1,	0),
+	MUXGPIO(shd_gpio7,	7,	23,	RSVD,	0x34,	7,	-1,	-1,	0),
+	MUXGPIO(shd_gpio8,	8,	8,	RSVD,	0x34,	8,	-1,	-1,	0),
+	MUXGPIO(shd_gpio9,	9,	9,	RSVD,	0x34,	9,	-1,	-1,	0),
+	MUXGPIO(shd_gpio10,	10,	10,	RSVD,	0x34,	10,	-1,	-1,	0),
+	MUXGPIO(shd_gpio11,	11,	11,	RSVD,	0x34,	11,	-1,	-1,	0),
+	MUXGPIO(shd_gpio12,	12,	12,	RSVD,	0x34,	12,	-1,	-1,	0),
+	MUXGPIO(shd_gpio13,	13,	13,	RSVD,	0x34,	13,	-1,	-1,	0),
+	MUXGPIO(shd_gpio14,	14,	14,	RSVD,	0x34,	14,	-1,	-1,	0),
+	MUXGPIO(shd_gpio15,	15,	15,	FRACN,	0x34,	15,	0,	7,	MUX_INVERT_PERIPH),
+	MUXGPIO(boot_mode0,	16,	0,	RSVD,	0x34,	16,	-1,	-1,	0),
+	MUXGPIO(boot_mode1,	17,	1,	RSVD,	0x34,	17,	-1,	-1,	0),
+	MUXGPIO(input_clk_sel0,	18,	2,	RSVD,	0x34,	18,	-1,	-1,	0),
+	MUXGPIO(input_clk_sel1,	19,	3,	RSVD,	0x34,	19,	-1,	-1,	0),
+	MUXGPIO(ssi_data_out,	22,	6,	SSI,	0x34,	22,	0x44,	0,	0),
+	MUXGPIO(ssi_clk,	23,	7,	SSI,	0x34,	23,	0x44,	0,	0),
+	MUXGPIO(ssi_data_in,	24,	-1,	SSI,	-1,	-1,	0x44,	0,	0),
+	MUXGPIO(decode0,	25,	-1,	EBI,	-1,	-1,	0x40,	0,	0),
+	MUXGPIO(decode1,	26,	-1,	EBI,	-1,	-1,	0x40,	1,	0),
+	MUXGPIO(ebi_clk,	29,	-1,	EBI,	-1,	-1,	0x3c,	13,	0),
+	MUXGPIO(pai_tx_data0,	47,	-1,	PAI,	-1,	-1,	0x38,	0,	0),
+	MUXGPIO(pai_tx_data1,	48,	-1,	PAI,	-1,	-1,	0x38,	1,	0),
+	MUXGPIO(pai_tx_data2,	49,	-1,	PAI,	-1,	-1,	0x38,	2,	0),
+	MUXGPIO(pai_tx_data3,	50,	-1,	PAI,	-1,	-1,	0x38,	3,	0),
+	MUXGPIO(pai_tx_data4,	51,	-1,	PAI,	-1,	-1,	0x38,	4,	0),
+	MUXGPIO(pai_tx_data5,	52,	-1,	PAI,	-1,	-1,	0x38,	5,	0),
+	MUXGPIO(pai_tx_data6,	53,	-1,	PAI,	-1,	-1,	0x38,	6,	0),
+	MUXGPIO(pai_tx_data7,	54,	-1,	PAI,	-1,	-1,	0x38,	7,	0),
+	MUXGPIO(pai_rx_data0,	55,	-1,	PAI,	-1,	-1,	0x38,	8,	0),
+	MUXGPIO(pai_rx_data1,	56,	-1,	PAI,	-1,	-1,	0x38,	9,	0),
+	MUXGPIO(pai_rx_data2,	57,	-1,	PAI,	-1,	-1,	0x38,	10,	0),
+	MUXGPIO(pai_rx_data3,	58,	-1,	PAI,	-1,	-1,	0x38,	11,	0),
+	MUXGPIO(pai_rx_data4,	59,	-1,	PAI,	-1,	-1,	0x38,	12,	0),
+	MUXGPIO(pai_rx_data5,	60,	-1,	PAI,	-1,	-1,	0x38,	13,	0),
+	MUXGPIO(pai_rx_data6,	61,	-1,	PAI,	-1,	-1,	0x38,	14,	0),
+	MUXGPIO(pai_rx_data7,	62,	-1,	PAI,	-1,	-1,	0x38,	15,	0),
+
+	/*	   Name			Periph	PeriphB	Reg	Bit */
+	MUX2PERIPH(pad_pai_tx_clk,	PAI,	MAXIM,	0x4c,	0),
+	MUX2PERIPH(pad_pai_tx_ctrl,	PAI,	MAXIM,	0x4c,	0),
+	MUX2PERIPH(pad_pai_trig_clk,	PAI,	MAXIM,	0x4c,	0),
+};
 
 /* Constants --------------------------------------------------------------- */
 DECLARE_GLOBAL_DATA_PTR;
@@ -72,7 +122,7 @@ int board_init (void)
 	picoxcell_timer_start (0);
 
 	/* Initialise the gpio muxing library */
-	picoxcell_muxing_init ();
+	picoxcell_mux_register (pc30xx_hnb_mux, ARRAY_SIZE (pc30xx_hnb_mux));
 
 	/* Initialise the gpio library */
 	picoxcell_gpio_init ();

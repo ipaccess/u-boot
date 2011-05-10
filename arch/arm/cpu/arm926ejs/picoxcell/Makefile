@@ -51,6 +51,7 @@ COBJS-y += spi.o
 COBJS-y += utilities.o
 COBJS-y += mux.o
 COBJS-y += gpio.o
+COBJS-y += axi2cfg.o
 
 SRCS    := $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
 OBJS    := $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
