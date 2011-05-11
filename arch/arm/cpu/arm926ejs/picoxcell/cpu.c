@@ -41,35 +41,10 @@
  *****************************************************************************/
 int print_cpuinfo (void)
 {
-	unsigned int device_id, device_rev;
+	const char *part = picoxcell_get_partname ();
+	unsigned int revision = picoxcell_get_revision ();
 
-	printf ("CPU:   ");
-
-	device_id = picoxcell_get_device_id ();	/* Read the device id */
-	device_rev = picoxcell_get_revision ();	/* Read the revision code */
-
-	switch (device_id) {
-	case PC302_DEVICE_ID:
-		printf ("PC302 Rev %01d\n", device_rev);
-		break;
-	case PC312_DEVICE_ID:
-		printf ("PC312 Rev %01d\n", device_rev);
-		break;
-	case PC313_DEVICE_ID:
-		printf ("PC313 Rev %01d\n", device_rev);
-		break;
-	case PC323_DEVICE_ID:
-		printf ("PC323 Rev %01d\n", device_rev);
-		break;
-	case PC333_DEVICE_ID:
-		printf ("PC333 Rev %01d\n", device_rev);
-		break;
-	case PC3008_DEVICE_ID:
-		printf ("PC3008 Rev %01d\n", device_rev);
-		break;
-	default:
-		panic ("Unknown device type !\n");
-	}
+	printf ("CPU:   %s revision %u\n", part, revision);
 
 	return 0;
 }

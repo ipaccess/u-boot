@@ -24,9 +24,9 @@
 /*!
  * \brief Read the device identification code from the axi2cfg block
  *
- * \return The value read
+ * \return The device partname
  */
-unsigned int picoxcell_get_device_id (void);
+const char *picoxcell_get_partname(void);
 
 /*!
  * \brief Read the device revision from the axi2cfg block

@@ -56,14 +56,24 @@ picoxcell_write_register (const unsigned int value, const unsigned int address)
 	*(volatile unsigned int *)address = value;
 }
 
-unsigned int picoxcell_get_device_id (void)
+const char *picoxcell_get_partname (void)
 {
-	unsigned int device_id;
+	unsigned long dev_id = axi2cfg_readl (AXI2CFG_DEVICE_ID_REG_OFFSET);
+	const char *part = "<unknown>";
 
-	device_id = axi2cfg_readl (AXI2CFG_DEVICE_ID_REG_OFFSET);
-	device_id &= DEVICE_ID_MASK;
-
-	return device_id;
+	if (dev_id == 0x8003)
+		part = "pc302";
+	else if (dev_id == 0x8007)
+		part = "pc312";
+	else if (dev_id == 0x20)
+		part = "pc313";
+	else if (dev_id == 0x21)
+		part = "pc323";
+	else if (dev_id == 0x22)
+		part = "pc333";
+	else if (dev_id == 0x30)
+		part = "pc3008";
+	return part;
 }
 
 unsigned int picoxcell_get_revision (void)
