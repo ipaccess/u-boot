@@ -357,8 +357,7 @@ static int emac_init_phy (struct eth_device *dev)
 {
 	struct emac_priv *priv = dev->priv;
 
-	unsigned int device_id = picoxcell_get_device_id ();
-	unsigned int device_rev = picoxcell_get_revision ();
+	unsigned int rev = picoxcell_get_revision ();
 
 	/* Setup the MDIO bus for Phy communications */
 	emac_init_mdio ();
@@ -367,9 +366,8 @@ static int emac_init_phy (struct eth_device *dev)
 	 * Reduced MII (RMII) connected Ethernet Phy then we need the
 	 * link speed to be 100 mbps.
 	 */
-	if (((device_id == PC302_DEVICE_ID)
-	     || (device_id == PC312_DEVICE_ID))
-	    && (device_rev == PC3X2_REV_D) && picoxcell_get_rmii_enabled ()) {
+	if (picoxcell_is_pc3x2 () && (rev == PC3X2_REV_D)
+	    && picoxcell_is_rmii_enabled ()) {
 		/* Are we already set for 100 mpbs ? */
 		emac_phy_get_link_status (dev);
 		if (priv->speed == EMAC_PHY_SPEED_100) {

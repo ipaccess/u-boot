@@ -76,7 +76,7 @@ unsigned int picoxcell_get_revision (void)
 	return revision_code;
 }
 
-unsigned int picoxcell_get_rmii_enabled (void)
+unsigned int picoxcell_is_rmii_enabled (void)
 {
 	unsigned int rmii_enabled;
 
@@ -99,42 +99,42 @@ void syscfg_update (u32 mask, u32 val)
 	axi2cfg_writel (tmp, AXI2CFG_SYS_CONFIG_REG_OFFSET);
 }
 
-int picoxcell_is_pc3x2(void)
+int picoxcell_is_pc3x2 (void)
 {
-        unsigned long device_id = axi2cfg_readl (AXI2CFG_DEVICE_ID_REG_OFFSET);
+	unsigned long device_id = axi2cfg_readl (AXI2CFG_DEVICE_ID_REG_OFFSET);
 
-        switch (device_id) {
-        case 0x8003:
-        case 0x8007:
-                return 1;
-        default:
-                return 0;
-        }
+	switch (device_id) {
+	case 0x8003:
+	case 0x8007:
+		return 1;
+	default:
+		return 0;
+	}
 }
 
-int picoxcell_is_pc3x3(void)
+int picoxcell_is_pc3x3 (void)
 {
-        unsigned long device_id = axi2cfg_readl (AXI2CFG_DEVICE_ID_REG_OFFSET);
+	unsigned long device_id = axi2cfg_readl (AXI2CFG_DEVICE_ID_REG_OFFSET);
 
-        switch (device_id) {
-        case 0x20:
-        case 0x21:
-        case 0x22:
-                return 1;
-        default:
-                return 0;
-        }
+	switch (device_id) {
+	case 0x20:
+	case 0x21:
+	case 0x22:
+		return 1;
+	default:
+		return 0;
+	}
 }
 
-int picoxcell_is_pc30xx(void)
+int picoxcell_is_pc30xx (void)
 {
-        unsigned long device_id = axi2cfg_readl (AXI2CFG_DEVICE_ID_REG_OFFSET);
-        switch (device_id) {
-        case 0x30 ... 0x3F:
-                return 1;
-        default:
-                return 0;
-        }
+	unsigned long device_id = axi2cfg_readl (AXI2CFG_DEVICE_ID_REG_OFFSET);
+	switch (device_id) {
+	case 0x30 ... 0x3F:
+		return 1;
+	default:
+		return 0;
+	}
 }
 
 void picoxcell_timer_start (int timer)

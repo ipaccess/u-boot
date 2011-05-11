@@ -36,12 +36,12 @@ unsigned int picoxcell_get_device_id (void);
 unsigned int picoxcell_get_revision (void);
 
 /*!
- * \brief Return the state of the Reduced MII enabled bit.
+ * \brief Are we setup for Reduced MII ?
  *
  * \return 0 - RMII not enabled
  *         1 - RMII enabled
  */
-unsigned int picoxcell_get_rmii_enabled (void);
+unsigned int picoxcell_is_rmii_enabled (void);
 
 /*!
  * \brief Read a 32 bit value from an axi2cfg register.
