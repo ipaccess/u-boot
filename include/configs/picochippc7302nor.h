@@ -75,6 +75,16 @@
 #define CONFIG_SYS_TEXT_BASE        0x40000000
 #endif /* CONFIG_RUN_FROM_RAM */
 
+/* Default command line mtd partitioning */
+#define MTD_PARTITION_DEFAULT   "nor0,0"
+
+#define MTDIDS_DEFAULT          "nor0=physmap-flash"
+
+#define MTDPARTS_DEFAULT	"mtdparts=physmap-flash:256K(Boot),"\
+                                "128K(BootEnvironment),"\
+                                "4M(Kernel),"\
+                                "-(Application)"
+
 #include <configs/picochippc7302-common.h>
 
 #endif /* __CONFIG_PC7302_NOR__ */

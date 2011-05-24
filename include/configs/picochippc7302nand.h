@@ -83,6 +83,21 @@
 /* Build U-Boot to run at this address */
 #define CONFIG_SYS_TEXT_BASE    0x06000000
 
+/* Default command line mtd partitioning */
+#define MTD_PARTITION_DEFAULT   "nand0,0"
+
+#define MTDIDS_DEFAULT          "nand0=gpio-nand"
+
+#define MTDPARTS_DEFAULT	"mtdparts=gpio-nand:1M@0x100000(Boot),"\
+				"1M(RedundantBoot),"\
+				"128K(BootEnvironment),"\
+                                "128K(RedundantBootEnv),"\
+                                "8M@0x380000(KernelA),"\
+                                "80M(FileSystemA),"\
+                                "8M(Configuration),"\
+                                "8M(KernelB),"\
+                                "80M(FileSystemB)"
+
 #include <configs/picochippc7302-common.h>
 
 #endif /* __CONFIG_PC7302_NAND__ */

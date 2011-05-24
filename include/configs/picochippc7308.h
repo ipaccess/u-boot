@@ -284,6 +284,12 @@
 /* Enable command line editing and history */
 #define CONFIG_CMDLINE_EDITING
 
+#ifdef CONFIG_CMD_NAND
+/* Enable command line MTD partitioning */
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE
+#endif
+
 /*-----------------------------------------------------------------------------
  * Miscellaneous Configurable Options...
  */
@@ -309,6 +315,21 @@
 /* Default load address for tftp, bootm and friends */
 #define CONFIG_SYS_LOAD_ADDR    0x00200000
 #define CONFIG_LOADADDR         CONFIG_SYS_LOAD_ADDR
+
+/* Default command line mtd partitioning */
+#define MTD_PARTITION_DEFAULT   "nand0,0"
+
+#define MTDIDS_DEFAULT          "nand0=gpio-nand"
+
+#define MTDPARTS_DEFAULT	"mtdparts=gpio-nand:1M@0x100000(Boot),"\
+				"1M(RedundantBoot),"\
+				"128K(BootEnvironment),"\
+                                "128K(RedundantBootEnv),"\
+                                "8M@0x380000(KernelA),"\
+                                "80M(FileSystemA),"\
+                                "8M(Configuration),"\
+                                "8M(KernelB),"\
+                                "80M(FileSystemB)"
 
 /*-----------------------------------------------------------------------
  * Environment Configuration
@@ -376,9 +397,12 @@
    "nand_ubifs_args=setenv bootargs root=ubi0:rootfs rw rootfstype=ubifs "  \
    "ubi.mtd=$nand_ubifs_root,2048 "                                         \
    "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "        \
-   "console=$consoledev,$baudrate $othbootargs;\0"                          \
+   "console=$consoledev,$baudrate $mtdparts $othbootargs;\0"                \
    "nfs_args=setenv bootargs root=/dev/nfs rw nfsroot=$serverip:$rootpath " \
    "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "        \
-   "console=$consoledev,$baudrate $othbootargs;\0"                          \
+   "console=$consoledev,$baudrate $mtdparts $othbootargs;\0"                \
+   "partition=" MTD_PARTITION_DEFAULT "\0"                                  \
+   "mtdids=" MTDIDS_DEFAULT "\0"                                            \
+   "mtdparts=" MTDPARTS_DEFAULT "\0"
 
 #endif /* __CONFIG_PC7308_H */

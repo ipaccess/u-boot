@@ -241,6 +241,14 @@
 /* Enable command line editing and history */
 #define CONFIG_CMDLINE_EDITING
 
+/* Enable command line MTD partitioning */
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE
+
+#ifndef CONFIG_SYS_NO_FLASH
+#define CONFIG_FLASH_CFI_MTD
+#endif
+
 /*-----------------------------------------------------------------------------
  * Miscellaneous Configurable Options...
  */
@@ -345,18 +353,25 @@
    "fixed_nfs=run nfs_args; tftp; bootm\0"				    \
    "jffs2_args=setenv bootargs root=$nor_jffs2_root rw rootfstype=jffs2 "   \
    "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "        \
-   "console=$consoledev,$baudrate $othbootargs;\0"                          \
+   "console=$consoledev,$baudrate $mtdparts $othbootargs;\0"                \
    "ubifs_args=setenv bootargs root=ubi0:rootfs rw rootfstype=ubifs "       \
    "ubi.mtd=$nor_ubifs_root "                                               \
    "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "        \
-   "console=$consoledev,$baudrate $othbootargs;\0"                          \
+   "console=$consoledev,$baudrate $mtdparts $othbootargs;\0"                \
+   "nand_jffs2_args=setenv bootargs root=$nand_jffs2_root rw "              \
+   "rootfstype=jffs2 "                                                      \
+   "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "        \
+   "console=$consoledev,$baudrate $mtdparts $othbootargs;\0"                \
    "nand_ubifs_args=setenv bootargs root=ubi0:rootfs rw rootfstype=ubifs "  \
    "ubi.mtd=$nand_ubifs_root,2048 "                                         \
    "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "        \
-   "console=$consoledev,$baudrate $othbootargs;\0"                          \
+   "console=$consoledev,$baudrate $mtdparts $othbootargs;\0"                \
    "nfs_args=setenv bootargs root=/dev/nfs rw nfsroot=$serverip:$rootpath " \
    "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "        \
-   "console=$consoledev,$baudrate $othbootargs;"                            \
+   "console=$consoledev,$baudrate $mtdparts $othbootargs;\0"                \
+   "partition=" MTD_PARTITION_DEFAULT "\0"                                  \
+   "mtdids=" MTDIDS_DEFAULT "\0"                                            \
+   "mtdparts=" MTDPARTS_DEFAULT "\0"                                        \
 
 /* Define CONFIG_BOOTCOMMAND as
  * "run nand_ubifs" for boot from NAND flash with ubifs filesystem
