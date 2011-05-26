@@ -120,11 +120,18 @@ int picoxcell_is_pc3x3(void);
 int picoxcell_is_pc30xx(void);
 
 /*!
- * Start a timer in free running mode
+ * \brief Start a timer in free running mode
  *
  * \param timer, the timer to start
  */
 void picoxcell_timer_start (int timer);
+
+/*!
+ * \brief Enable a block clock
+ *
+ * \param clock, the block clock to enable
+ */
+void picoxcell_clk_enable (unsigned long clock);
 
 
 #endif /* __PICOXCELL_UTILS_H__ */

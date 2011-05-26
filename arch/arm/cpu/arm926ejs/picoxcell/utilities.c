@@ -167,3 +167,17 @@ void picoxcell_timer_start (int timer)
 				   TIMERNCONTROLREGOFFSET (timer)));
 
 }
+
+void picoxcell_clk_enable (unsigned long clock)
+{
+    unsigned long clk_gate;
+
+    if (picoxcell_is_pc30xx ())
+    {
+        clk_gate = axi2cfg_readl (AXI2CFG_CLK_GATING_REG_OFFSET);
+
+        /* Block clocks are enabled by disabling the clock gating */
+        clk_gate &= ~(clock);
+        axi2cfg_writel (clk_gate, AXI2CFG_CLK_GATING_REG_OFFSET);
+    }
+}

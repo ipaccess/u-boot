@@ -19,6 +19,7 @@
 #include <common.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/utilities.h>
+#include <asm/arch/axi2cfg.h>
 #include <asm/arch/picoxcell_gpio.h>
 
 /* Macros ------------------------------------------------------------------ */
@@ -117,6 +118,10 @@ int board_init (void)
 
 	/* Enable the Instruction Cache */
 	icache_enable ();
+
+        /* Turn on some picoxcell block clocks */
+        picoxcell_clk_enable (PICOXCELL_SSI_CLOCK);
+        picoxcell_clk_enable (PICOXCELL_NAND_CLOCK);
 
 	/* Start timer #0 */
 	picoxcell_timer_start (0);

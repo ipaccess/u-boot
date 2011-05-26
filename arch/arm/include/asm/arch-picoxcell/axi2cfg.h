@@ -158,4 +158,22 @@
 #define AXI2CFG_DMA_CHAN_7_MUX              (1 << AXI2CFG_DMA_CHAN_7_MUX_IDX)
 #define AXI2CFG_BOOT_MODE                   (1 << AXI2CFG_BOOT_MODE_IDX)
 
+/* Clock Control Stuff */
+#define PICOXCELL_TZ_PROT_CTRL_CLOCK        (1 << 0)
+#define PICOXCELL_SSI_CLOCK                 (1 << 1)
+#define PICOXCELL_DMAC_1_CLOCK              (1 << 2)
+#define PICOXCELL_DMAC_2_CLOCK              (1 << 3)
+#define PICOXCELL_EBI_CLOCK                 (1 << 4)
+#define PICOXCELL_SPACC_1_CLOCK             (1 << 5)
+#define PICOXCELL_SPACC_3_CLOCK             (1 << 6)
+#define PICOXCELL_TRNG_CLOCK                (1 << 7)
+#define PICOXCELL_AXI_FUSE_CLOCK            (1 << 8)
+#define PICOXCELL_AXI_ROM_CLOCK             (1 << 9)
+#define PICOXCELL_CASCADE_CLOCK             (1 << 10)
+#define PICOXCELL_NAND_CLOCK                (1 << 11)
+#define PICOXCELL_MEMIF_ARM_CLOCK           (1 << 12)
+#define PICOXCELL_MEMIF_SHD_SRAM_CLOCK      (1 << 13)
+#define PICOXCELL_MEMIF_SHD_SDRAM_CLOCK     (1 << 14)
+#define PICOXCELL_AXI2PICO_CLOCK            (1 << 15)
+
 #endif /* __PICOXCELL_AXI2CFG_H__ */
