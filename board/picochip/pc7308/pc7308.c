@@ -78,6 +78,21 @@ static struct mux_def pc30xx_hnb_mux[] = {
 DECLARE_GLOBAL_DATA_PTR;
 
 /* Prototypes--------------------------------------------------------------- */
+/*!
+ * \brief Return the state of the reset switch
+ *
+ * \return 1 is the reset switch is pressed
+ *         0 if the reset switch is not pressed
+ */
+static int is_reset_pressed (void);
+
+/*!
+ * \brief Perform factory reset action
+ *
+ * \return 0 if success
+ *         not 0 for failure
+ */
+static int factory_reset_action (void);
 
 /* Functions --------------------------------------------------------------- */
 
@@ -151,6 +166,28 @@ int checkboard (void)
 	return 0;
 }
 
+static int is_reset_pressed (void)
+{
+	unsigned int reset = 0;
+
+	reset =
+	    picoxcell_read_register (PICOXCELL_GPIO_BASE +
+				     GPIO_EXT_PORT_A_REG_OFFSET);
+	reset &= CONFIG_SYS_RESET_PIN;
+
+	return !reset;
+}
+
+static int factory_reset_action (void)
+{
+        /* This function needs to implement some as yet
+         * undefined action
+         */
+        printf ("Factory reset requested...\n");
+
+        return 0;
+}
+
 /*****************************************************************************
  *
  * misc_init_r()
@@ -162,7 +199,29 @@ int checkboard (void)
  *****************************************************************************/
 int misc_init_r (void)
 {
-	/* Not used right now, function template left here as a place holder */
+	unsigned int timebase = 0;
+	int reset_held = 1;
+
+	/* Check to see if the reset push button is being held down.
+	 * If it is held down long enough we will be looking at a
+	 * factory reset situation...
+	 */
+	if (is_reset_pressed ()) {
+
+		timebase = get_timer (0);
+		do {
+			if (!is_reset_pressed ()) {
+				reset_held = 0;
+				break;
+			}
+		}
+		while (get_timer (timebase) < CONFIG_SYS_RESET_DELAY);
+
+		if (reset_held) {
+			/* Factory reset requested */
+                        factory_reset_action ();
+                }
+	}
 	return 0;
 }
 

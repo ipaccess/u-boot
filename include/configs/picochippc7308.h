@@ -20,6 +20,7 @@
 
 #include <asm/arch/picoxcell.h>
 #include <asm/arch/uart.h>
+#include <asm/arch/gpio.h>
 #include <asm/sizes.h>
 
 /*-----------------------------------------------------------------------------
@@ -337,6 +338,19 @@
                                 "8M(Configuration),"\
                                 "8M(KernelB),"\
                                 "80M(FileSystemB)"
+
+/* Timeout delay (mS) used for checking for the reset button
+ * being held down at boot time.
+ */
+#define CONFIG_SYS_RESET_DELAY (10000)
+
+/* Which arm gpio pin the reset button is wired to */
+#define CONFIG_SYS_RESET_PIN   (GPIO_BIT_6)
+
+/* The check for factory reset request is contained in the
+ * misc_init_r function
+ */
+#define CONFIG_MISC_INIT_R
 
 /*-----------------------------------------------------------------------
  * Environment Configuration
