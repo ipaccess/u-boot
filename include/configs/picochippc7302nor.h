@@ -80,7 +80,8 @@
 
 #define MTDIDS_DEFAULT          "nor0=physmap-flash"
 
-#define MTDPARTS_DEFAULT	"mtdparts=physmap-flash:256K(Boot),"\
+#define MTDPARTS_DEFAULT	"mtdparts=physmap-flash:"\
+                                "256K(Boot),"\
                                 "128K(BootEnvironment),"\
                                 "4M(Kernel),"\
                                 "-(Application)"

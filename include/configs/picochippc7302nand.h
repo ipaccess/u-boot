@@ -88,7 +88,8 @@
 
 #define MTDIDS_DEFAULT          "nand0=gpio-nand"
 
-#define MTDPARTS_DEFAULT	"mtdparts=gpio-nand:1M@0x100000(Boot),"\
+#define MTDPARTS_DEFAULT	"mtdparts=gpio-nand:"\
+                                "1M@1M(Boot),"\
 				"1M(RedundantBoot),"\
 				"128K(BootEnvironment),"\
                                 "128K(RedundantBootEnv),"\
