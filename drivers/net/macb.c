@@ -487,6 +487,23 @@ static int macb_phy_init(struct macb_device *macb)
 	return 1;
 }
 
+/*
+ * Configure the receive DMA engine to use the correct receive buffer size.
+ * This is a configurable parameter for GEM.
+ */
+static void macb_configure_dma(struct macb_device *macb)
+{
+	u32 dmacfg;
+	u32 rx_ring_buf_size = CONFIG_SYS_MACB_RX_BUFFER_SIZE /
+			       CONFIG_SYS_MACB_RX_RING_SIZE;
+
+	if (macb->is_gem) {
+		dmacfg = gem_readl(macb, DMACFG) & ~GEM_BF(RXBS, -1L);
+		dmacfg |= GEM_BF(RXBS, rx_ring_buf_size / 64);
+		gem_writel(macb, DMACFG, dmacfg);
+	}
+}
+
 static int macb_init(struct eth_device *netdev, bd_t *bd)
 {
 	struct macb_device *macb = to_macb(netdev);
@@ -515,6 +532,8 @@ static int macb_init(struct eth_device *netdev, bd_t *bd)
 			macb->tx_ring[i].ctrl = TXBUF_USED;
 	}
 	macb->rx_tail = macb->tx_head = macb->tx_tail = 0;
+
+	macb_configure_dma(macb);
 
 	macb_writel(macb, RBQP, macb->rx_ring_dma);
 	macb_writel(macb, TBQP, macb->tx_ring_dma);
