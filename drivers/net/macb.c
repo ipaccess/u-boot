@@ -375,6 +375,73 @@ static int macb_phy_find(struct macb_device *macb)
 }
 #endif /* CONFIG_MACB_SEARCH_PHY */
 
+#if defined (CONFIG_PICOCHIP_PC7302)
+static int is_link_speed_100mpbs(struct macb_device *macb)
+{
+	u16 status, adv, lpa;
+
+	int media;
+
+	status = macb_mdio_read(macb, MII_BMSR);
+	if (!(status & BMSR_LSTATUS)) {
+		/* No link setup */
+		return 0;
+	}
+
+	/* We have a link, get the speed */
+	adv = macb_mdio_read(macb, MII_ADVERTISE);
+	lpa = macb_mdio_read(macb, MII_LPA);
+	media = mii_nway_result(lpa & adv);
+
+	return media & (ADVERTISE_100FULL | ADVERTISE_100HALF) ? 1 : 0;
+}
+
+static void setup_autoneg_advertisment(struct macb_device *macb)
+{
+	u16 adv;
+
+	adv = ADVERTISE_CSMA | ADVERTISE_100HALF | ADVERTISE_100FULL;
+	macb_mdio_write (macb, MII_ADVERTISE, adv);
+}
+
+static void restart_phy_autoneg(struct macb_device *macb)
+{
+	macb_mdio_write (macb, MII_BMCR, (BMCR_ANENABLE | BMCR_ANRESTART));
+
+	/* Make sure the autonegotiation has started */
+	udelay (100);
+}
+
+static void wait_for_autonegotiation_complete(struct macb_device *macb)
+{
+	int i;
+
+	u16 status;
+
+	for (i = 0; i < CONFIG_SYS_MACB_AUTONEG_TIMEOUT / 100; i++) {
+		status = macb_mdio_read(macb, MII_BMSR);
+		if (status & BMSR_ANEGCOMPLETE)
+			break;
+		udelay(100);
+	}
+}
+
+static void picoxcell_rmii_fixup(struct macb_device *macb)
+{
+	unsigned int rev = picoxcell_get_revision ();
+
+	/* If we are running on PC3x2 Rev D silicon and we are using a
+	 * Reduced MII (RMII) connected Ethernet Phy then we need the
+	 * link speed to be 100 mbps.
+	 */
+	if (picoxcell_is_pc3x2 () && (rev == PC3X2_REV_D) &&
+	    picoxcell_is_rmii_enabled () && !is_link_speed_100mpbs(macb)) {
+		setup_autoneg_advertisment(macb);
+		restart_phy_autoneg(macb);
+		wait_for_autonegotiation_complete(macb);
+	}
+}
+#endif
 
 static int macb_phy_init(struct macb_device *macb)
 {
@@ -412,6 +479,10 @@ static int macb_phy_init(struct macb_device *macb)
 	}
 
 	phy_config(phydev);
+#endif
+
+#if defined (CONFIG_PICOCHIP_PC7302)
+        picoxcell_rmii_fixup(macb);
 #endif
 
 	status = macb_mdio_read(macb, MII_BMSR);
