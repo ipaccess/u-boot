@@ -131,9 +131,6 @@ int board_init (void)
 
 	gd->flags = 0;
 
-	/* Enable the Instruction Cache */
-	icache_enable ();
-
         /* Turn on some picoxcell block clocks */
         picoxcell_clk_enable (PICOXCELL_SSI_CLOCK);
         picoxcell_clk_enable (PICOXCELL_NAND_CLOCK);

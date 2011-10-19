@@ -160,9 +160,6 @@ int board_init (void)
 
 	gd->flags = 0;
 
-	/* Enable the Instruction Cache */
-	icache_enable ();
-
 	/* Start timer #0 */
 	picoxcell_timer_start (0);
 

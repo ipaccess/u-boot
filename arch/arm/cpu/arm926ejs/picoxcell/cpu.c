@@ -53,3 +53,10 @@ int cpu_eth_init (bd_t *bis)
 
 	return ret;
 }
+
+void enable_caches(void)
+{
+#ifndef CONFIG_SYS_ICACHE_OFF
+	icache_enable();
+#endif
+}
