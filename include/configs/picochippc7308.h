@@ -206,7 +206,7 @@
  * Ethernet Stuff
  */
 #define CONFIG_MACB
-#define CONFIG_PHY_ADDR         (1)
+#define CONFIG_PHY_ADDR         (3)
 #define CONFIG_NET_MULTI
 
 /*-----------------------------------------------------------------------------
