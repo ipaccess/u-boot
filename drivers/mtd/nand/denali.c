@@ -1292,6 +1292,7 @@ static void denali_hw_init (struct denali_nand_info *denali)
 {
 	nand_dbg ("denali_hw_init()\n");
 
+        denali_enable_dma (denali, false); 
         detect_max_banks (denali);
 
 	/* tell driver how many bit controller will skip before
