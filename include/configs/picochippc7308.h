@@ -130,7 +130,7 @@
 #define CONFIG_SYS_SDRAM_BASE	(0x00000000)
 #define CONFIG_NR_DRAM_BANKS    (1)
 #define PHYS_SDRAM_1		(PICOXCELL_DDRBANK_BASE)
-#define PHYS_SDRAM_1_SIZE	(SZ_128M)
+#define PHYS_SDRAM_1_SIZE	(SZ_64M)
 
 /*-----------------------------------------------------------------------------
  * SPI Flash Memory Stuff
