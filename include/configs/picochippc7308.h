@@ -407,7 +407,7 @@
 #define OTHERBOOTARGS
 
 /* Define the UBIFS root filesystem partition for NAND Flash */
-#define NAND_UBIFS_ROOT         5
+#define NAND_UBIFS_ROOT         9
 
 /* Define CONFIG_BOOTCOMMAND as */
 #define CONFIG_BOOTCOMMAND  "run nand_ubifs"
