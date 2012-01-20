@@ -182,7 +182,7 @@ static void reset_bank (struct denali_nand_info *denali)
 	irq_status = wait_for_irq (denali, irq_mask);
 
 	if (irq_status & INTR_STATUS__TIME_OUT)
-		printf ("reset bank failed.\n");
+		printf ("reset bank (#%d) failed.\n", denali->flash_bank);
 }
 
 /* Reset the flash controller */
@@ -1292,7 +1292,7 @@ static void denali_hw_init (struct denali_nand_info *denali)
 {
 	nand_dbg ("denali_hw_init()\n");
 
-        denali_enable_dma (denali, false); 
+        denali_enable_dma (denali, false);
         detect_max_banks (denali);
 
 	/* tell driver how many bit controller will skip before
@@ -1306,15 +1306,15 @@ static void denali_hw_init (struct denali_nand_info *denali)
 	denali_nand_reset (denali);
 	iowrite32 (((1 << denali->max_banks) - 1),
 		   denali->flash_reg + RB_PIN_ENABLED);
-	//iowrite32 (CHIP_EN_DONT_CARE__FLAG,
-	//	   denali->flash_reg + CHIP_ENABLE_DONT_CARE);
+	iowrite32 (CHIP_EN_DONT_CARE__FLAG,
+		   denali->flash_reg + CHIP_ENABLE_DONT_CARE);
 
 	iowrite32 (0xffff, denali->flash_reg + SPARE_AREA_MARKER);
         iowrite32 (2, denali->flash_reg + SPARE_AREA_SKIP_BYTES);
         denali->bbtskipbytes = 2;
 
 	/* Should set value for these registers when init */
-	//iowrite32 (0, denali->flash_reg + TWO_ROW_ADDR_CYCLES);
+	iowrite32 (0, denali->flash_reg + TWO_ROW_ADDR_CYCLES);
 	iowrite32 (1, denali->flash_reg + ECC_ENABLE);
 
 	denali_nand_timing_set (denali);
@@ -1381,8 +1381,6 @@ int board_nand_init (struct nand_chip *nand)
 	denali->nand = nand;
 	nand->priv = denali;
 
-        denali->max_banks=1;
-
         nand->numchips = CONFIG_SYS_NAND_MAX_CHIPS;
 
 	denali->flash_reg = (unsigned char *)PICOXCELL_NAND_BASE;
@@ -1429,7 +1427,7 @@ int board_nand_init (struct nand_chip *nand)
 
 	/* skip the scan for now until we have OOB read and write support */
 	nand->options |= NAND_USE_FLASH_BBT | NAND_SKIP_BBTSCAN;
-	nand->ecc.mode = NAND_ECC_HW;
+	nand->ecc.mode = NAND_ECC_HW_SYNDROME;
 
 	/* Denali Controller only support 15bit and 8bit ECC in MRST,
 	 * so just let controller do 15bit ECC for MLC and 8bit ECC for
