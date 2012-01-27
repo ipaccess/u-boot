@@ -328,9 +328,9 @@
 /* Default command line mtd partitioning */
 #define MTD_PARTITION_DEFAULT   "nand0,0"
 
-#define MTDIDS_DEFAULT          "nand0=gpio-nand"
+#define MTDIDS_DEFAULT          "nand0=denali-nand"
 
-#define MTDPARTS_DEFAULT	"mtdparts=gpio-nand:"\
+#define MTDPARTS_DEFAULT	"mtdparts=denali-nand:"\
                                 "128K(NandFirstStage0),"\
                                 "128K(NandFirstStage1),"\
                                 "128K(NandFirstStage2),"\
