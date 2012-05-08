@@ -6,7 +6,7 @@
  * \file timer.c
  * \brief Useful functions for timer implementation.
  *
- * Copyright (c) 2006-2011 Picochip Ltd
+ * Copyright (c) 2006-2012 Picochip Ltd
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -145,4 +145,16 @@ void __udelay (unsigned long usec)
 	tmp = get_ticks () + tmo;
 
 	while (get_ticks () < tmp) ;
+}
+
+/*
+ * This function is derived from PowerPC code (timebase clock frequency).
+ * On ARM it returns the number of timer ticks per second.
+ */
+ulong get_tbclk (void)
+{
+	ulong tbclk;
+
+	tbclk = CONFIG_SYS_HZ;
+	return tbclk;
 }
