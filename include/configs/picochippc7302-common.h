@@ -6,7 +6,7 @@
 * \file picochippc7302.h
 * \brief Configuration file for U-Boot on the PC7302 platform.
 *
-* Copyright (c) 2006-2011 Picochip Ltd
+* Copyright (c) 2006-2012 Picochip Ltd
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License version 2 as
@@ -294,8 +294,8 @@
 #define CONFIG_IPADDR           172.17.13.248
 
 #define CONFIG_HOSTNAME	        picopc7302
-#define CONFIG_ROOTPATH	        /var/nfspc7302
-#define CONFIG_BOOTFILE	        uImage-pc7302
+#define CONFIG_ROOTPATH	        "/var/nfspc7302"
+#define CONFIG_BOOTFILE	        "uImage-pc7302"
 
 #define CONFIG_SERVERIP         172.17.7.100
 #define CONFIG_GATEWAYIP        172.17.0.1
