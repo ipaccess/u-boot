@@ -188,15 +188,11 @@ c_runtime_cpu_setup:
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
 cpu_init_crit:
 	/*
-	 * flush D cache before disabling it
+	 * flush v4 I/D caches
 	 */
 	mov	r0, #0
-flush_dcache:
-	mrc	p15, 0, r15, c7, c10, 3
-	bne	flush_dcache
-
-	mcr	p15, 0, r0, c8, c7, 0	/* invalidate TLB */
-	mcr	p15, 0, r0, c7, c5, 0	/* invalidate I Cache */
+	mcr	p15, 0, r0, c7, c7, 0	/* flush v3/v4 cache */
+	mcr	p15, 0, r0, c8, c7, 0	/* flush v4 TLB */
 
 	/*
 	 * disable MMU and D cache
