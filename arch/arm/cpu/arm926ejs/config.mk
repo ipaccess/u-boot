@@ -5,7 +5,7 @@
 # SPDX-License-Identifier:	GPL-2.0+
 #
 
-PLATFORM_CPPFLAGS += -march=armv5te
+PLATFORM_CPPFLAGS += -march=armv5
 # =========================================================================
 #
 # Supply options according to compiler version
