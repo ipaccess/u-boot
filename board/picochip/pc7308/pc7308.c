@@ -6,7 +6,7 @@
 * \file pc7308.c
 * \brief Various useful functions for use on a PC7308 Platform.
 *
-* Copyright (c) 2006-2011 Picochip Ltd
+* Copyright (c) 2006-2012 Picochip Ltd
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License version 2 as
@@ -233,7 +233,7 @@ int misc_init_r (void)
  *****************************************************************************/
 int dram_init (void)
 {
-	gd->ram_size = get_ram_size ((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	gd->ram_size = PHYS_SDRAM_1_SIZE;
 
 	return 0;
 }
@@ -244,12 +244,9 @@ int dram_init (void)
  *
  * Purpose: Initialize the the bd_t dram bank info.
  *
- * Returns: 0 - Success
- *
  *****************************************************************************/
 void dram_init_banksize (void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size =
-	    get_ram_size ((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
 }
