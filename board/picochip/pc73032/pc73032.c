@@ -248,7 +248,9 @@ int dram_init (void)
 void dram_init_banksize (void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
+	gd->bd->bi_dram[0].size =
+	    is_memif_arm_usable_on_pc30xx ()? PHYS_SDRAM_1_SIZE
+	    : (PHYS_SDRAM_1_SIZE / 2);
 }
 
 /*****************************************************************************

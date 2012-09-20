@@ -72,6 +72,6 @@
 /*****************************************************************************/
 
 #define FUSE_WRITE_FUSE_ENABLE          (0x66757365)
-#define PICOXCELL_DISABLE_MEMIF_ARM     (1 << 10)
+#define PICOXCELL_DISABLE_MEMIF_ARM     (1 << 9)
 
 #endif /*__PICOXCELL_FUSE_H__ */
