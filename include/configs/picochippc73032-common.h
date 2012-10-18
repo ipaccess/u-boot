@@ -313,7 +313,7 @@
 #define CONFIG_NETMASK          255.255.0.0
 
 /* Enable the MII utility commands */
-#define CONFIG_CMD_MII
+#undef CONFIG_CMD_MII
 
 #endif /* CONFIG_MACB */
 
