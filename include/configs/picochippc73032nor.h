@@ -26,9 +26,6 @@
 /* Define Flash memory sector size */
 #define FLASH_SECTOR_SIZE	(SZ_128K)
 
-/* Use buffered writes to flash memory */
-#define CONFIG_SYS_FLASH_USE_BUFFER_WRITE
-
 /* Maximum number of memory banks (devices) */
 #define CONFIG_SYS_MAX_FLASH_BANKS  (1)
 
