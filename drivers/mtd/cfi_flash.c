@@ -1673,6 +1673,11 @@ static void cmdset_amd_read_jedec_ids(flash_info_t *info)
 {
 	ushort bankId = 0;
 	uchar  manuId;
+	uchar portwidth;
+
+	portwidth = info->portwidth;
+	if(info->chipwidth == FLASH_CFI_8BIT)
+		info->portwidth = FLASH_CFI_8BIT;
 
 	flash_write_cmd(info, 0, 0, AMD_CMD_RESET);
 	flash_unlock_seq(info, 0);
@@ -1691,14 +1696,14 @@ static void cmdset_amd_read_jedec_ids(flash_info_t *info)
 	switch (info->chipwidth){
 	case FLASH_CFI_8BIT:
 		info->device_id = flash_read_uchar (info,
-						FLASH_OFFSET_DEVICE_ID);
+						FLASH_OFFSET_DEVICE_ID * portwidth);
 		if (info->device_id == 0x7E) {
 			/* AMD 3-byte (expanded) device ids */
 			info->device_id2 = flash_read_uchar (info,
-						FLASH_OFFSET_DEVICE_ID2);
+						FLASH_OFFSET_DEVICE_ID2 * portwidth);
 			info->device_id2 <<= 8;
 			info->device_id2 |= flash_read_uchar (info,
-						FLASH_OFFSET_DEVICE_ID3);
+						FLASH_OFFSET_DEVICE_ID3 * portwidth);
 		}
 		break;
 	case FLASH_CFI_16BIT:
@@ -1717,6 +1722,9 @@ static void cmdset_amd_read_jedec_ids(flash_info_t *info)
 		break;
 	}
 	flash_write_cmd(info, 0, 0, AMD_CMD_RESET);
+
+	info->portwidth = portwidth;
+
 	udelay(1);
 }
 
