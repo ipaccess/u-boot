@@ -2249,6 +2249,17 @@ ulong flash_get_size (phys_addr_t base, int banknum)
 			info->portwidth >>= 1;
 		}
 
+                /* M29EW256M: buffer size workaround in x8 mode */
+                if (info->chipwidth == FLASH_CFI_BY8 &&
+                    info->manufacturer_id == 0x89    &&
+                    info->device_id == 0x7E          &&
+                    (info->device_id2 == 0x2201 ||
+                     info->device_id2==0x2301   ||
+                     info->device_id2==0x2801)       &&
+                     info->buffer_size > 256) {
+
+                        info->buffer_size = 256;
+                }
 		flash_write_cmd (info, 0, 0, info->cmd_reset);
 	}
 
