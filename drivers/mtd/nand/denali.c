@@ -767,9 +767,9 @@ static int write_oob_data (struct mtd_info *mtd, uint8_t * buf, int page)
 	struct nand_chip *nand = mtd->priv;
 	struct denali_nand_info *denali = nand->priv;
 
-	uint32_t irq_status = 0;
+	uint32_t irq_status = 0, addr = 0x0, cmd = 0x0;
 	uint32_t irq_mask = INTR_STATUS__PROGRAM_COMP |
-	    INTR_STATUS__PROGRAM_FAIL;
+	                    INTR_STATUS__PROGRAM_FAIL;
 	int status = 0;
 
 	nand_dbg ("write_oob_data()\n");
@@ -791,7 +791,18 @@ static int write_oob_data (struct mtd_info *mtd, uint8_t * buf, int page)
 		printf ("unable to send pipeline command.\n");
 		status = -EIO;
 	}
-	return status;
+
+	/* We set the device back to MAIN_ACCESS here as I observed
+	 * instability with the controller if you do a block erase
+	 * and the last transaction was a SPARE_ACCESS. Block erase
+	 * is reliable (according to the MTD test infrastructure)
+	 * if you are in MAIN_ACCESS.
+	 */
+	addr = BANK (denali->flash_bank) | denali->page;
+	cmd = MODE_10 | addr;
+	index_addr (denali, (uint32_t) cmd, MAIN_ACCESS);
+
+        return status;
 }
 
 /* reads OOB data from the device */
@@ -800,8 +811,8 @@ static void read_oob_data (struct mtd_info *mtd, uint8_t * buf, int page)
 	struct nand_chip *nand = mtd->priv;
 	struct denali_nand_info *denali = nand->priv;
 
-	uint32_t irq_mask = INTR_STATUS__LOAD_COMP,
-	    irq_status = 0, addr = 0x0, cmd = 0x0;
+	uint32_t irq_status = 0, addr = 0x0, cmd = 0x0;
+	uint32_t irq_mask = INTR_STATUS__LOAD_COMP;
 
 	nand_dbg ("read_oob_data()\n");
 
@@ -1062,11 +1073,7 @@ static int denali_write_oob (struct mtd_info *mtd, struct nand_chip *chip,
 static int denali_read_oob (struct mtd_info *mtd, struct nand_chip *chip,
 			    int page, int sndcmd)
 {
-	struct denali_nand_info *denali = chip->priv;
-
-        reset_buf (denali);
-        read_oob_data (mtd, denali->buf.buf, page);
-
+	read_oob_data (mtd, chip->oob_poi, page);
 	return 0;
 }
 
@@ -1425,8 +1432,6 @@ int board_nand_init (struct nand_chip *nand)
 	nand->bbt_td = &bbt_main_descr;
 	nand->bbt_md = &bbt_mirror_descr;
 
-	/* skip the scan for now until we have OOB read and write support */
-	nand->options |= NAND_USE_FLASH_BBT | NAND_SKIP_BBTSCAN;
 	nand->ecc.mode = NAND_ECC_HW_SYNDROME;
 
 	/* Denali Controller only support 15bit and 8bit ECC in MRST,
