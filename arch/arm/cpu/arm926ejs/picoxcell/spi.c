@@ -6,7 +6,7 @@
  * \file spi.c
  * \brief SPI driver.
  *
- * Copyright (c) 2006-2011 Picochip Ltd
+ * Copyright (c) 2006-2012 Picochip Ltd
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -25,6 +25,7 @@
 #include <asm/arch/picoxcell.h>
 #include <asm/arch/spi.h>
 #include <asm/arch/axi2cfg.h>
+#include <asm/arch/utilities.h>
 
 /* Macros ------------------------------------------------------------------ */
 /*!
@@ -81,6 +82,9 @@ struct picoxcell_spi_slave {
 
 	/* Keep a count of the data to tx */
 	unsigned int byte_count_tx;
+
+	/* copy of the decode mux register */
+	unsigned int decode_mux_saved;
 };
 
 /*!
@@ -501,6 +505,7 @@ void spi_cs_activate (struct spi_slave *slave)
 	struct picoxcell_spi_slave *spi_slave;
 	u16 chip_select = 0;
 	u32 system_config = 0;
+	u32 decode_mux;
 
 	/* Have we been passed a valid data structure handle ? */
 	if (slave == NULL) {
@@ -522,16 +527,29 @@ void spi_cs_activate (struct spi_slave *slave)
 	SPI_WRITE ((1 << chip_select), SSI_SLAVE_ENABLE_REG_OFFSET);
 
 	/* Sort out the SPI/EBI chip select muxing */
-	system_config = AXI2CFG_READ (AXI2CFG_SYS_CONFIG_REG_OFFSET);
-	system_config &= ~(AXI2CFG_DECODE_MUX_0 |
-			   AXI2CFG_DECODE_MUX_1 |
-			   AXI2CFG_DECODE_MUX_2 | AXI2CFG_DECODE_MUX_3);
+	if (picoxcell_is_pc30xx()) {
+		decode_mux = AXI2CFG_READ (AXI2CFG_DECODE_MUX_REG_OFFSET);
+		spi_slave->decode_mux_saved = decode_mux;
+		decode_mux &= ~(0x3 << (chip_select *
+			                PC30XX_SPI_DECODE_STEP_SIZE));
+		decode_mux |= 1 << (chip_select *
+			            PC30XX_SPI_DECODE_STEP_SIZE);
+		AXI2CFG_WRITE (decode_mux, AXI2CFG_DECODE_MUX_REG_OFFSET);
+        }
+	else {
 
-	AXI2CFG_WRITE (system_config, AXI2CFG_SYS_CONFIG_REG_OFFSET);
+	        system_config = AXI2CFG_READ (AXI2CFG_SYS_CONFIG_REG_OFFSET);
+	        system_config &= ~(AXI2CFG_DECODE_MUX_0 |
+		        	   AXI2CFG_DECODE_MUX_1 |
+			           AXI2CFG_DECODE_MUX_2 |
+		        	   AXI2CFG_DECODE_MUX_3);
+	        AXI2CFG_WRITE (system_config, AXI2CFG_SYS_CONFIG_REG_OFFSET);
+	}
 }
 
 void spi_cs_deactivate (struct spi_slave *slave)
 {
+	struct picoxcell_spi_slave *spi_slave;
 	u32 system_config = 0;
 
 	/* Have we been passed a valid data structure handle ? */
@@ -542,6 +560,8 @@ void spi_cs_deactivate (struct spi_slave *slave)
 		return;
 	}
 
+	spi_slave = container_of (slave, struct picoxcell_spi_slave, slave);
+
 	/* Make sure the SPI is disabled */
 	SPI_WRITE (PICOXCELL_SPI_DISABLE, SSI_ENABLE_REG_REG_OFFSET);
 
@@ -549,12 +569,18 @@ void spi_cs_deactivate (struct spi_slave *slave)
 	SPI_WRITE (PICOXCELL_SPI_SLAVES_DISABLE, SSI_SLAVE_ENABLE_REG_OFFSET);
 
 	/* Sort out the SPI/EBI chip select muxing */
-	system_config = AXI2CFG_READ (AXI2CFG_SYS_CONFIG_REG_OFFSET);
-	system_config |= (AXI2CFG_DECODE_MUX_0 |
-			  AXI2CFG_DECODE_MUX_1 |
-			  AXI2CFG_DECODE_MUX_2 | AXI2CFG_DECODE_MUX_3);
-
-	AXI2CFG_WRITE (system_config, AXI2CFG_SYS_CONFIG_REG_OFFSET);
+	if (picoxcell_is_pc30xx()) {
+		AXI2CFG_WRITE (spi_slave->decode_mux_saved,
+                               AXI2CFG_DECODE_MUX_REG_OFFSET);
+        }
+	else {
+	        system_config = AXI2CFG_READ (AXI2CFG_SYS_CONFIG_REG_OFFSET);
+	        system_config |= (AXI2CFG_DECODE_MUX_0 |
+			          AXI2CFG_DECODE_MUX_1 |
+			          AXI2CFG_DECODE_MUX_2 |
+		        	  AXI2CFG_DECODE_MUX_3);
+	        AXI2CFG_WRITE (system_config, AXI2CFG_SYS_CONFIG_REG_OFFSET);
+	}
 }
 
 #endif /* CONFIG_DW_SPI */

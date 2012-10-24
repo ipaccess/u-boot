@@ -41,6 +41,7 @@
 #define AXI2CFG_CLK_GATING_REG_OFFSET               (0x0048)
 #define AXI2CFG_ARM_PLL_CLK_REG_OFFSET              (0x0050)
 #define AXI2CFG_FREQ_SENSE_REG_OFFSET               (0x0054)
+#define AXI2CFG_DECODE_MUX_REG_OFFSET               (0x0064)
 #define AXI2CFG_ID_REG_OFFSET                       (0x0068)
 #define AXI2CFG_CONFIG_WRITE_REG_OFFSET             (0x0100)
 #define AXI2CFG_CONFIG_READ_REG_OFFSET              (0x0200)
@@ -184,5 +185,8 @@
 
 /* Id Register Stuff */
 #define PICOXCELL_MEMIF_ARM_NOT_PRESENT     (1 << 10)
+
+/* PC30XX Decode Mux stuff */
+#define PC30XX_SPI_DECODE_STEP_SIZE         (8)
 
 #endif /* __PICOXCELL_AXI2CFG_H__ */
