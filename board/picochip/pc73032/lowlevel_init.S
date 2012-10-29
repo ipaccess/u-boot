@@ -80,7 +80,7 @@
         nop
         nop
 
-        push    {r0-r14}
+        push    {r0-r12, r14}
 
         bl      initialiseBootErrorPin
 
@@ -89,7 +89,7 @@
 
         bl      pc30xx_memif_arm_init
 
-        pop {r0-r14}
+        pop     {r0-r12, r14}
 
         /* Return to my caller */
         mov	pc, lr
