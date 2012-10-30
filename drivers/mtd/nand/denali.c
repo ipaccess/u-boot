@@ -25,7 +25,6 @@
 #include <linux/compiler.h>
 #include <asm/processor.h>
 #include <asm/arch/picoxcell.h>
-#include <linux/mtd/nand.h>
 
 #include "denali.h"
 
@@ -1170,7 +1169,7 @@ static uint8_t denali_read_byte (struct mtd_info *mtd)
 	return result;
 }
 
-void denali_read_buf (struct mtd_info *mtd, uint8_t * buf, int len)
+static void denali_read_buf (struct mtd_info *mtd, uint8_t * buf, int len)
 {
 	struct nand_chip *nand = mtd->priv;
 	struct denali_nand_info *denali = nand->priv;
