@@ -1233,6 +1233,9 @@ static void denali_cmdfunc (struct mtd_info *mtd, unsigned int cmd, int col,
 
 	nand_dbg ("denali_cmdfunc()\n");
 
+	/* read three copies of the onfi parameter pages */
+	bytes_to_read = sizeof(*p) * 3;
+
 	switch (cmd) {
 	case NAND_CMD_PAGEPROG:
 		break;
@@ -1240,26 +1243,19 @@ static void denali_cmdfunc (struct mtd_info *mtd, unsigned int cmd, int col,
 		read_status (denali);
 		break;
 	case NAND_CMD_READID:
-                bytes_to_read = 5;
-
+		bytes_to_read = 5;
+		/* fall through */
 	case NAND_CMD_PARAM:
-                /* When reading the onfi parameter
-                 * pages we read three copies
-                 */
-                bytes_to_read = sizeof(*p) * 3;
-
-                reset_buf (denali);
+		reset_buf (denali);
 		addr = (uint32_t) MODE_11 | BANK (denali->flash_bank);
 		index_addr (denali, (uint32_t) addr | 0, cmd);
 		index_addr (denali, (uint32_t) addr | 1, col);
-
-                /* Allow some time for the command to
-                 * be actioned by the flash memory
-                 */
-                udelay (100);
-
-                for (i = 0; i < bytes_to_read; i++) {
-			index_addr_read_data (denali, (uint32_t) addr | 2, &id);
+		/* Allow the flash memory to respond */
+		udelay (100);
+		for (i = 0; i < bytes_to_read; i++) {
+			index_addr_read_data (denali,
+                                                 (uint32_t) addr | 2,
+                                                 &id);
 			write_byte_to_buf (denali, id);
 		}
                 break;
