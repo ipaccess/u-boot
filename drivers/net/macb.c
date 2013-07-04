@@ -425,11 +425,11 @@ static void picoxcell_rgmii_fixup(struct macb_device *macb)
 {
 	unsigned int rev = picoxcell_get_revision ();
 
-        /* If we are running on PC3032 Rev A silicon and we are using
-         * an rgmii interface then we can only transmit at 10/100 mpbs
+        /* If we are running on PC73032 board and we are using an 
+         * rgmii interface then we can only transmit at 10/100 mpbs
          */
-        if (picoxcell_is_pc30xx() && (rev == PC30XX_REV_A) &&
-            picoxcell_is_rgmii_enabled() && is_link_speed_1000mbps(macb)) {
+        if (picoxcell_is_pc30xx() && picoxcell_is_rgmii_enabled() 
+            && is_link_speed_1000mbps(macb)) {
                 disable_1000mpbs_advertisment(macb);
                 restart_phy_autoneg(macb);
 		wait_for_autonegotiation_complete(macb);
