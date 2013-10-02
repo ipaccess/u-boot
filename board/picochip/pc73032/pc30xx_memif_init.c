@@ -240,10 +240,10 @@ void pc30xx_memif_shared_init (void)
 	axi2cfg_config_write (MEMIF_SHD_AEID,
 			      MEMIF_SHD_REGS_SDRAM_AXI_CONFIG_OFFSET, &value, 1);
 
-	/* Bank opportunistic mode disabled,
+	/* Bank opportunistic mode enabled,
 	 * Bank row pre-charge mode enabled
 	 */
-	value = 0x2;
+	value = 0x3;
 	axi2cfg_config_write (MEMIF_SHD_AEID,
 			      MEMIF_SHD_REGS_SDRAM_ARB_CFG_OFFSET, &value, 1);
 
