@@ -213,6 +213,27 @@ gccincdir := $(shell $(CC) -print-file-name=include)
 CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)		\
 	-D__KERNEL__
 
+
+# Determine DDR3 device to use when building.
+# Examine DDR3_DEVICE environment variable or DDR3_OE_DEVICE OE recipe
+# variable in order to specify DDR3_IDEVICE to the compiler as:
+# 0 = default (ie PC7308 with 1Gbit DDR3 device, therefore 64MB memory)
+# non-zero = customer defined device (currently set to 2Gbit, therefore 128MB)
+#
+# Note: DDR3 device code is defined in picochippc7308.h
+# 
+ifdef DDR3_OE_DEVICE
+    CPPFLAGS+=-DDDR3_IDEVICE=$(DDR3_OE_DEVICE)
+else
+    ifdef DDR3_DEVICE
+        CPPFLAGS+=-DDDR3_IDEVICE=$(DDR3_DEVICE)
+    else
+        CPPFLAGS+=-DDDR3_IDEVICE=0
+    endif
+endif
+
+
+
 # Enable garbage collection of un-used sections for SPL
 ifeq ($(CONFIG_SPL_BUILD),y)
 CPPFLAGS += -ffunction-sections -fdata-sections

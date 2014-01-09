@@ -124,7 +124,23 @@
 #define CONFIG_SYS_SDRAM_BASE	(0x00000000)
 #define CONFIG_NR_DRAM_BANKS    (1)
 #define PHYS_SDRAM_1		(PICOXCELL_DDRBANK_BASE)
-#define PHYS_SDRAM_1_SIZE	(SZ_64M)
+
+#ifndef DDR3_IDEVICE
+#define DDR3_IDEVICE 0
+#endif
+
+/* Determine the U-Boot and hence kernel memory size by examining the
+ * compiler flag DDR3_IDEVICE. 
+ * If DDR3_IDEVICE is 0 or not defined then the default 1Gbit (128MB) DDR3
+ * is being used hence the kernel memory size is 64MB.
+ * If DDR3_DEVICE is 1 then the customer defined DDR3 is being used (currently
+ * set to 2Gbit, 256MB), hence the kernel memory size is 128MB.
+ */
+#if DDR3_IDEVICE==0
+    #define PHYS_SDRAM_1_SIZE	(SZ_64M)
+#else
+    #define PHYS_SDRAM_1_SIZE	(SZ_128M)
+#endif  //DDR3_DEVICE
 
 /*-----------------------------------------------------------------------------
  * SPI Flash Memory Stuff
