@@ -230,6 +230,7 @@ COBJS-y += image.o
 COBJS-$(CONFIG_OF_LIBFDT) += image-fdt.o
 COBJS-$(CONFIG_FIT) += image-fit.o
 COBJS-$(CONFIG_FIT_SIGNATURE) += image-sig.o
+COBJS-$(CONFIG_FIT_REVOCATION) += image-revocation.o revocation.o
 COBJS-y += memsize.o
 COBJS-y += stdio.o
 
