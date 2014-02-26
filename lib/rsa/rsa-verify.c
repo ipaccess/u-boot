@@ -378,7 +378,7 @@ static int rsa_verify_with_keynode(struct image_sign_info *info,
 	debug("key length %d\n", key.len);
 	ret = rsa_verify_key(&key, sig, sig_len, hash);
 	if (ret) {
-		printf("%s: RSA failed to verify: %d\n", __func__, ret);
+		debug("%s: RSA failed to verify: %d\n", __func__, ret);
 		return ret;
 	}
 
