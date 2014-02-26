@@ -211,7 +211,7 @@ int fit_image_verify_required_sigs(const void *fit, int image_noffset,
 		ret = fit_image_verify_sig(fit, image_noffset, data, size,
 					sig_blob, noffset);
 		if (ret) {
-			printf("Failed to verify required signature '%s'\n",
+			printf("\nFailed to verify required signature '%s'\n",
 			       fit_get_name(sig_blob, noffset, NULL));
 			return ret;
 		}
@@ -393,7 +393,7 @@ int fit_config_verify_required_sigs(const void *fit, int conf_noffset,
 		ret = fit_config_verify_sig(fit, conf_noffset, sig_blob,
 					    noffset);
 		if (ret) {
-			printf("Failed to verify required signature '%s'\n",
+			printf("\nFailed to verify required signature '%s'\n",
 			       fit_get_name(sig_blob, noffset, NULL));
 			return ret;
 		}
