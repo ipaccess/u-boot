@@ -23,6 +23,7 @@ struct rsa_public_key {
 	uint32_t n0inv;		/* -1 / modulus[0] mod 2^32 */
 	uint32_t *modulus;	/* modulus as little endian array */
 	uint32_t *rr;		/* R^2 as little endian array */
+	uint64_t exponent;	/* public exponent */
 };
 
 #define UINT64_MULT32(v, multby)  (((uint64_t)(v)) * ((uint32_t)(multby)))
@@ -35,6 +36,9 @@ struct rsa_public_key {
 
 /* This is the maximum signature length that we support, in bits */
 #define RSA_MAX_SIG_BITS	2048
+
+/* The default public exponent is 65537 */
+#define RSA_DEFAULT_PUBEXP	0x10001
 
 static const uint8_t padding_sha1_rsa2048[RSA2048_BYTES - SHA1_SUM_LEN] = {
 	0x00, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -166,6 +170,35 @@ static void montgomery_mul(const struct rsa_public_key *key,
 }
 
 /**
+ * num_pub_exponent_bits() - Number of bits in the public exponent
+ *
+ * @key:	RSA key
+ * @k:		Storage for the number of public exponent bits
+ */
+static int num_public_exponent_bits(const struct rsa_public_key *key, int *k)
+{
+	uint64_t e;
+	const uint nbits = (sizeof(e) * 8);
+
+	*k = 0;
+	e = key->exponent;
+
+	if (!e)
+		return 0;
+
+	for (*k = 1; *k < nbits + 1; ++*k)
+		if (!(e >>= 1))
+			return 0;
+
+	return -EINVAL;
+}
+
+static int is_public_exponent_bit_set(const struct rsa_public_key *key, int pos)
+{
+	return key->exponent & (1 << pos);
+}
+
+/**
  * pow_mod() - in-place public exponentiation
  *
  * @key:	RSA key
@@ -175,6 +208,7 @@ static int pow_mod(const struct rsa_public_key *key, uint32_t *inout)
 {
 	uint32_t *result, *ptr;
 	uint i;
+	int j, k;
 
 	/* Sanity check for stack size - key->len is in 32-bit words */
 	if (key->len > RSA_MAX_KEY_BITS / 32) {
@@ -183,19 +217,50 @@ static int pow_mod(const struct rsa_public_key *key, uint32_t *inout)
 		return -EINVAL;
 	}
 
-	uint32_t val[key->len], acc[key->len], tmp[key->len];
+	uint32_t val[key->len], acc[key->len], tmp[key->len], a_scaled[key->len];
 	result = tmp;  /* Re-use location. */
 
 	/* Convert from big endian byte array to little endian word array. */
 	for (i = 0, ptr = inout + key->len - 1; i < key->len; i++, ptr--)
 		val[i] = get_unaligned_be32(ptr);
 
-	montgomery_mul(key, acc, val, key->rr);  /* axx = a * RR / R mod M */
-	for (i = 0; i < 16; i += 2) {
-		montgomery_mul(key, tmp, acc, acc); /* tmp = acc^2 / R mod M */
-		montgomery_mul(key, acc, tmp, tmp); /* acc = tmp^2 / R mod M */
+	if (0 != num_public_exponent_bits(key, &k))
+		return -EINVAL;
+
+	if (k < 2) {
+		debug("RSA public exponent is too short (%d bits, "
+		      "minimum 2)\n", k);
+		return -EINVAL;
 	}
-	montgomery_mul(key, result, acc, val);  /* result = XX * a / R mod M */
+
+	if (!is_public_exponent_bit_set(key, k - 1) ||
+	    !is_public_exponent_bit_set(key, 0)) {
+		debug("Invalid RSA public exponent 0x%llx: the first "
+		      "and last bits must be set.\n", key->exponent);
+		return -EINVAL;
+	}
+
+	/* the bit at e[k-1] is 1 by definition, so start with: C := M */
+	montgomery_mul(key, acc, val, key->rr); /* acc = a * RR / R mod n */
+	/* retain scaled version for intermediate use */
+	memcpy(a_scaled, acc, key->len * 4);
+
+	for (j = k - 2; j > 0; --j) {
+		montgomery_mul(key, tmp, acc, acc); /* tmp = acc^2 / R mod n */
+
+		if (is_public_exponent_bit_set(key, j)) {
+			/* acc = tmp * val / R mod n */
+			montgomery_mul(key, acc, tmp, a_scaled);
+		} else {
+			/* e[j] == 0, copy tmp back to acc for next operation */
+			memcpy(acc, tmp, key->len * 4);
+		}
+	}
+
+	/* the bit at e[0] is always 1 */
+	montgomery_mul(key, tmp, acc, acc); /* tmp = acc^2 / R mod n */
+	montgomery_mul(key, acc, tmp, val); /* acc = tmp * a / R mod M */
+	memcpy(result, acc, key->len * 4);
 
 	/* Make sure result < mod; result is at most 1x mod too large. */
 	if (greater_equal_modulus(key, result))
@@ -283,6 +348,8 @@ static int rsa_verify_with_keynode(struct image_sign_info *info,
 	}
 	key.len = fdtdec_get_int(blob, node, "rsa,num-bits", 0);
 	key.n0inv = fdtdec_get_int(blob, node, "rsa,n0-inverse", 0);
+	key.exponent = fdtdec_get_uint64(blob, node, "rsa,exponent",
+					 RSA_DEFAULT_PUBEXP);
 	modulus = fdt_getprop(blob, node, "rsa,modulus", NULL);
 	rr = fdt_getprop(blob, node, "rsa,r-squared", NULL);
 	if (!key.len || !modulus || !rr) {

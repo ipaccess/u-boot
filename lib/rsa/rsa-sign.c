@@ -259,10 +259,56 @@ err_priv:
 }
 
 /*
+ * rsa_get_e(): - Get the public exponent from an RSA public key
+ */
+static int rsa_get_e(RSA *key, uint64_t *e)
+{
+	int ret;
+	BIGNUM *bn_te;
+	uint64_t te;
+
+	ret = -1;
+	bn_te = NULL;
+
+	if (!e)
+		goto cleanup;
+
+	if (BN_num_bits(key->e) > 64)
+		goto cleanup;
+
+	*e = BN_get_word(key->e);
+
+	if (BN_num_bits(key->e) < 33) {
+		ret = 0;
+		goto cleanup;
+	}
+
+	if (!(bn_te = BN_dup(key->e)))
+		goto cleanup;
+
+	if (!BN_rshift(bn_te, bn_te, 32))
+		goto cleanup;
+
+	if (!BN_mask_bits(bn_te, 32))
+		goto cleanup;
+
+	te = BN_get_word(bn_te);
+	te <<= 32;
+	*e |= te;
+	ret = 0;
+
+cleanup:
+	if (bn_te)
+		BN_free(bn_te);
+
+	return ret;
+}
+
+/*
  * rsa_get_params(): - Get the important parameters of an RSA public key
  */
-int rsa_get_params(RSA *key, uint32_t *n0_invp, BIGNUM **modulusp,
-		   BIGNUM **r_squaredp)
+int rsa_get_params(RSA *key, uint64_t *e, uint32_t *n0_invp,
+		   BIGNUM **modulusp, BIGNUM **r_squaredp)
 {
 	BIGNUM *big1, *big2, *big32, *big2_32;
 	BIGNUM *n, *r, *r_squared, *tmp;
@@ -283,6 +329,9 @@ int rsa_get_params(RSA *key, uint32_t *n0_invp, BIGNUM **modulusp,
 		fprintf(stderr, "Out of memory (bignum)\n");
 		return -ENOMEM;
 	}
+
+	if (0 != rsa_get_e(key, e))
+		ret = -1;
 
 	if (!BN_copy(n, key->n) || !BN_set_word(big1, 1L) ||
 	    !BN_set_word(big2, 2L) || !BN_set_word(big32, 32L))
@@ -384,6 +433,7 @@ static int fdt_add_bignum(void *blob, int noffset, const char *prop_name,
 int rsa_add_verify_data(struct image_sign_info *info, void *keydest)
 {
 	BIGNUM *modulus, *r_squared;
+	uint64_t e;
 	uint32_t n0_inv;
 	int parent, node;
 	char name[100];
@@ -395,7 +445,7 @@ int rsa_add_verify_data(struct image_sign_info *info, void *keydest)
 	ret = rsa_get_pub_key(info->keydir, info->keyname, &rsa);
 	if (ret)
 		return ret;
-	ret = rsa_get_params(rsa, &n0_inv, &modulus, &r_squared);
+	ret = rsa_get_params(rsa, &e, &n0_inv, &modulus, &r_squared);
 	if (ret)
 		return ret;
 	bits = BN_num_bits(modulus);
@@ -429,6 +479,7 @@ int rsa_add_verify_data(struct image_sign_info *info, void *keydest)
 				 info->keyname);
 	ret |= fdt_setprop_u32(keydest, node, "rsa,num-bits", bits);
 	ret |= fdt_setprop_u32(keydest, node, "rsa,n0-inverse", n0_inv);
+	ret |= fdt_setprop_u64(keydest, node, "rsa,exponent", e);
 	ret |= fdt_add_bignum(keydest, node, "rsa,modulus", modulus, bits);
 	ret |= fdt_add_bignum(keydest, node, "rsa,r-squared", r_squared, bits);
 	ret |= fdt_setprop_string(keydest, node, FIT_ALGO_PROP,
