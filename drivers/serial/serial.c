@@ -159,6 +159,7 @@ serial_initfunc(pl01x_serial_initialize);
 serial_initfunc(sa1100_serial_initialize);
 serial_initfunc(sh_serial_initialize);
 serial_initfunc(arm_dcc_initialize);
+serial_initfunc(msm_serial_initialize);
 serial_initfunc(mxs_auart_initialize);
 
 /**
@@ -252,6 +253,7 @@ void serial_initialize(void)
 	sa1100_serial_initialize();
 	sh_serial_initialize();
 	arm_dcc_initialize();
+	msm_serial_initialize();
 	mxs_auart_initialize();
 
 	serial_assign(default_serial_console()->name);

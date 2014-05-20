@@ -125,7 +125,7 @@ struct mtd_info {
 	 * in sysfs.  N.B. The meaning of the -EUCLEAN return code has changed;
 	 * see Documentation/ABI/testing/sysfs-class-mtd for more detail.
 	 */
-	unsigned int bitflip_threshold;
+	unsigned int bitflip_threshold; //TODO init to 0
 
 	/* Kernel-only stuff starts here. */
 	const char *name;

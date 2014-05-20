@@ -60,7 +60,7 @@ nand_bch_correct_data(struct mtd_info *mtd, unsigned char *buf,
 
 static inline struct nand_bch_control *
 nand_bch_init(struct mtd_info *mtd, unsigned int eccsize,
-	      unsigned int eccbytes, struct nand_ecclayout **ecclayout)
+	      unsigned int eccbytes, struct nand_ecclayout_user **ecclayout)
 {
 	return NULL;
 }

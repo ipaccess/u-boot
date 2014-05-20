@@ -1,16 +1,26 @@
 /*
- * $Id: mtd-abi.h,v 1.13 2005/11/07 11:14:56 gleixner Exp $
+ * Copyright © 1999-2010 David Woodhouse <dwmw2@infradead.org> et al.
  *
- * Portions of MTD ABI definition which are shared by kernel and user space
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
+
 #ifndef __MTD_ABI_H__
 #define __MTD_ABI_H__
 
-#if 1
-#include <linux/compat.h>
-#endif
-
-#include <linux/compiler.h>
+//#include <linux/types.h>
 
 struct erase_info_user {
 	__u32 start;
@@ -264,5 +274,5 @@ enum mtd_file_modes {
 	MTD_FILE_MODE_OTP_USER = MTD_OTP_USER,
 	MTD_FILE_MODE_RAW,
 };
-#endif /* __MTD_ABI_H__ */
 
+#endif /* __MTD_ABI_H__ */

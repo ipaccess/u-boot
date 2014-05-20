@@ -46,6 +46,7 @@ extern nand_info_t nand_info[];
 
 static inline int nand_read(nand_info_t *info, loff_t ofs, size_t *len, u_char *buf)
 {
+    printf("%s\n",__func__);
 	return mtd_read(info, ofs, *len, (size_t *)len, buf);
 }
 
@@ -56,6 +57,7 @@ static inline int nand_write(nand_info_t *info, loff_t ofs, size_t *len, u_char 
 
 static inline int nand_block_isbad(nand_info_t *info, loff_t ofs)
 {
+    //printf("%s\n",__func__);
 	return mtd_block_isbad(info, ofs);
 }
 

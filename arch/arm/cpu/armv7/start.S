@@ -19,6 +19,7 @@
 #include <asm/system.h>
 #include <linux/linkage.h>
 
+
 .globl _start
 _start: b	reset
 	ldr	pc, _undefined_instruction
@@ -108,6 +109,20 @@ IRQ_STACK_START_IN:
  */
 
 reset:
+/* Wait for the AMS before continuing */
+loop_bl_init_done:
+		mov	r1, #0x400
+		ldr	r3, [r1, #0]
+		cmp     r3, #0
+		beq     boot_start
+		mov	r2, #0x1000000
+wait:
+		sub	r2,r2,#1
+		cmp     r2, #0
+		beq     loop_bl_init_done
+		b	wait
+
+boot_start:
 	bl	save_boot_params
 	/*
 	 * disable interrupts (FIQ and IRQ), also set the cpu to SVC32 mode,
