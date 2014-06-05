@@ -85,5 +85,6 @@
 #define PC313_DEVICE_ID             (0x20)
 #define PC323_DEVICE_ID             (0x21)
 #define PC333_DEVICE_ID             (0x22)
+#define PC3008_DEVICE_ID            (0x30)
 
 #endif /* __PICOXCELL_H__ */

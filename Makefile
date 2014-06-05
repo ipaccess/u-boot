@@ -774,6 +774,9 @@ picochippc7302nand_config :	unconfig
 picochippc7302nor_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs pc7302 picochip picoxcell
 
+picochippc7308_config :	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm926ejs pc7308 picochip picoxcell
+
 #########################################################################
 else	# !config.mk
 all $(obj)u-boot.hex $(obj)u-boot.srec $(obj)u-boot.bin \
