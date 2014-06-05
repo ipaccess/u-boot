@@ -145,7 +145,7 @@
 /*-----------------------------------------------------------------------------
  * NAND Flash Memory Stuff
  */
-#define CONFIG_DENALI_NAND
+#define CONFIG_NAND_DENALI
 
 #define CONFIG_SYS_NAND_BASE        (PICOXCELL_EBI_CS2_BASE)
 #define CONFIG_SYS_NAND_MAX_CHIPS   (1)
@@ -177,6 +177,7 @@
  *  Block 28    Linux kernel...
  *
  */
+#ifdef CONFIG_NAND_DENALI
 #define CONFIG_ENV_IS_IN_NAND
 
 /* Offset address of environment variables */
@@ -190,6 +191,10 @@
 
 /* Turn off wite protection for vendor parameters */
 #define CONFIG_ENV_OVERWRITE
+#else
+#define CONFIG_ENV_IS_NOWHERE
+#define CONFIG_ENV_SIZE             (NAND_FLASH_SECTOR_SIZE)
+#endif
 
 /*-----------------------------------------------------------------------------
  * Timer Stuff
@@ -251,8 +256,10 @@
 /* Include commands for SPI Flash memory */
 #define CONFIG_CMD_SF
 
+#ifdef CONFIG_NAND_DENALI
 /* Include commands for NAND Flash Memory */
 #define CONFIG_CMD_NAND
+#endif
 
 /* Turn off a bunch of default commands */
 #undef CONFIG_CMD_BOOTD

@@ -22,7 +22,6 @@ LIB	= $(obj)lib$(BOARD).o
 SOBJS-y := lowlevel_init.o
 
 COBJS-y	:= pc7308.o
-COBJS-y += mt29f2g08aadwp.o
 
 SRCS    := $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS    := $(addprefix $(obj),$(COBJS-y))

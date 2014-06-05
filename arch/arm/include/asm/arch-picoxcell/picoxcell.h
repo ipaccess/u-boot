@@ -24,6 +24,11 @@
 #define PICOXCELL_BOOT_ROM_BASE         (0xFFFF0000)
 
 /*****************************************************************************/
+/* NAND Controller Data Address                                              */
+/*****************************************************************************/
+#define PICOXCELL_NAND_DATA_BASE        (0x60000000)
+
+/*****************************************************************************/
 /* AXI2PICO Buffers                                                          */
 /*****************************************************************************/
 #define PICOXCELL_AXI2PICO_BUFFERS_BASE (0xC0000000)
@@ -43,8 +48,9 @@
 #define PICOXCELL_FUSE_BASE             (0x80080000)
 #define PICOXCELL_SSI_BASE              (0x80090000)
 #define PICOXCELL_AXI2CFG_BASE          (0x800A0000)
+#define PICOXCELL_TRNG_BASE             (0x800B0000)
+#define PICOXCELL_NAND_BASE             (0x800C0000)
 #define PICOXCELL_IPSEC_BASE            (0x80100000)
-#define PICOXCELL_SRTP_BASE             (0x80140000)
 #define PICOXCELL_CIPHER_BASE           (0x80180000)
 #define PICOXCELL_RTCLK_BASE            (0x80200000)
 #define PICOXCELL_TIMER_BASE            (0x80210000)
