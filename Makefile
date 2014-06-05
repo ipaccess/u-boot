@@ -768,6 +768,12 @@ $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
 		touch $@; \
 	fi
 
+picochippc7302nand_config :	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm926ejs pc7302 picochip pc3xx
+
+picochippc7302nor_config :	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm926ejs pc7302 picochip pc3xx
+
 #########################################################################
 else	# !config.mk
 all $(obj)u-boot.hex $(obj)u-boot.srec $(obj)u-boot.bin \
