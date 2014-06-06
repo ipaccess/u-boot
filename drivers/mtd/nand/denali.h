@@ -475,6 +475,7 @@ struct nand_buf {
 #define INTEL_CE4100	1
 #define INTEL_MRST	2
 #define MMIO		3
+#define PICOCHIP_PC3008 4
 
 #define bool int
 

@@ -151,6 +151,7 @@
 #define CONFIG_SYS_NAND_BASE        (PICOXCELL_EBI_CS2_BASE)
 #define CONFIG_SYS_NAND_MAX_CHIPS   (1)
 #define CONFIG_SYS_MAX_NAND_DEVICE  (1)
+#define CONFIG_SYS_NAND_ONFI_DETECTION  (1)
 
 /* Define Flash memory sector size */
 #define NAND_FLASH_SECTOR_SIZE      (SZ_128K)
@@ -373,18 +374,18 @@
 #define CONFIG_ETHADDR          00:15:E1:00:00:00
 
 /* Picochip default for testing, will need noodling by users */
-#define CONFIG_IPADDR           172.17.16.248
+#define CONFIG_IPADDR           172.29.16.248
 
 #define CONFIG_HOSTNAME	        picopc7308
 #define CONFIG_ROOTPATH	        /var/nfspc7308
 #define CONFIG_BOOTFILE	        uImage-pc7308
 
 #define CONFIG_SERVERIP         172.17.7.100
-#define CONFIG_GATEWAYIP        172.17.0.1
+#define CONFIG_GATEWAYIP        172.29.0.1
 #define CONFIG_NETMASK          255.255.0.0
 
 /* Enable the MII utility commands */
-#undef CONFIG_CMD_MII
+#define CONFIG_CMD_MII
 
 #endif /* CONFIG_MACB */
 
