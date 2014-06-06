@@ -41,6 +41,21 @@
 /* Types ------------------------------------------------------------------- */
 
 /* Prototypes--------------------------------------------------------------- */
+/*
+ * \brief Is the memif arm present on a PC30xx ?
+ *
+ * \return 1 if memif arm present
+ *         0 if memif arm not present
+ */
+static int is_memif_arm_present_on_pc30xx (void);
+
+/*!
+ * \brief Is the memif arm interface disabled ?
+ *
+ * \return 1 if memif arm is disabled
+ *         0 if memif arm is not disabled
+ */
+static int is_memif_arm_disabled (void);
 
 /* Functions --------------------------------------------------------------- */
 __inline unsigned int picoxcell_read_register (const unsigned int address)
@@ -182,4 +197,35 @@ void picoxcell_clk_enable (unsigned long clock)
         clk_gate &= ~(clock);
         axi2cfg_writel (clk_gate, AXI2CFG_CLK_GATING_REG_OFFSET);
     }
+}
+
+static int is_memif_arm_present_on_pc30xx (void)
+{
+	unsigned int memif_present;
+
+	memif_present = picoxcell_read_register (PICOXCELL_AXI2CFG_BASE +
+					         AXI2CFG_ID_REG_OFFSET);
+	memif_present &= PICOXCELL_MEMIF_ARM_NOT_PRESENT;
+
+	return !memif_present;
+}
+
+static int is_memif_arm_disabled (void)
+{
+	unsigned int memif_disabled;
+
+	memif_disabled = picoxcell_read_register (PICOXCELL_FUSE_BASE +
+					          FUSE_MAP_31_REG_OFFSET);
+	memif_disabled &= PICOXCELL_DISABLE_MEMIF_ARM;
+
+	return ! !memif_disabled;
+}
+
+int is_memif_arm_usable_on_pc30xx (void)
+{
+	if (is_memif_arm_present_on_pc30xx () && !is_memif_arm_disabled ()) {
+		return 1;
+	} else {
+		return 0;
+	}
 }

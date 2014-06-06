@@ -6,7 +6,7 @@
 * \file fuse.h
 * \brief Definitions for the picoxcell fuse block.
 *
-* Copyright (c) 2006-2011 Picochip Ltd
+* Copyright (c) 2006-2012 Picochip Ltd
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License version 2 as
@@ -72,5 +72,6 @@
 /*****************************************************************************/
 
 #define FUSE_WRITE_FUSE_ENABLE          (0x66757365)
+#define PICOXCELL_DISABLE_MEMIF_ARM     (1 << 10)
 
 #endif /*__PICOXCELL_FUSE_H__ */

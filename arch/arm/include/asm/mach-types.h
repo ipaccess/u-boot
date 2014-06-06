@@ -1106,6 +1106,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_OMAP5_SEVM           3777
 #define MACH_TYPE_ARMADILLO_800EVA     3863
 #define MACH_TYPE_KZM9G                4140
+#define MACH_TYPE_PC73032              4336
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
@@ -14245,6 +14246,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_pc7308()	(machine_arch_type == MACH_TYPE_PC7308)
 #else
 # define machine_is_pc7308()	(0)
+#endif
+
+#ifdef CONFIG_MACH_PC73032
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_PC73032
+# endif
+# define machine_is_pc73032()	(machine_arch_type == MACH_TYPE_PC73032)
+#else
+# define machine_is_pc73032()	(0)
 #endif
 
 /*

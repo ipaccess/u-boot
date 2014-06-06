@@ -1,0 +1,520 @@
+/*!
+* \file pc30xx_mem_shd.h
+* \brief Definitions for the pc30xx memif-shared block.
+*
+* Copyright (c) 2010-2012 Picochip Ltd
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License version 2 as
+* published by the Free Software Foundation.
+*
+* All enquiries to support@picochip.com
+*/
+
+#ifndef __PC30XX_MEM_SHD_H__
+#define __PC30XX_MEM_SHD_H__
+
+/* Includes ---------------------------------------------------------------- */
+#include <asm/arch/pc30xx_mem_common.h>
+
+/*****************************************************************************/
+/* Component Base Addresses                                                  */
+/*****************************************************************************/
+#define MEMIF_SHD_PCTL_BASE 0xC000
+#define MEMIF_SHD_PUBL_BASE 0xC400
+
+/*****************************************************************************/
+/* Memif Shared Registers                                                    */
+/*****************************************************************************/
+#define MEMIF_SHD_REGS_PA_BUF0_SETUP_OFFSET		0x0000
+#define   MEMIF_SHD_REGS_PA_BUF0_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF0_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF0_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF0_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF0_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF0_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF0_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF0_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF0_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF0_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF0_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF0_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF0_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF0_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF0_ADDR_OFFSET		0x0001
+#define   MEMIF_SHD_REGS_PA_BUF0_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF0_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF1_SETUP_OFFSET		0x0002
+#define   MEMIF_SHD_REGS_PA_BUF1_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF1_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF1_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF1_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF1_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF1_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF1_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF1_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF1_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF1_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF1_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF1_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF1_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF1_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF1_ADDR_OFFSET		0x0003
+#define   MEMIF_SHD_REGS_PA_BUF1_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF1_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF2_SETUP_OFFSET		0x0004
+#define   MEMIF_SHD_REGS_PA_BUF2_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF2_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF2_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF2_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF2_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF2_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF2_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF2_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF2_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF2_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF2_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF2_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF2_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF2_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF2_ADDR_OFFSET		0x0005
+#define   MEMIF_SHD_REGS_PA_BUF2_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF2_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF3_SETUP_OFFSET		0x0006
+#define   MEMIF_SHD_REGS_PA_BUF3_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF3_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF3_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF3_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF3_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF3_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF3_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF3_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF3_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF3_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF3_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF3_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF3_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF3_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF3_ADDR_OFFSET		0x0007
+#define   MEMIF_SHD_REGS_PA_BUF3_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF3_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF4_SETUP_OFFSET		0x0008
+#define   MEMIF_SHD_REGS_PA_BUF4_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF4_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF4_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF4_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF4_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF4_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF4_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF4_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF4_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF4_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF4_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF4_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF4_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF4_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF4_ADDR_OFFSET		0x0009
+#define   MEMIF_SHD_REGS_PA_BUF4_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF4_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF5_SETUP_OFFSET		0x000A
+#define   MEMIF_SHD_REGS_PA_BUF5_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF5_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF5_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF5_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF5_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF5_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF5_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF5_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF5_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF5_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF5_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF5_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF5_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF5_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF5_ADDR_OFFSET		0x000B
+#define   MEMIF_SHD_REGS_PA_BUF5_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF5_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF6_SETUP_OFFSET		0x000C
+#define   MEMIF_SHD_REGS_PA_BUF6_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF6_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF6_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF6_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF6_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF6_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF6_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF6_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF6_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF6_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF6_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF6_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF6_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF6_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF6_ADDR_OFFSET		0x000D
+#define   MEMIF_SHD_REGS_PA_BUF6_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF6_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF7_SETUP_OFFSET		0x000E
+#define   MEMIF_SHD_REGS_PA_BUF7_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF7_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF7_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF7_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF7_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF7_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF7_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF7_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF7_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF7_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF7_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF7_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF7_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF7_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF7_ADDR_OFFSET		0x000F
+#define   MEMIF_SHD_REGS_PA_BUF7_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF7_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF8_SETUP_OFFSET		0x0010
+#define   MEMIF_SHD_REGS_PA_BUF8_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF8_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF8_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF8_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF8_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF8_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF8_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF8_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF8_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF8_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF8_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF8_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF8_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF8_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF8_ADDR_OFFSET		0x0011
+#define   MEMIF_SHD_REGS_PA_BUF8_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF8_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF9_SETUP_OFFSET		0x0012
+#define   MEMIF_SHD_REGS_PA_BUF9_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF9_SIZE_MSK		((1<<4)-1)
+#define   MEMIF_SHD_REGS_PA_BUF9_WDWW_IDX		4
+#define      MEMIF_SHD_REGS_PA_BUF9_WDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF9_RDWW_IDX		6
+#define      MEMIF_SHD_REGS_PA_BUF9_RDWW_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF9_WIAP_IDX		8
+#define      MEMIF_SHD_REGS_PA_BUF9_WIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF9_RIAP_IDX		10
+#define      MEMIF_SHD_REGS_PA_BUF9_RIAP_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_PA_BUF9_BANK_IDX		12
+#define      MEMIF_SHD_REGS_PA_BUF9_BANK_MSK		((1<<3)-1)
+#define   MEMIF_SHD_REGS_PA_BUF9_ONE_ADDR_IDX		15
+#define      MEMIF_SHD_REGS_PA_BUF9_ONE_ADDR_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_PA_BUF9_ADDR_OFFSET		0x0013
+#define   MEMIF_SHD_REGS_PA_BUF9_SADDR_IDX		0
+#define      MEMIF_SHD_REGS_PA_BUF9_SADDR_MSK		((1<<14)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G0_S0_S1_OFFSET		0x0020
+#define   MEMIF_SHD_REGS_SDRAM_G0_S0_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G0_S0_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G0_S1_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G0_S1_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G0_S2_S3_OFFSET		0x0021
+#define   MEMIF_SHD_REGS_SDRAM_G0_S2_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G0_S2_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G0_S3_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G0_S3_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G1_S0_S1_OFFSET		0x0022
+#define   MEMIF_SHD_REGS_SDRAM_G1_S0_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G1_S0_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G1_S1_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G1_S1_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G1_S2_S3_OFFSET		0x0023
+#define   MEMIF_SHD_REGS_SDRAM_G1_S2_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G1_S2_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G1_S3_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G1_S3_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G2_S0_S1_OFFSET		0x0024
+#define   MEMIF_SHD_REGS_SDRAM_G2_S0_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G2_S0_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G2_S1_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G2_S1_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G2_S2_S3_OFFSET		0x0025
+#define   MEMIF_SHD_REGS_SDRAM_G2_S2_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G2_S2_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G2_S3_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G2_S3_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G3_S0_S1_OFFSET		0x0026
+#define   MEMIF_SHD_REGS_SDRAM_G3_S0_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G3_S0_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G3_S1_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G3_S1_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G3_S2_S3_OFFSET		0x0027
+#define   MEMIF_SHD_REGS_SDRAM_G3_S2_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G3_S2_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G3_S3_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G3_S3_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G4_S0_S1_OFFSET		0x0028
+#define   MEMIF_SHD_REGS_SDRAM_G4_S0_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G4_S0_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G4_S1_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G4_S1_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G4_S2_S3_OFFSET		0x0029
+#define   MEMIF_SHD_REGS_SDRAM_G4_S2_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G4_S2_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G4_S3_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G4_S3_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G5_S0_S1_OFFSET		0x002A
+#define   MEMIF_SHD_REGS_SDRAM_G5_S0_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G5_S0_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G5_S1_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G5_S1_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G5_S2_S3_OFFSET		0x002B
+#define   MEMIF_SHD_REGS_SDRAM_G5_S2_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G5_S2_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G5_S3_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G5_S3_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G6_S0_S1_OFFSET		0x002C
+#define   MEMIF_SHD_REGS_SDRAM_G6_S0_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G6_S0_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G6_S1_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G6_S1_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G6_S2_S3_OFFSET		0x002D
+#define   MEMIF_SHD_REGS_SDRAM_G6_S2_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G6_S2_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G6_S3_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G6_S3_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G7_S0_S1_OFFSET		0x002E
+#define   MEMIF_SHD_REGS_SDRAM_G7_S0_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G7_S0_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G7_S1_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G7_S1_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_G7_S2_S3_OFFSET		0x002F
+#define   MEMIF_SHD_REGS_SDRAM_G7_S2_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_G7_S2_CFG_MSK		((1<<6)-1)
+#define   MEMIF_SHD_REGS_SDRAM_G7_S3_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SDRAM_G7_S3_CFG_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_VALID_GROUPS_OFFSET		0x0030
+#define   MEMIF_SHD_REGS_SDRAM_VALID_GROUPS_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_VALID_GROUPS_MSK		((1<<8)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_ARB_CFG_OFFSET             0x0031
+
+#define MEMIF_SHD_REGS_SRAM_ARB_S0_S1_OFFSET		0x0040
+#define   MEMIF_SHD_REGS_SRAM_S0_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SRAM_S0_CFG_MSK		((1<<7)-1)
+#define   MEMIF_SHD_REGS_SRAM_S1_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SRAM_S1_CFG_MSK		((1<<7)-1)
+
+#define MEMIF_SHD_REGS_SRAM_ARB_S2_S3_OFFSET		0x0041
+#define   MEMIF_SHD_REGS_SRAM_S2_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SRAM_S2_CFG_MSK		((1<<7)-1)
+#define   MEMIF_SHD_REGS_SRAM_S3_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SRAM_S3_CFG_MSK		((1<<7)-1)
+
+#define MEMIF_SHD_REGS_SRAM_ARB_S4_S5_OFFSET		0x0042
+#define   MEMIF_SHD_REGS_SRAM_S4_CFG_IDX		0
+#define      MEMIF_SHD_REGS_SRAM_S4_CFG_MSK		((1<<7)-1)
+#define   MEMIF_SHD_REGS_SRAM_S5_CFG_IDX		8
+#define      MEMIF_SHD_REGS_SRAM_S5_CFG_MSK		((1<<7)-1)
+
+#define MEMIF_SHD_REGS_SRAM_VALID_SLOTS_OFFSET		0x0043
+#define   MEMIF_SHD_REGS_SRAM_VALID_SLOTS_IDX		0
+#define      MEMIF_SHD_REGS_SRAM_VALID_SLOTS_MSK		((1<<6)-1)
+
+#define MEMIF_SHD_REGS_ARB_UPDATE_OFFSET		0x004F
+#define   MEMIF_SHD_REGS_SDRAM_ARB_UPDATE_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_ARB_UPDATE_MSK		((1<<1)-1)
+#define   MEMIF_SHD_REGS_SRAM_ARB_UPDATE_IDX		1
+#define      MEMIF_SHD_REGS_SRAM_ARB_UPDATE_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_SETUP_OFFSET		0x0050
+#define   MEMIF_SHD_REGS_SDRAM_SIZE_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_SIZE_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_SDRAM_BANKS_IDX		2
+#define      MEMIF_SHD_REGS_SDRAM_BANKS_MSK		((1<<1)-1)
+#define   MEMIF_SHD_REGS_SDRAM_BL_IDX		3
+#define      MEMIF_SHD_REGS_SDRAM_BL_MSK		((1<<1)-1)
+
+
+#define MEMIF_SHD_REGS_SDRAM_CFG_DONE_OFFSET		0x0057
+#define   MEMIF_SHD_REGS_SDRAM_CFG_DONE_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_CFG_DONE_MSK		((1<<1)-1)
+
+#define MEMIF_SHD_REGS_SDRAM_AXI_CONFIG_OFFSET		0x0058
+#define   MEMIF_SHD_REGS_SDRAM_AXI_RBC_IDX		0
+#define      MEMIF_SHD_REGS_SDRAM_AXI_RBC_MSK		((1<<1)-1)
+#define   MEMIF_SHD_REGS_SDRAM_AXI_SIZE_IDX		1
+#define      MEMIF_SHD_REGS_SDRAM_AXI_SIZE_MSK		((1<<2)-1)
+#define   MEMIF_SHD_REGS_SDRAM_AXI_BANKS_IDX		3
+#define      MEMIF_SHD_REGS_SDRAM_AXI_BANKS_MSK		((1<<1)-1)
+
+
+#define MEMIF_SHD_REGS_PA_FIFO_STATUS_LWR_OFFSET		0x0080
+#define   MEMIF_SHD_REGS_PA_FIFO_STATUS_LWR_IDX		0
+#define      MEMIF_SHD_REGS_PA_FIFO_STATUS_LWR_MSK		((1<<10)-1)
+
+#define MEMIF_SHD_REGS_PA_FIFO_STATUS_UPR_OFFSET		0x0081
+#define   MEMIF_SHD_REGS_PA_FIFO_STATUS_UPR_IDX		0
+#define      MEMIF_SHD_REGS_PA_FIFO_STATUS_UPR_MSK		((1<<10)-1)
+
+#define MEMIF_SHD_REGS_PA_ADDR_ERROR_LWR_OFFSET		0x0082
+#define   MEMIF_SHD_REGS_PA_ADDR_ERROR_LWR_IDX		0
+#define      MEMIF_SHD_REGS_PA_ADDR_ERROR_LWR_MSK		((1<<10)-1)
+
+#define MEMIF_SHD_REGS_PA_ADDR_ERROR_UPR_OFFSET		0x0083
+#define   MEMIF_SHD_REGS_PA_ADDR_ERROR_UPR_IDX		0
+#define      MEMIF_SHD_REGS_PA_ADDR_ERROR_UPR_MSK		((1<<10)-1)
+
+#define MEMIF_SHD_REGS_PA_ADDR_ERROR_MASK_LWR_OFFSET		0x0084
+#define   MEMIF_SHD_REGS_PA_ADDR_ERROR_MASK_LWR_IDX		0
+#define      MEMIF_SHD_REGS_PA_ADDR_ERROR_MASK_LWR_MSK		((1<<10)-1)
+
+#define MEMIF_SHD_REGS_PA_ADDR_ERROR_MASK_UPR_OFFSET		0x0085
+#define   MEMIF_SHD_REGS_PA_ADDR_ERROR_MASK_UPR_IDX		0
+#define      MEMIF_SHD_REGS_PA_ADDR_ERROR_MASK_UPR_MSK		((1<<10)-1)
+
+
+#define CBFM_SLEEPREG_ADDR     0xA060
+#define CBFM_RUNREG_ADDR       0xA061
+#define CBFM_ERRREG_ADDR       0xA062
+#define CBFM_RESETREG_ADDR     0xA063
+#define CBFM_IDREG_ADDR        0xA064
+#define CBFM_RSTRUNMASK_ADDR   0xA065
+#define CBFM_BISTEN_ADDR       0xA066
+#define CBFM_BISTDATA_ADDR     0xA067
+#define CBFM_TM_ADDR           0xA068
+
+#define DDR2_ROW_13_COL_9                 0x2
+#define DDR2_ROW_13_COL_10                0x1
+#define DDR2_ROW_14_COL_10                0x0
+#define DDR2_8_BANKS                      0x1
+#define DDR2_4_BANKS                      0x0
+#define DDR2_BL4                          0x1
+#define DDR2_BL8                          0x0
+#define DDR2_BRC_ADDR                     0x0
+#define DDR2_RBC_ADDR                     0x1
+#define DDR2_RW_GAP                       0x3
+#define DDR2_WR_GAP                       0xa
+#define DDR2_CAS_4                        0x4
+#define DDR2_CAS_5                        0x5
+#define DDR2_CAS_6                        0x6
+#define DDR2_CAS_7                        0x7
+#define DDR2_REFRESH_TIME                 0x07d0
+#define DDR2_BURST_SEQUENTIAL             0x0000
+#define DDR2_WR                           0x05
+#define DDR2_DQSN_DISABLE                 0x1
+
+#define SDRAM_ARB_AXI_SLOT               0
+#define SDRAM_ARB_PA_SLOT                1
+#define SDRAM_ARB_DET_SLOT               0
+#define SDRAM_ARB_OPP_SLOT               1
+#define SDRAM_ARB_RD_SLOT                0
+#define SDRAM_ARB_WR_SLOT                1
+#define SDRAM_ARB_CSP_1_SLOT             0
+#define SDRAM_ARB_CSP_2_SLOT             1
+#define SDRAM_ARB_CSP_4_SLOT             2
+#define SDRAM_ARB_CSP_8_SLOT             3
+
+#define SDRAM_ARB_1_VALID_GRPS           1
+#define SDRAM_ARB_2_VALID_GRPS           3
+#define SDRAM_ARB_3_VALID_GRPS           7
+#define SDRAM_ARB_4_VALID_GRPS           15
+#define SDRAM_ARB_5_VALID_GRPS           31
+#define SDRAM_ARB_6_VALID_GRPS           63
+#define SDRAM_ARB_7_VALID_GRPS           127
+#define SDRAM_ARB_8_VALID_GRPS           255
+
+
+#define SDRAM_SETUP_SIZE_IDX            0
+#define SDRAM_SETUP_BANK_IDX            2
+#define SDRAM_SETUP_BL_IDX              3
+
+#define SDRAM_AXI_SETUP_RBC_IDX         0
+#define SDRAM_AXI_SETUP_SIZE_IDX        1
+#define SDRAM_AXI_SETUP_BANK_IDX        3
+
+#define SDRAM_ARB_S0_AP_IDX             0
+#define SDRAM_ARB_S0_APOD_IDX           1
+#define SDRAM_ARB_S0_RW_IDX             2
+#define SDRAM_ARB_S0_RWOD_IDX           3
+#define SDRAM_ARB_S0_CSP_IDX            4
+
+#define SDRAM_ARB_S1_AP_IDX             8
+#define SDRAM_ARB_S1_APOD_IDX           9
+#define SDRAM_ARB_S1_RW_IDX             10
+#define SDRAM_ARB_S1_RWOD_IDX           11
+#define SDRAM_ARB_S1_CSP_IDX            12
+
+#define SDRAM_ARB_S2_AP_IDX             0
+#define SDRAM_ARB_S2_APOD_IDX           1
+#define SDRAM_ARB_S2_RW_IDX             2
+#define SDRAM_ARB_S2_RWOD_IDX           3
+#define SDRAM_ARB_S2_CSP_IDX            4
+
+#define SDRAM_ARB_S3_AP_IDX             8
+#define SDRAM_ARB_S3_APOD_IDX           9
+#define SDRAM_ARB_S3_RW_IDX             10
+#define SDRAM_ARB_S3_RWOD_IDX           11
+#define SDRAM_ARB_S3_CSP_IDX            12
+
+#define SDRAM_ARB_DATA                  (SDRAM_ARB_OPP_SLOT   << SDRAM_ARB_S0_APOD_IDX) | \
+                                        (SDRAM_ARB_OPP_SLOT   << SDRAM_ARB_S0_RWOD_IDX) | \
+                                        (SDRAM_ARB_CSP_2_SLOT << SDRAM_ARB_S0_CSP_IDX)  | \
+                                        (SDRAM_ARB_OPP_SLOT   << SDRAM_ARB_S1_APOD_IDX) | \
+                                        (SDRAM_ARB_OPP_SLOT   << SDRAM_ARB_S1_RWOD_IDX) | \
+                                        (SDRAM_ARB_CSP_2_SLOT << SDRAM_ARB_S1_CSP_IDX)
+
+#define SDRAM_CFG_DONE_DATA              0x0001
+
+
+#define MEMIF_SHD_REGS_SDRAM_BW_CONFIG                  0x0032
+#define   MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_EN_IDX     14
+#define   MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_RW_IDX     12
+#define     MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_RW_READ  (1 << MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_RW_IDX)
+#define     MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_RW_WRITE (2 << MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_RW_IDX)
+#define     MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_RW_ALL   (3 << MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_RW_IDX)
+#define   MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_BANK_IDX   8
+#define     MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_BANK_ALL (8 << MEMIF_SHD_REGS_SDRAM_BW_CONFIG_ARM_BANK_IDX)
+#define   MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_EN_IDX      6
+#define   MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_RW_IDX      4
+#define     MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_RW_READ   (1 << MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_RW_IDX)
+#define     MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_RW_WRITE  (2 << MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_RW_IDX)
+#define     MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_RW_ALL    (3 << MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_RW_IDX)
+#define   MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_BANK_IDX    0
+#define     MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_BANK_ALL  (8 << MEMIF_SHD_REGS_SDRAM_BW_CONFIG_PA_BANK_IDX)
+
+#define MEMIF_SHD_REGS_SDRAM_BW_ARM_COUNT_LSB           0x0033
+#define MEMIF_SHD_REGS_SDRAM_BW_ARM_COUNT_MSB           0x0034
+#define MEMIF_SHD_REGS_SDRAM_BW_PA_COUNT_LSB            0x0035
+#define MEMIF_SHD_REGS_SDRAM_BW_PA_COUNT_MSB            0x0036
+
+#endif /* __PC30XX_MEM_SHD_H__ */

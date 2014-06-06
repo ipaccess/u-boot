@@ -6,7 +6,7 @@
 * \file axi2cfg.h
 * \brief Definitions for the picoxcell axi2cfg block.
 *
-* Copyright (c) 2006-2011 Picochip Ltd
+* Copyright (c) 2006-2012 Picochip Ltd
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License version 2 as
@@ -41,6 +41,7 @@
 #define AXI2CFG_CLK_GATING_REG_OFFSET               (0x0048)
 #define AXI2CFG_ARM_PLL_CLK_REG_OFFSET              (0x0050)
 #define AXI2CFG_FREQ_SENSE_REG_OFFSET               (0x0054)
+#define AXI2CFG_ID_REG_OFFSET                       (0x0068)
 #define AXI2CFG_CONFIG_WRITE_REG_OFFSET             (0x0100)
 #define AXI2CFG_CONFIG_READ_REG_OFFSET              (0x0200)
 #define AXI2CFG_DMAC1_CONFIG_REG_OFFSET             (0x0300)
@@ -175,5 +176,8 @@
 #define PICOXCELL_MEMIF_SHD_SRAM_CLOCK      (1 << 13)
 #define PICOXCELL_MEMIF_SHD_SDRAM_CLOCK     (1 << 14)
 #define PICOXCELL_AXI2PICO_CLOCK            (1 << 15)
+
+/* Id Register Stuff */
+#define PICOXCELL_MEMIF_ARM_NOT_PRESENT     (1 << 10)
 
 #endif /* __PICOXCELL_AXI2CFG_H__ */

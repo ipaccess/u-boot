@@ -6,7 +6,7 @@
 * \file utilities.h
 * \brief Definitions for some useful functions.
 *
-* Copyright (c) 2006-2011 Picochip Ltd
+* Copyright (c) 2006-2012 Picochip Ltd
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License version 2 as
@@ -133,5 +133,12 @@ void picoxcell_timer_start (int timer);
  */
 void picoxcell_clk_enable (unsigned long clock);
 
+/*!
+ * \brief Is the memif arm available for use on a PC30xx device ?
+ *
+ * \return 1 if memif arm available
+ *         0 if memif arm not available
+ */
+int is_memif_arm_usable_on_pc30xx (void);
 
 #endif /* __PICOXCELL_UTILS_H__ */
