@@ -40,6 +40,10 @@
 
 #include "macb.h"
 
+#if defined (CONFIG_PICOCHIP_PC7302)
+#include <asm/arch/utilities.h>
+#endif
+
 #define CONFIG_SYS_MACB_RX_BUFFER_SIZE		4096
 #define CONFIG_SYS_MACB_RX_RING_SIZE		(CONFIG_SYS_MACB_RX_BUFFER_SIZE / 128)
 #define CONFIG_SYS_MACB_TX_RING_SIZE		16
@@ -651,6 +655,16 @@ static u32 macb_dbw(struct macb_device *macb)
 {
 	//if (!macb->is_gem)
 	//	return 0;
+
+#if defined (CONFIG_PICOCHIP_PC7302)
+        if (picoxcell_is_pc3x2 ()) {
+		/* PC3x2 devices do not have the design configuration
+		 * registers so there is no way of detecting the bus
+		 * width at run time but we know that it is always 64 bits.
+		 */
+		return GEM_BF(DBW, GEM_DBW64);
+        }
+#endif
 
 	switch (GEM_BFEXT(DBWDEF, gem_readl(macb, DCFG1))) {
 	case 4:
