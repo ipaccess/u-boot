@@ -45,7 +45,6 @@ LIB	= $(obj)lib$(SOC).o
 SOBJS-y := reset.o
 
 COBJS-y += cpu.o
-COBJS-y += emac.o
 COBJS-y += timer.o
 COBJS-y += spi.o
 COBJS-y += utilities.o

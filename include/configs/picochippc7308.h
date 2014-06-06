@@ -205,7 +205,7 @@
 /*-----------------------------------------------------------------------------
  * Ethernet Stuff
  */
-#define CONFIG_DW_EMAC
+#define CONFIG_MACB
 #define CONFIG_PHY_ADDR         (1)
 #define CONFIG_NET_MULTI
 
@@ -361,7 +361,7 @@
  * Environment Configuration
  */
 
-#if defined(CONFIG_DW_EMAC)
+#if defined(CONFIG_MACB)
 
 /* Picochip OUI
  *
@@ -386,7 +386,7 @@
 /* Enable the MII utility commands */
 #undef CONFIG_CMD_MII
 
-#endif /* CONFIG_DW_EMAC */
+#endif /* CONFIG_MACB */
 
 /* This is the offset from the start of NAND Flash
  * to where the Linux kernel can be found.

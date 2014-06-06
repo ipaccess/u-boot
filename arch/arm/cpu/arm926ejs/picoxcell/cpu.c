@@ -30,15 +30,7 @@
 
 /* Functions --------------------------------------------------------------- */
 
-/*****************************************************************************
- *
- * print_cpuinfo()
- *
- * Purpose: Display some useful info about the cpu we are running on.
- *
- * Returns: 0 - Success
- *
- *****************************************************************************/
+#if defined(CONFIG_DISPLAY_CPUINFO)
 int print_cpuinfo (void)
 {
 	const char *part = picoxcell_get_partname ();
@@ -48,22 +40,15 @@ int print_cpuinfo (void)
 
 	return 0;
 }
+#endif
 
-/*****************************************************************************
- *
- * cpu_eth_init()
- *
- * Purpose: Initialize the Ethernet controller
- *
- * Returns: 0 - Success
- *
- *****************************************************************************/
-int cpu_eth_init (bd_t * bis)
+int cpu_eth_init (bd_t *bis)
 {
 	int ret = -1;
 
-#ifdef CONFIG_DW_EMAC
-	ret = picoxcell_eth_register (bis);
+#ifdef CONFIG_MACB
+	ret = macb_eth_initialize (0, (void *)PICOXCELL_EMAC_BASE,
+				   CONFIG_PHY_ADDR);
 #endif
 
 	return ret;
