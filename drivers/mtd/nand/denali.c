@@ -944,7 +944,7 @@ static void denali_setup_dma (struct denali_nand_info *denali, int op)
 
 	mode = MODE_10 | BANK (denali->flash_bank);
 
-        if (denali->platform == PICOCHIP_PC3008) {
+        if (denali->platform == PICOCHIP_PC30XX) {
 
                 /* DMA is a three step process on Picochip Hoyle3 devices */
 
@@ -1489,8 +1489,9 @@ int board_nand_init (struct nand_chip *nand)
 	nand->ecc.write_oob = denali_write_oob;
 	nand->erase_cmd = denali_erase;
 
-#ifdef CONFIG_PICOCHIP_PC3008
-	denali->platform = PICOCHIP_PC3008;
+#if defined(CONFIG_PICOCHIP_PC3008) || defined(CONFIG_PICOCHIP_PC3032)
+	denali->platform = PICOCHIP_PC30XX;
 #endif
+
 	return 0;
 }

@@ -2629,12 +2629,12 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd, struct nand_chip *chip,
 	if (!mtd->name)
 		mtd->name = p->model;
 	mtd->writesize = le32_to_cpu(p->byte_per_page);
-#ifdef CONFIG_PICOCHIP_PC3008
+#ifdef CONFIG_PICOCHIP_PC30XX 
         mtd->writesize = 2048;
 #endif
         mtd->erasesize = le32_to_cpu(p->pages_per_block) * mtd->writesize;
 	mtd->oobsize = le16_to_cpu(p->spare_bytes_per_page);
-#ifdef CONFIG_PICOCHIP_PC3008
+#ifdef CONFIG_PICOCHIP_PC30XX 
        mtd->oobsize = 64;
 #endif
 	chip->chipsize = le32_to_cpu(p->blocks_per_lun);

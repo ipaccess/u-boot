@@ -476,7 +476,7 @@ __attribute__ ((aligned(64)))   /* required for 8 byte burst from dma */
 #define INTEL_CE4100	1
 #define INTEL_MRST	2
 #define MMIO		3
-#define PICOCHIP_PC3008 4
+#define PICOCHIP_PC30XX 4
 
 #define bool int
 
