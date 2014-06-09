@@ -75,6 +75,7 @@ struct macb_dma_desc {
 
 struct macb_device {
 	void			*regs;
+        int                     is_gem;
 
 	unsigned int		rx_tail;
 	unsigned int		tx_head;
@@ -528,15 +529,16 @@ static int macb_init(struct eth_device *netdev, bd_t *bd)
 	/* choose RMII or MII mode. This depends on the board */
 #ifdef CONFIG_RMII
 #ifdef CONFIG_AT91FAMILY
-	macb_writel(macb, USRIO, MACB_BIT(RMII) | MACB_BIT(CLKEN));
+	macb_or_gem_writel(macb, USRIO, (MACB_BIT(RMII) |
+				         MACB_BIT(CLKEN)));
 #else
-	macb_writel(macb, USRIO, 0);
+	macb_or_gem_writel(macb, USRIO, 0);
 #endif
 #else
 #ifdef CONFIG_AT91FAMILY
-	macb_writel(macb, USRIO, MACB_BIT(CLKEN));
+	macb_or_gem_writel(macb, USRIO, MACB_BIT(CLKEN));
 #else
-	macb_writel(macb, USRIO, MACB_BIT(MII));
+	macb_or_gem_writel(macb, USRIO, MACB_BIT(MII));
 #endif
 #endif /* CONFIG_RMII */
 	}
@@ -577,9 +579,9 @@ static int macb_write_hwaddr(struct eth_device *dev)
 	/* set hardware address */
 	hwaddr_bottom = dev->enetaddr[0] | dev->enetaddr[1] << 8 |
 			dev->enetaddr[2] << 16 | dev->enetaddr[3] << 24;
-	macb_writel(macb, SA1B, hwaddr_bottom);
+	macb_or_gem_writel(macb, SA1B, hwaddr_bottom);
 	hwaddr_top = dev->enetaddr[4] | dev->enetaddr[5] << 8;
-	macb_writel(macb, SA1T, hwaddr_top);
+	macb_or_gem_writel(macb, SA1T, hwaddr_top);
 	return 0;
 }
 
@@ -671,6 +673,10 @@ int macb_eth_initialize(int id, void *regs, unsigned int phy_addr)
 	}
 
 	macb_writel(macb, NCFGR, ncfgr);
+
+	/* Cadence GEM has a module ID of 2. */
+	if (MACB_BFEXT(IDNUM, macb_readl(macb, MID)) == 0x2)
+		macb->is_gem = 1;
 
 	eth_register(netdev);
 
