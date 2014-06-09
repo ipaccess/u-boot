@@ -3,8 +3,8 @@
  *****************************************************************************/
 
 /*!
-* \file pc3xxgpio.h
-* \brief Definitions for use with the PC3xx gpio library
+* \file PC302_gpio.h
+* \brief Definitions for use with the picoxcell gpio library.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,14 +15,14 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __MACH_GPIO_H__
-#define __MACH_GPIO_H__
+#ifndef __PICOXCELL_MACH_GPIO_H__
+#define __PICOXCELL_MACH_GPIO_H__
 
 /* Constants --------------------------------------------------------------- */
 
 /* Use on PC3x2 devices */
 enum {
-	PC302_GPIO_PIN_ARM_0 =  0,  /* ARM GPIO pin identifiers. */
+	PC302_GPIO_PIN_ARM_0 = 0,	/* ARM GPIO pin identifiers. */
 	PC302_GPIO_PIN_ARM_1,
 	PC302_GPIO_PIN_ARM_2,
 	PC302_GPIO_PIN_ARM_3,
@@ -30,7 +30,7 @@ enum {
 	PC302_GPIO_PIN_ARM_5,
 	PC302_GPIO_PIN_ARM_6,
 	PC302_GPIO_PIN_ARM_7,
-	PC302_GPIO_PIN_SDGPIO_0,    /* SDGPIO pin identifiers. */
+	PC302_GPIO_PIN_SDGPIO_0,	/* SDGPIO pin identifiers. */
 	PC302_GPIO_PIN_SDGPIO_1,
 	PC302_GPIO_PIN_SDGPIO_2,
 	PC302_GPIO_PIN_SDGPIO_3,
@@ -38,7 +38,7 @@ enum {
 	PC302_GPIO_PIN_SDGPIO_5,
 	PC302_GPIO_PIN_SDGPIO_6,
 	PC302_GPIO_PIN_SDGPIO_7,
-	PC302_GPIO_PIN_ARM_8,      /* ARM shared pins. */
+	PC302_GPIO_PIN_ARM_8,	/* ARM shared pins. */
 	PC302_GPIO_PIN_ARM_9,
 	PC302_GPIO_PIN_ARM_10,
 	PC302_GPIO_PIN_ARM_11,
@@ -46,7 +46,7 @@ enum {
 	PC302_GPIO_PIN_ARM_13,
 	PC302_GPIO_PIN_ARM_14,
 	PC302_GPIO_PIN_ARM_15,
-	PC302_GPIO_PIN_SDGPIO_8,  /* SDGPIO shared pins. */
+	PC302_GPIO_PIN_SDGPIO_8,	/* SDGPIO shared pins. */
 	PC302_GPIO_PIN_SDGPIO_9,
 	PC302_GPIO_PIN_SDGPIO_10,
 	PC302_GPIO_PIN_SDGPIO_11,
@@ -144,8 +144,7 @@ enum {
  *
  * \return Returns zero on success, non-zero on failure.
  */
-int
-pc3xx_gpio_init(void);
+int picoxcell_gpio_init (void);
 
 /**
  * Request a new GPIO pin. This implements part of the Linux GPIO guidelines.
@@ -153,16 +152,14 @@ pc3xx_gpio_init(void);
  * \param gpio The pin to request.
  * \return Returns zero on success, non-zero on failure.
  */
-int
-pc3xx_gpio_request(unsigned gpio);
+int picoxcell_gpio_request (unsigned gpio);
 
 /**
  * Free a GPIO pin previously requested with gpio_request().
  *
  * \param gpio The GPIO pin to free.
  */
-void
-pc3xx_gpio_free(unsigned gpio);
+void picoxcell_gpio_free (unsigned gpio);
 
 /**
  * Set the direction of a GPIO pin requested with gpio_request() to be an
@@ -171,8 +168,7 @@ pc3xx_gpio_free(unsigned gpio);
  * \param gpio The GPIO pin to configure.
  * \return Returns zero on success, non-zero on failure.
  */
-int
-pc3xx_gpio_direction_input(unsigned gpio);
+int picoxcell_gpio_direction_input (unsigned gpio);
 
 /**
  * Set the direction of a GPIO pin requested with gpio_request() to be an
@@ -182,9 +178,7 @@ pc3xx_gpio_direction_input(unsigned gpio);
  * \param value The initial output value for the gpio pin.
  * \return Returns zero on success, non-zero on failure.
  */
-int
-pc3xx_gpio_direction_output(unsigned gpio,
-                            int value);
+int picoxcell_gpio_direction_output (unsigned gpio, int value);
 
 /**
  * Set the value of a GPIO pin.
@@ -192,9 +186,7 @@ pc3xx_gpio_direction_output(unsigned gpio,
  * \param gpio The number of the pin to set the value of.
  * \param value The value to set the pin to.
  */
-void
-pc3xx_gpio_set_value(unsigned gpio,
-                     int value);
+void picoxcell_gpio_set_value (unsigned gpio, int value);
 
 /**
  * Get the value of a GPIO pin.
@@ -203,12 +195,10 @@ pc3xx_gpio_set_value(unsigned gpio,
  * \return Returns the value of the pin on success,
  * negative on failure.
  */
-int
-pc3xx_gpio_get_value(unsigned gpio);
+int picoxcell_gpio_get_value (unsigned gpio);
 
 int
-pc3xx_gpio_configure_dac(unsigned gpio,
-                         u8 converter_size,
-                         u16 analogue_rate);
+picoxcell_gpio_configure_dac (unsigned gpio,
+			      u8 converter_size, u16 analogue_rate);
 
-#endif /* __MACH_GPIO_H__ */
+#endif /* __PICOXCELL_MACH_GPIO_H__ */

@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_PA_H__
-#define __PC3XX_PA_H__
+#ifndef __PICOXCELL_PA_H__
+#define __PICOXCELL_PA_H__
 
 /* Constants --------------------------------------------------------------- */
 
@@ -37,4 +37,4 @@
 #define PA_CONFIG_FAIL      (0x00020000)
 #define PA_CONFIG_TIMEOUT   (0x00040000)
 
-#endif /* __PC3XX_PA_H__ */
+#endif /* __PICOXCELL_PA_H__ */

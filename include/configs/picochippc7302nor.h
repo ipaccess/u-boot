@@ -18,11 +18,11 @@
 #ifndef __CONFIG_PC7302_NOR__
 #define __CONFIG_PC7302_NOR__
 
-#include <asm/arch/pc302.h>
+#include <asm/arch/picoxcell.h>
 #include <asm/sizes.h>
 
 /* Start address of the flash memory */
-#define CONFIG_SYS_FLASH_BASE   (PC302_BOOTABLE_FLASH_BASE)
+#define CONFIG_SYS_FLASH_BASE   (PICOXCELL_FLASH_BASE)
 
 /* Define Flash memory sector size */
 #define FLASH_SECTOR_SIZE	(SZ_128K)
@@ -57,7 +57,7 @@
 #define CONFIG_ENV_IS_IN_FLASH
 
 /* Start address of environment variables */
-#define CONFIG_ENV_ADDR         (PC302_BOOTABLE_FLASH_BASE + CONFIG_SYS_MONITOR_LEN)
+#define CONFIG_ENV_ADDR         (CONFIG_SYS_MONITOR_BASE + CONFIG_SYS_MONITOR_LEN)
 
 /* One flash sector for environment varisbles */
 #define CONFIG_ENV_SECT_SIZE    (FLASH_SECTOR_SIZE)

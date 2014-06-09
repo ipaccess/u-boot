@@ -4,7 +4,7 @@
 
 /*!
 * \file axi2cfg.h
-* \brief Definitions for the PC3xx AXI2CFG Block.
+* \brief Definitions for the picoxcell axi2cfg block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_AXI2CFG_H__
-#define __PC3XX_AXI2CFG_H__
+#ifndef __PICOXCELL_AXI2CFG_H__
+#define __PICOXCELL_AXI2CFG_H__
 
 /* Constants --------------------------------------------------------------- */
 
@@ -44,7 +44,6 @@
 #define AXI2CFG_CONFIG_WRITE_REG_OFFSET             (0x0100)
 #define AXI2CFG_CONFIG_READ_REG_OFFSET              (0x0200)
 #define AXI2CFG_DMAC1_CONFIG_REG_OFFSET             (0x0300)
-
 
 /*****************************************************************************/
 /* Register Bit Fields		                                             */
@@ -159,4 +158,4 @@
 #define AXI2CFG_DMA_CHAN_7_MUX              (1 << AXI2CFG_DMA_CHAN_7_MUX_IDX)
 #define AXI2CFG_BOOT_MODE                   (1 << AXI2CFG_BOOT_MODE_IDX)
 
-#endif /* __PC3XX_AXI2CFG_H__ */
+#endif /* __PICOXCELL_AXI2CFG_H__ */

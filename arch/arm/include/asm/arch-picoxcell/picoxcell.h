@@ -3,8 +3,8 @@
  *****************************************************************************/
 
 /*!
-* \file pc302.h
-* \brief Definitions for the PC3xx ARM sub-system.
+* \file picoxcell.h
+* \brief Definitions for the picoxcell ARM sub-system.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,64 +15,61 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_H__
-#define __PC3XX_H__
+#ifndef __PICOXCELL_H__
+#define __PICOXCELL_H__
 
 /*****************************************************************************/
 /* Internal Boot ROM                                                         */
 /*****************************************************************************/
-#define PC302_BOOT_ROM_BASE         (0xFFFF0000)
+#define PICOXCELL_BOOT_ROM_BASE         (0xFFFF0000)
 
 /*****************************************************************************/
 /* AXI2PICO Buffers                                                          */
 /*****************************************************************************/
-#define PC302_AXI2PICO_BUFFERS_BASE (0xC0000000)
+#define PICOXCELL_AXI2PICO_BUFFERS_BASE (0xC0000000)
 
 /*****************************************************************************/
 /* Peripheral Bus                                                            */
 /*****************************************************************************/
-#define PC302_MEMIF_BASE            (0x80000000)
-#define PC302_EBI_BASE              (0x80010000)
-#define PC302_EMAC_BASE             (0x80030000)
-#define PC302_DMAC1_BASE            (0x80040000)
-#define PC302_DMAC2_BASE            (0x80050000)
-#define PC302_VIC0_BASE             (0x80060000)
-#define PC302_VIC1_BASE             (0x80064000)
-#define PC302_TZIC_BASE             (0x80068000)
-#define PC302_TZPC_BASE             (0x80070000)
-#define PC302_FUSE_BASE             (0x80080000)
-#define PC302_SSI_BASE              (0x80090000)
-#define PC302_AXI2CFG_BASE          (0x800A0000)
-#define PC302_IPSEC_BASE            (0x80100000)
-#define PC302_SRTP_BASE             (0x80140000)
-#define PC302_CIPHER_BASE           (0x80180000)
-#define PC302_RTCLK_BASE            (0x80200000)
-#define PC302_TIMER_BASE            (0x80210000)
-#define PC302_GPIO_BASE             (0x80220000)
-#define PC302_UART1_BASE            (0x80230000)
-#define PC302_UART2_BASE            (0x80240000)
-#define PC302_WDOG_BASE             (0x80250000)
+#define PICOXCELL_MEMIF_BASE            (0x80000000)
+#define PICOXCELL_EBI_BASE              (0x80010000)
+#define PICOXCELL_EMAC_BASE             (0x80030000)
+#define PICOXCELL_DMAC1_BASE            (0x80040000)
+#define PICOXCELL_DMAC2_BASE            (0x80050000)
+#define PICOXCELL_VIC0_BASE             (0x80060000)
+#define PICOXCELL_VIC1_BASE             (0x80064000)
+#define PICOXCELL_TZIC_BASE             (0x80068000)
+#define PICOXCELL_TZPC_BASE             (0x80070000)
+#define PICOXCELL_FUSE_BASE             (0x80080000)
+#define PICOXCELL_SSI_BASE              (0x80090000)
+#define PICOXCELL_AXI2CFG_BASE          (0x800A0000)
+#define PICOXCELL_IPSEC_BASE            (0x80100000)
+#define PICOXCELL_SRTP_BASE             (0x80140000)
+#define PICOXCELL_CIPHER_BASE           (0x80180000)
+#define PICOXCELL_RTCLK_BASE            (0x80200000)
+#define PICOXCELL_TIMER_BASE            (0x80210000)
+#define PICOXCELL_GPIO_BASE             (0x80220000)
+#define PICOXCELL_UART1_BASE            (0x80230000)
+#define PICOXCELL_UART2_BASE            (0x80240000)
+#define PICOXCELL_WDOG_BASE             (0x80250000)
 
 /*****************************************************************************/
 /* External Memory                                                           */
 /*****************************************************************************/
-#define PC302_DDRBANK_BASE          (0x00000000)
+#define PICOXCELL_DDRBANK_BASE          (0x00000000)
 
-#define PC302_EBI_CS0_BASE          (0x40000000)
-#define PC302_EBI_CS1_BASE          (0x48000000)
-#define PC302_EBI_CS2_BASE          (0x50000000)
-#define PC302_EBI_CS3_BASE          (0x58000000)
+#define PICOXCELL_EBI_CS0_BASE          (0x40000000)
+#define PICOXCELL_EBI_CS1_BASE          (0x48000000)
+#define PICOXCELL_EBI_CS2_BASE          (0x50000000)
+#define PICOXCELL_EBI_CS3_BASE          (0x58000000)
 
-#define PC302_FLASH_BASE            (PC302_EBI_CS0_BASE)
-#define PC302_FLASH_START           (PC302_EBI_CS0_BASE)
-#define PC302_FLASH_SIZE            (0x08000000)
+#define PICOXCELL_FLASH_BASE            (PICOXCELL_EBI_CS0_BASE)
 
 /*****************************************************************************/
 /* Internal SRAM Memory                                                      */
 /*****************************************************************************/
-#define PC302_SRAM_BASE             (0x20000000)
-#define PC302_SRAM_START            (0x20000000)
-#define PC302_SRAM_SIZE             (0x00020000)
+#define PICOXCELL_SRAM_BASE             (0x20000000)
+#define PICOXCELL_SRAM_SIZE             (0x00020000)
 
 /*****************************************************************************/
 /* Silicon Revision                                                          */
@@ -89,4 +86,4 @@
 #define PC323_DEVICE_ID             (0x21)
 #define PC333_DEVICE_ID             (0x22)
 
-#endif /* __PC3XX_H__ */
+#endif /* __PICOXCELL_H__ */

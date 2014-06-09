@@ -15,10 +15,10 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#ifndef __CONFIG_PC7302_H
+#define __CONFIG_PC7302_H
 
-#include <asm/arch/pc302.h>
+#include <asm/arch/picoxcell.h>
 #include <asm/arch/uart.h>
 #include <asm/sizes.h>
 
@@ -50,15 +50,12 @@
 /* Running on a Picochip PC7302 platform */
 #define CONFIG_PICOCHIP_PC7302
 
-/* Bootable Flash memory has to live here (/ebi_decode0) */
-#define PC302_BOOTABLE_FLASH_BASE   (PC302_FLASH_BASE)
-
 /* Base address of the onchip SRAM */
-#define PC302_ONCHIP_SRAM_BASE      (PC302_SRAM_BASE)
-#define PC302_ONCHIP_SRAM_SIZE      (PC302_SRAM_SIZE)
+#define PICOXCELL_ONCHIP_SRAM_BASE      (PICOXCELL_SRAM_BASE)
+#define PICOXCELL_ONCHIP_SRAM_SIZE      (PICOXCELL_SRAM_SIZE)
 
 /* ARM Sub-system peripherals are clocked at 200MHz */
-#define PC302_AHB_CLOCK_FREQ        (200000000)
+#define PICOXCELL_AHB_CLOCK_FREQ        (200000000)
 
 /* Don't use Interrupts */
 #undef CONFIG_USE_IRQ
@@ -115,7 +112,7 @@
  */
 #define CONFIG_SYS_SDRAM_BASE	(0x00000000)
 #define CONFIG_NR_DRAM_BANKS    (1)
-#define PHYS_SDRAM_1		(PC302_DDRBANK_BASE)
+#define PHYS_SDRAM_1		(PICOXCELL_DDRBANK_BASE)
 #define PHYS_SDRAM_1_SIZE	(SZ_128M)
 
 /*-----------------------------------------------------------------------------
@@ -150,7 +147,7 @@
 /*-----------------------------------------------------------------------------
  * Timer Stuff
  */
-#define CONFIG_SYS_TIMERBASE    (PC302_TIMER_BASE)
+#define CONFIG_SYS_TIMERBASE    (PICOXCELL_TIMER_BASE)
 
 /*-----------------------------------------------------------------------------
  * Ethernet Stuff
@@ -166,7 +163,7 @@
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE (-4)
 #define CONFIG_SYS_NS16550_CLK      (3686400)
-#define CONFIG_SYS_NS16550_COM1     (PC302_UART1_BASE)
+#define CONFIG_SYS_NS16550_COM1     (PICOXCELL_UART1_BASE)
 
 /* Our uart registers need 32 bit access */ 
 #define CONFIG_SYS_NS16550_MEM32
@@ -183,17 +180,17 @@
  * U-Boot Memory Test (mtest command) Stuff
  */
 /* Default start address for memory test */
-#define CONFIG_SYS_MEMTEST_START    (PC302_ONCHIP_SRAM_BASE)
+#define CONFIG_SYS_MEMTEST_START    (PICOXCELL_ONCHIP_SRAM_BASE)
 
 /* Default end address for memory test */
 #define CONFIG_SYS_MEMTEST_END  (CONFIG_SYS_MEMTEST_START + \
-                                 PC302_ONCHIP_SRAM_SIZE - 1)
+                                 PICOXCELL_ONCHIP_SRAM_SIZE - 1)
 
 /* Define this to use the super duper memory test */
 #define CONFIG_SYS_ALT_MEMTEST
 
 /* Use Uart #1 scratch pad reg */
-#define CONFIG_SYS_MEMTEST_SCRATCH  (PC302_UART1_BASE + \
+#define CONFIG_SYS_MEMTEST_SCRATCH  (PICOXCELL_UART1_BASE + \
                                      UART_SCRATCH_REG_OFFSET)
 
 /*-----------------------------------------------------------------------------
@@ -389,4 +386,4 @@
     #endif
 #endif
 
-#endif /* __CONFIG_H */
+#endif /* __CONFIG_PC7302_H */

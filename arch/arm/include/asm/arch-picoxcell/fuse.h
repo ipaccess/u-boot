@@ -4,7 +4,7 @@
 
 /*!
 * \file fuse.h
-* \brief Definitions for the PC3xx Fuse Block.
+* \brief Definitions for the picoxcell fuse block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -14,8 +14,8 @@
 *
 * All enquiries to support@picochip.com
 */
-#ifndef __PC3XX_FUSE_H__
-#define __PC3XX_FUSE_H__
+#ifndef __PICOXCELL_FUSE_H__
+#define __PICOXCELL_FUSE_H__
 
 /* Constants -------------------------------------------------------------- */
 
@@ -73,4 +73,4 @@
 
 #define FUSE_WRITE_FUSE_ENABLE          (0x66757365)
 
-#endif /* __PC3XX_FUSE_H__ */
+#endif /*__PICOXCELL_FUSE_H__ */

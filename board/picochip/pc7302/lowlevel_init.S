@@ -17,7 +17,7 @@
 
 /* Includes ---------------------------------------------------------------- */
 #include <config.h>
-#include <asm/arch/pc302.h>
+#include <asm/arch/picoxcell.h>
 #include <asm/arch/mem_arm.h>
 #include <asm/arch/mem_shd.h>
 #include <asm/arch/gpio.h>
@@ -44,14 +44,14 @@
  *****************************************************************************/
 .macro  configWriteLoadFile Reg0, Reg1, Reg2, Reg3, Reg4, lfbase, lfwords
 
-        ADR     \Reg0,\lfbase
-        LDR     \Reg1,=PC302_AXI2CFG_BASE
-        LDR     \Reg2,=\lfwords
+        adr     \Reg0,\lfbase
+        ldr     \Reg1,=PICOXCELL_AXI2CFG_BASE
+        ldr     \Reg2,=\lfwords
 0:
-        LDR     \Reg3, [\Reg0],#0x4
-        STR     \Reg3, [\Reg1,#AXI2CFG_CONFIG_WRITE_REG_OFFSET]
-        SUBS    \Reg2, \Reg2, #1
-        BNE     0b
+        ldr     \Reg3, [\Reg0],#0x4
+        str     \Reg3, [\Reg1,#AXI2CFG_CONFIG_WRITE_REG_OFFSET]
+        subs    \Reg2, \Reg2, #1
+        bne     0b
 .endm
 
 /*****************************************************************************
@@ -61,33 +61,33 @@
  *****************************************************************************/
 .macro  configRead Reg0, Reg1, Reg2, aeid, addr
 
-        LDR     \Reg0,=PC302_AXI2CFG_BASE
+        ldr     \Reg0,=PICOXCELL_AXI2CFG_BASE
 
         /* aeid */
-        LDR     \Reg1,=\aeid
-        ORR     \Reg1,\Reg1,#PA_CONFIG_AEID
-        STR     \Reg1, [\Reg0,#AXI2CFG_CONFIG_WRITE_REG_OFFSET]
+        ldr     \Reg1,=\aeid
+        orr     \Reg1,\Reg1,#PA_CONFIG_AEID
+        str     \Reg1, [\Reg0,#AXI2CFG_CONFIG_WRITE_REG_OFFSET]
 
         /* addr */
-        LDR     \Reg1,=\addr
-        ORR     \Reg1,\Reg1,#PA_CONFIG_ADDR
-        STR     \Reg1, [\Reg0,#AXI2CFG_CONFIG_WRITE_REG_OFFSET]
+        ldr     \Reg1,=\addr
+        orr     \Reg1,\Reg1,#PA_CONFIG_ADDR
+        str     \Reg1, [\Reg0,#AXI2CFG_CONFIG_WRITE_REG_OFFSET]
 
         /* data */
-        MOV     \Reg1,#PA_CONFIG_READ
-        STR     \Reg1, [\Reg0,#AXI2CFG_CONFIG_WRITE_REG_OFFSET]
-        MOV     \Reg2,#0x20
+        mov     \Reg1,#PA_CONFIG_READ
+        str     \Reg1, [\Reg0,#AXI2CFG_CONFIG_WRITE_REG_OFFSET]
+        mov     \Reg2,#0x20
 
         /* read */
 0:
-        LDR     \Reg1, [\Reg0,#AXI2CFG_CONFIG_READ_REG_OFFSET]
-        TST     \Reg1, #(PA_CONFIG_VALID | PA_CONFIG_FAIL)
-        BNE     1f
-        SUBS    \Reg2,\Reg2,#1
-        BNE     0b
-        MOV     \Reg1, #PA_CONFIG_TIMEOUT
+        ldr     \Reg1, [\Reg0,#AXI2CFG_CONFIG_READ_REG_OFFSET]
+        tst     \Reg1, #(PA_CONFIG_VALID | PA_CONFIG_FAIL)
+        bne     1f
+        subs    \Reg2,\Reg2,#1
+        bne     0b
+        mov     \Reg1, #PA_CONFIG_TIMEOUT
 1:
-        MOV     \Reg0, \Reg1
+        mov     \Reg0, \Reg1
 
 .endm
 
@@ -105,13 +105,13 @@
  lowlevel_init:
 
         /* Setup the Periheral Port Memory Remap Register */
-        LDR     r0, =PERIPHERAL_BUS_SETUP
-        MCR     p15, 0, r0, c15, c2, 4
+        ldr     r0, =PERIPHERAL_BUS_SETUP
+        mcr     p15, 0, r0, c15, c2, 4
 
         /* Now we need to remap the flash memory otherwsie we'll not be
          * able to talk to sdram later on.
          */
-        orr     pc, pc, #PC302_BOOTABLE_FLASH_BASE
+        orr     pc, pc, #PICOXCELL_FLASH_BASE
         nop
         nop
 
@@ -120,13 +120,13 @@
          * we return from here to the cpu_init_crit() and ultimately the
          * reset() we keep running code in the remapped address.
          */
-        orr     ip, ip, #PC302_BOOTABLE_FLASH_BASE
-        orr     lr, lr, #PC302_BOOTABLE_FLASH_BASE
+        orr     ip, ip, #PICOXCELL_FLASH_BASE
+        orr     lr, lr, #PICOXCELL_FLASH_BASE
 
         /* Perform the 'remap' in the axi2cfg block
          * This turns off the address aliasing in the hardware
          */
-        ldr     r0, =PC302_AXI2CFG_BASE
+        ldr     r0, =PICOXCELL_AXI2CFG_BASE
         ldr     r1, [r0, #AXI2CFG_SYS_CONFIG_REG_OFFSET]
         bic     r1, #AXI2CFG_SYS_CONFIG_RW_REMAP_MASK
         str     r1, [r0, #AXI2CFG_SYS_CONFIG_REG_OFFSET]
@@ -164,16 +164,16 @@
  * Example:
  *
  *  is_pc3x2	r0
- *  LDREQ	r0, =PC3X2_VALUE
- *  LDRNE	r0, =PC3X3_VALUE
+ *  ldreq       r0, =PC3X2_VALUE
+ *  ldrne       r0, =PC3X3_VALUE
  *
  *****************************************************************************/
 .macro	is_pc3x2, tmp
-	LDR	\tmp, =PC302_AXI2CFG_BASE
-	ORR	\tmp, \tmp, #AXI2CFG_DEVICE_ID_REG_OFFSET
-	LDR	\tmp, [\tmp]	@ Get the device ID.
+	ldr     \tmp, =PICOXCELL_AXI2CFG_BASE
+	orr     \tmp, \tmp, #AXI2CFG_DEVICE_ID_REG_OFFSET
+	ldr     \tmp, [\tmp]    @ Get the device ID.
 
-	ANDS	\tmp, \tmp, #0x0020
+	ands    \tmp, \tmp, #0x0020
 .endm
 
 /*****************************************************************************
@@ -185,110 +185,110 @@
  *****************************************************************************/
 memif_arm_init:
 
-        LDR     r3, =PC302_MEMIF_BASE
+        ldr     r3, =PICOXCELL_MEMIF_BASE
 
         /* ;; =MEMIF_ARM_DRAM_INIT_PARAM_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_DRAM_INIT_PARAM_OFFSET]
-        BIC     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_FWAIT_MSK << MEMIF_ARM_DRAM_INIT_PARAM_FWAIT_IDX)
-        ORR     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_FWAIT_VAL << MEMIF_ARM_DRAM_INIT_PARAM_FWAIT_IDX)
-        BIC     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_PRE_CKE_MSK << MEMIF_ARM_DRAM_INIT_PARAM_PRE_CKE_IDX)
-        ORR     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_PRE_CKE_VAL << MEMIF_ARM_DRAM_INIT_PARAM_PRE_CKE_IDX)
-        BIC     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_PST_CKE_MSK << MEMIF_ARM_DRAM_INIT_PARAM_PST_CKE_IDX)
-        ORR     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_PST_CKE_VAL << MEMIF_ARM_DRAM_INIT_PARAM_PST_CKE_IDX)
-        STR     r4, [r3, #MEMIF_ARM_DRAM_INIT_PARAM_OFFSET]
+        ldr     r4, [r3, #MEMIF_ARM_DRAM_INIT_PARAM_OFFSET]
+        bic     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_FWAIT_MSK << MEMIF_ARM_DRAM_INIT_PARAM_FWAIT_IDX)
+        orr     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_FWAIT_VAL << MEMIF_ARM_DRAM_INIT_PARAM_FWAIT_IDX)
+        bic     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_PRE_CKE_MSK << MEMIF_ARM_DRAM_INIT_PARAM_PRE_CKE_IDX)
+        orr     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_PRE_CKE_VAL << MEMIF_ARM_DRAM_INIT_PARAM_PRE_CKE_IDX)
+        bic     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_PST_CKE_MSK << MEMIF_ARM_DRAM_INIT_PARAM_PST_CKE_IDX)
+        orr     r4, r4, #(MEMIF_ARM_DRAM_INIT_PARAM_PST_CKE_VAL << MEMIF_ARM_DRAM_INIT_PARAM_PST_CKE_IDX)
+        str     r4, [r3, #MEMIF_ARM_DRAM_INIT_PARAM_OFFSET]
 
         /* ;; =MEMIF_ARM_ADDR_MAP_0_OFFSET */
-        LDR     r4, =MEMIF_ARM_ADDR_MAP_0_VAL_1Gbx16
-        STR     r4, [r3, #MEMIF_ARM_ADDR_MAP_0_OFFSET]
+        ldr     r4, =MEMIF_ARM_ADDR_MAP_0_VAL_1Gbx16
+        str     r4, [r3, #MEMIF_ARM_ADDR_MAP_0_OFFSET]
 
         /* ;; =MEMIF_ARM_ADDR_MAP_1_OFFSET */
-        LDR     r4, =MEMIF_ARM_ADDR_MAP_1_VAL_1Gbx16
-        STR     r4, [r3, #MEMIF_ARM_ADDR_MAP_1_OFFSET]
+        ldr     r4, =MEMIF_ARM_ADDR_MAP_1_VAL_1Gbx16
+        str     r4, [r3, #MEMIF_ARM_ADDR_MAP_1_OFFSET]
 
         /* ;; =MEMIF_ARM_ADDR_MAP_2_OFFSET */
-        LDR     r4, =MEMIF_ARM_ADDR_MAP_2_VAL_1Gbx16
-        STR     r4, [r3, #MEMIF_ARM_ADDR_MAP_2_OFFSET]
+        ldr     r4, =MEMIF_ARM_ADDR_MAP_2_VAL_1Gbx16
+        str     r4, [r3, #MEMIF_ARM_ADDR_MAP_2_OFFSET]
 
         /* ;; =MEMIF_ARM_DRAM_PARAM_2_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_DRAM_PARAM_2_OFFSET]
-        AND     r4, r4, #0xFFFFFFF0
-        ORR     r4, r4, #0x00000004 ; wl = cl - 2
-        STR     r4, [r3, #MEMIF_ARM_DRAM_PARAM_2_OFFSET]
+        ldr     r4, [r3, #MEMIF_ARM_DRAM_PARAM_2_OFFSET]
+        and     r4, r4, #0xFFFFFFF0
+        orr     r4, r4, #0x00000004 ; wl = cl - 2
+        str     r4, [r3, #MEMIF_ARM_DRAM_PARAM_2_OFFSET]
 
         /* ;; =MEMIF_ARM_DRAM_BL_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_DRAM_BL_OFFSET]
-        BIC     r4, r4, #0x00000001 //; bl = 4
-        STR     r4, [r3, #MEMIF_ARM_DRAM_BL_OFFSET]
+        ldr     r4, [r3, #MEMIF_ARM_DRAM_BL_OFFSET]
+        bic     r4, r4, #0x00000001 //; bl = 4
+        str     r4, [r3, #MEMIF_ARM_DRAM_BL_OFFSET]
 
         /* ;;  =MEMIF_ARM_DRAM_EMR_MR_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_DRAM_EMR_MR_OFFSET]
-        AND     r4, r4, #0xFFFFFF88
-        ORR     r4, r4, #0x00000002 //; bl = 4
-        ORR     r4, r4, #0x00000060 //; cl = 6
-        ORR     r4, r4, #0x04000000 //; dqs# = 0
-        STR     r4, [r3, #MEMIF_ARM_DRAM_EMR_MR_OFFSET]
+        ldr     r4, [r3, #MEMIF_ARM_DRAM_EMR_MR_OFFSET]
+        and     r4, r4, #0xFFFFFF88
+        orr     r4, r4, #0x00000002 //; bl = 4
+        orr     r4, r4, #0x00000060 //; cl = 6
+        orr     r4, r4, #0x04000000 //; dqs# = 0
+        str     r4, [r3, #MEMIF_ARM_DRAM_EMR_MR_OFFSET]
 
         /* ;;  =MEMIF_ARM_PHY_CMD_RDC_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_PHY_CMD_RDC_OFFSET]
-        AND     r4, r4, #0xFFFFFF00
-        ORR     r4, r4, #0x00000050 //;  phy wl
-        ORR     r4, r4, #0x00000006 //;  phy rl
-        AND     r4, r4, #0xFFFFFCFF
-        ORR     r4, r4, #0x00000300 //;  rdc_we_to_re_delay = 3 clks
-        AND     r4, r4, #0xFFFEFFFF
-        ORR     r4, r4, #0x00010000 //;  use_fixed_re = 1
-        STR     r4, [r3, #MEMIF_ARM_PHY_CMD_RDC_OFFSET]
+        ldr     r4, [r3, #MEMIF_ARM_PHY_CMD_RDC_OFFSET]
+        and     r4, r4, #0xFFFFFF00
+        orr     r4, r4, #0x00000050 //;  phy wl
+        orr     r4, r4, #0x00000006 //;  phy rl
+        and     r4, r4, #0xFFFFFCFF
+        orr     r4, r4, #0x00000300 //;  rdc_we_to_re_delay = 3 clks
+        and     r4, r4, #0xFFFEFFFF
+        orr     r4, r4, #0x00010000 //;  use_fixed_re = 1
+        str     r4, [r3, #MEMIF_ARM_PHY_CMD_RDC_OFFSET]
 
         /* ;; =MEMIF_ARM_PHY_SLV_DLL_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_PHY_SLV_DLL_OFFSET]
-        AND     r4, r4, #0x0
-        ORR     r4, r4, #0x30000000 //;  dll rd_slave1 ratio
-        ORR     r4, r4, #0x00300000 //;  dll rd_slave0 ratio
+        ldr     r4, [r3, #MEMIF_ARM_PHY_SLV_DLL_OFFSET]
+        and     r4, r4, #0x0
+        orr     r4, r4, #0x30000000 //;  dll rd_slave1 ratio
+        orr     r4, r4, #0x00300000 //;  dll rd_slave0 ratio
 	is_pc3x2    r0
-        ORRNE   r4, r4, #0x00000050 //;  dll wr_slave ratio for PC3X3
-	ORREQ	r4, r4, #0x00000040 //;  dll wr_slave ratio for PC3X2
-        STR     r4, [r3, #MEMIF_ARM_PHY_SLV_DLL_OFFSET]
+        orrne   r4, r4, #0x00000050 //;  dll wr_slave ratio for PC3X3
+	orreq   r4, r4, #0x00000040 //;  dll wr_slave ratio for PC3X2
+        str     r4, [r3, #MEMIF_ARM_PHY_SLV_DLL_OFFSET]
 
         /* ;; =MEMIF_ARM_DRAM_ODT_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_DRAM_ODT_OFFSET]
-        BIC     r4, r4, #0x00000001 //; disable dram odt during reads
-        STR     r4, [r3,#MEMIF_ARM_DRAM_ODT_OFFSET]
+        ldr     r4, [r3, #MEMIF_ARM_DRAM_ODT_OFFSET]
+        bic     r4, r4, #0x00000001 //; disable dram odt during reads
+        str     r4, [r3,#MEMIF_ARM_DRAM_ODT_OFFSET]
 
         /* ;; =MEMIF_ARM_ODT_CTRL_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_ODT_CTRL_OFFSET]
-        AND     r4, r4, #0xFFFFFF00
-        AND     r4, r4, #0xFFFF00FF
-        ORR     r4, r4, #0x0010 //; wr_odt_delay, cl-5
-        ORR     r4, r4, #0x3000 //; wr_odt_hold, 4 cycles required
-        STR     r4, [r3, #MEMIF_ARM_ODT_CTRL_OFFSET]
+        ldr     r4, [r3, #MEMIF_ARM_ODT_CTRL_OFFSET]
+        and     r4, r4, #0xFFFFFF00
+        and     r4, r4, #0xFFFF00FF
+        orr     r4, r4, #0x0010 //; wr_odt_delay, cl-5
+        orr     r4, r4, #0x3000 //; wr_odt_hold, 4 cycles required
+        str     r4, [r3, #MEMIF_ARM_ODT_CTRL_OFFSET]
 
         /* ;; =MEMIF_ARM_PHY_LOCAL_ODT_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_PHY_LOCAL_ODT_OFFSET]
-        AND     r4, r4, #0xFFFFFFC0
-        ORR     r4, r4, #0x0001 //; rd_local_odt = 75 ohm
+        ldr     r4, [r3, #MEMIF_ARM_PHY_LOCAL_ODT_OFFSET]
+        and     r4, r4, #0xFFFFFFC0
+        orr     r4, r4, #0x0001 //; rd_local_odt = 75 ohm
                                 //; wr_local_odt = off
                                 //; idle_local_odt = off
-        STR     r4, [r3, #MEMIF_ARM_PHY_LOCAL_ODT_OFFSET]
+        str     r4, [r3, #MEMIF_ARM_PHY_LOCAL_ODT_OFFSET]
 
         /* ;; =MEMIF_ARM_PHY_LOCAL_DRV_STRENGTH_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_PHY_LOCAL_DRV_STRENGTH_OFFSET]
-        ORR     r4, r4, #0x0010 //; fifo_we_in odt = 75 ohm
-        ORR     r4, r4, #0x000F //; All control signals half drive strength
-        STR     r4, [r3, #MEMIF_ARM_GP2_OFFSET]
+        ldr     r4, [r3, #MEMIF_ARM_PHY_LOCAL_DRV_STRENGTH_OFFSET]
+        orr     r4, r4, #0x0010 //; fifo_we_in odt = 75 ohm
+        orr     r4, r4, #0x000F //; All control signals half drive strength
+        str     r4, [r3, #MEMIF_ARM_GP2_OFFSET]
 
         /* ;; =MEMIF_ARM_INDIRECT_RW_CMD_OFFSET */
-        LDR     r4, [r3, #MEMIF_ARM_INDIRECT_RW_CMD_OFFSET]
-        ORR     r4, r4, #0x1  //; de-assert soft reset
-        STR     r4, [r3, #MEMIF_ARM_INDIRECT_RW_CMD_OFFSET]
+        ldr     r4, [r3, #MEMIF_ARM_INDIRECT_RW_CMD_OFFSET]
+        orr     r4, r4, #0x1  //; de-assert soft reset
+        str     r4, [r3, #MEMIF_ARM_INDIRECT_RW_CMD_OFFSET]
 
 /* Check to see if the mem-if ARM is ready yet? */
 memif_arm_init_poll:
-        LDR     r4, [r3, #MEMIF_ARM_CTRL_MODE_OFFSET]
-        AND     r4, r4, #0x3
-        CMP     r4, #0x1
-        BNE     memif_arm_init_poll
+        ldr     r4, [r3, #MEMIF_ARM_CTRL_MODE_OFFSET]
+        and     r4, r4, #0x3
+        cmp     r4, #0x1
+        bne     memif_arm_init_poll
 
-        mov	pc, lr		/* Return to my caller */
+        mov     pc, lr          /* Return to my caller */
 
 /*****************************************************************************
  *
@@ -331,46 +331,12 @@ memif_shared_init_poll:
         configRead r0, r1, r2, PA_AEID_MEMIF, ADDR_SDRAM_STATUS
 
         /* Has it timed out? */
-        TST     r0, #PA_CONFIG_TIMEOUT
-        BNE     memif_shared_init_poll
+        tst     r0, #PA_CONFIG_TIMEOUT
+        bne     memif_shared_init_poll
 
         /* Has it configured? */
-        TST     r0, #0x01
-        BEQ     memif_shared_init_poll
-
-        /* Return to my caller */
-        mov	pc, lr
-
-/*****************************************************************************
- *
- * register_initialisation
- *
- * Description: Initialise some CPU registers
- *
- * Note:
- * Used to prevent X propagation if running this code in a simulation
- *
- *****************************************************************************/
-register_initialisation:
-
-        mov     r0, #0x00000000
-        mov     r1, #0x00000000
-        mov     r2, #0x00000000
-        mov     r3, #0x00000000
-        mov     r4, #0x00000000
-        mov     r5, #0x00000000
-        mov     r6, #0x00000000
-        mov     r7, #0x00000000
-        mov     r8, #0x00000000
-        mov     r9, #0x00000000
-        mov     r10,#0x00000000
-
-        /* Don't noodle with r11 (fp)
-                             r12 (ip)
-                             r13 (sp)
-                             r14 (lr)
-                             r15 (pc)
-           as this would cause big probs ! */
+        tst     r0, #0x01
+        beq     memif_shared_init_poll
 
         /* Return to my caller */
         mov	pc, lr
@@ -385,7 +351,7 @@ register_initialisation:
  initialiseBootErrorPin:
 
         /* Get base address of the arm gpio block */
-        ldr     r0,=PC302_GPIO_BASE
+        ldr     r0,=PICOXCELL_GPIO_BASE
 
         /* Negate the Boot error pin (in the data register) */
         ldr     r1,[r0, #GPIO_SW_PORT_C_DR_REG_OFFSET]
@@ -414,7 +380,7 @@ register_initialisation:
  assertBootError:
 
         /* Get base address of the arm gpio block */
-        ldr     r0,=PC302_GPIO_BASE
+        ldr     r0,=PICOXCELL_GPIO_BASE
 
         /* Assert the Boot Error pin */
         mov     r1, #ASSERT_BOOT_ERROR_PIN
@@ -422,5 +388,3 @@ register_initialisation:
 
         /* Return to my caller */
         mov	pc, lr
-
-       .end

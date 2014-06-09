@@ -38,17 +38,15 @@
  * MA 02111-1307 USA
  */
 
-
-
 /* Includes ---------------------------------------------------------------- */
 #include <common.h>
 
 #ifdef CONFIG_CMD_NAND
 
-#include <asm/arch/pc302.h>
+#include <asm/arch/picoxcell.h>
 #include <nand.h>
 #include <asm/arch/utilities.h>
-#include <asm/arch/pc3xxgpio.h>
+#include <asm/arch/picoxcell_gpio.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/axi2cfg.h>
 
@@ -66,53 +64,42 @@ static unsigned int rdy;
  * \param ctrl, control data to set up the transaction
  *
  */
-static void mt29f2g08aadwp_cmd_ctrl(struct mtd_info *mtd,
-				    int dat,
-				    unsigned int ctrl)
+static void mt29f2g08aadwp_cmd_ctrl (struct mtd_info *mtd,
+				     int dat, unsigned int ctrl)
 {
-    struct nand_chip *this = mtd->priv;
+	struct nand_chip *this = mtd->priv;
 
-    if (ctrl & NAND_CTRL_CHANGE)
-    {
-        if (ctrl & NAND_NCE)
-        {
-            /* Assert the chip select */
-            pc3xx_gpio_set_value(nce, 0);
+	if (ctrl & NAND_CTRL_CHANGE) {
+		if (ctrl & NAND_NCE) {
+			/* Assert the chip select */
+			picoxcell_gpio_set_value (nce, 0);
 
-	    if (ctrl & NAND_CLE)
-            {
-	        /* Assert CLE */
-                pc3xx_gpio_set_value(cle, 1);
-            }
-    	    else
-	    {
-                /* Negate CLE */
-                pc3xx_gpio_set_value(cle, 0);
-            }
+			if (ctrl & NAND_CLE) {
+				/* Assert CLE */
+				picoxcell_gpio_set_value (cle, 1);
+			} else {
+				/* Negate CLE */
+				picoxcell_gpio_set_value (cle, 0);
+			}
 
-	    if (ctrl & NAND_ALE)
-	    {
-                /* Assert ALE */
-                pc3xx_gpio_set_value(ale, 1);
-            }
-	    else
-            {
-		/* Negate ALE */
-                pc3xx_gpio_set_value(ale, 0);
-            }
-        }
-        else
-        {
-	    /* Negate the chip select */
-            pc3xx_gpio_set_value(nce, 1);
-        }
-    }
+			if (ctrl & NAND_ALE) {
+				/* Assert ALE */
+				picoxcell_gpio_set_value (ale, 1);
+			} else {
+				/* Negate ALE */
+				picoxcell_gpio_set_value (ale, 0);
+			}
+		} else {
+			/* Negate the chip select */
+			picoxcell_gpio_set_value (nce, 1);
+		}
+	}
 
-    /* If we have data to write, write it */
-    if (dat != NAND_CMD_NONE)
-    {
-	*(volatile unsigned char *)(this->IO_ADDR_W) = (unsigned char)dat;
-    }
+	/* If we have data to write, write it */
+	if (dat != NAND_CMD_NONE) {
+		*(volatile unsigned char *)(this->IO_ADDR_W) =
+		    (unsigned char)dat;
+	}
 }
 
 /*!
@@ -122,9 +109,9 @@ static void mt29f2g08aadwp_cmd_ctrl(struct mtd_info *mtd,
  *         1 - nand ready
  *
  */
-static int mt29f2g08aadwp_dev_ready(struct mtd_info *mtd)
+static int mt29f2g08aadwp_dev_ready (struct mtd_info *mtd)
 {
-    return pc3xx_gpio_get_value(rdy);
+	return picoxcell_gpio_get_value (rdy);
 }
 
 /*
@@ -145,55 +132,52 @@ static int mt29f2g08aadwp_dev_ready(struct mtd_info *mtd)
  * Members with a "?" were not set in the merged testing-NAND branch,
  * so they are not set here either.
  */
-int board_nand_init(struct nand_chip *nand)
+int board_nand_init (struct nand_chip *nand)
 {
-    /* Define which gpio bits are used to control the NAND Flash
-     *
-     * Note: These pin definitions mean that we can only use NAND
-     *       Flash if we are running U-Boot from RAM and have NOT booted
-     *       the device from parallel NOR Flash.
-     */
-    if (is_pc3x3())
-    {
-        cle = PC3X3_GPIO_PIN_ARM_4;
-        ale = PC3X3_GPIO_PIN_ARM_3;
-        nce = PC3X3_GPIO_PIN_ARM_2;
-        rdy = PC3X3_GPIO_PIN_ARM_1;
+	/* Define which gpio bits are used to control the NAND Flash
+	 *
+	 * Note: These pin definitions mean that we can only use NAND
+	 *       Flash if we are running U-Boot from RAM and have NOT booted
+	 *       the device from parallel NOR Flash.
+	 */
+	if (is_pc3x3 ()) {
+		cle = PC3X3_GPIO_PIN_ARM_4;
+		ale = PC3X3_GPIO_PIN_ARM_3;
+		nce = PC3X3_GPIO_PIN_ARM_2;
+		rdy = PC3X3_GPIO_PIN_ARM_1;
 
-        /* Setup some pin muxing */
-        pc3xx_group_set_mux ("pai_tx_data[3:0]", MUX_PERIPHERAL);
-        pc3xx_pin_set_mux(PC3X3_GPIO_PIN_ARM_4, MUX_ARM);
-    }
-    else
-    {
-        cle = PC302_GPIO_PIN_ARM_4;
-        ale = PC302_GPIO_PIN_ARM_3;
-        nce = PC302_GPIO_PIN_ARM_2;
-        rdy = PC302_GPIO_PIN_ARM_1;
+		/* Setup some pin muxing */
+		picoxcell_group_set_mux ("pai_tx_data[3:0]", MUX_PERIPHERAL);
+		picoxcell_pin_set_mux (PC3X3_GPIO_PIN_ARM_4, MUX_ARM);
+	} else {
+		cle = PC302_GPIO_PIN_ARM_4;
+		ale = PC302_GPIO_PIN_ARM_3;
+		nce = PC302_GPIO_PIN_ARM_2;
+		rdy = PC302_GPIO_PIN_ARM_1;
 
-        /* Setup some pin muxing */
-        pc3xx_pin_set_mux(PC302_GPIO_PIN_ARM_4, MUX_ARM);
-    }
+		/* Setup some pin muxing */
+		picoxcell_pin_set_mux (PC302_GPIO_PIN_ARM_4, MUX_ARM);
+	}
 
-    /* Request the required gpio pins */
-    (void)pc3xx_gpio_request(rdy);
-    (void)pc3xx_gpio_request(nce);
-    (void)pc3xx_gpio_request(ale);
-    (void)pc3xx_gpio_request(cle);
+	/* Request the required gpio pins */
+	(void)picoxcell_gpio_request (rdy);
+	(void)picoxcell_gpio_request (nce);
+	(void)picoxcell_gpio_request (ale);
+	(void)picoxcell_gpio_request (cle);
 
-    /* Initialise the pin direction */
-    (void)pc3xx_gpio_direction_input(rdy );
-    (void)pc3xx_gpio_direction_output(nce, 1);
-    (void)pc3xx_gpio_direction_output(ale, 0);
-    (void)pc3xx_gpio_direction_output(cle, 0);
+	/* Initialise the pin direction */
+	(void)picoxcell_gpio_direction_input (rdy);
+	(void)picoxcell_gpio_direction_output (nce, 1);
+	(void)picoxcell_gpio_direction_output (ale, 0);
+	(void)picoxcell_gpio_direction_output (cle, 0);
 
-    /* Populate some members of the nand structure */
-    nand->cmd_ctrl = mt29f2g08aadwp_cmd_ctrl;
-    nand->ecc.mode = NAND_ECC_SOFT;
-    nand->dev_ready = mt29f2g08aadwp_dev_ready;
-    nand->IO_ADDR_R = (void __iomem *)CONFIG_SYS_NAND_BASE;
-    nand->IO_ADDR_W = (void __iomem *)CONFIG_SYS_NAND_BASE;
+	/* Populate some members of the nand structure */
+	nand->cmd_ctrl = mt29f2g08aadwp_cmd_ctrl;
+	nand->ecc.mode = NAND_ECC_SOFT;
+	nand->dev_ready = mt29f2g08aadwp_dev_ready;
+	nand->IO_ADDR_R = (void __iomem *)CONFIG_SYS_NAND_BASE;
+	nand->IO_ADDR_W = (void __iomem *)CONFIG_SYS_NAND_BASE;
 
-    return 0;
+	return 0;
 }
 #endif /* CONFIG_CMD_NAND */

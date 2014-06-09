@@ -4,7 +4,7 @@
 
 /*!
 * \file ebi.h
-* \brief Definitions for the PC3xx EBI Block.
+* \brief Definitions for the picoxcell ebi block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_EBI_H__
-#define __PC3XX_EBI_H__
+#ifndef __PICOXCELL_EBI_H__
+#define __PICOXCELL_EBI_H__
 
 /* Constants --------------------------------------------------------------- */
 
@@ -181,4 +181,4 @@
 
 #define EBI_SMTMGR_REG_TIMING_READ_CYCLE_MASK   (0x1F)
 
-#endif /* __PC3XX_EBI_H__ */
+#endif /* __PICOXCELL_EBI_H__ */

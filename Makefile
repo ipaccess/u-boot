@@ -769,10 +769,10 @@ $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
 	fi
 
 picochippc7302nand_config :	unconfig
-	@$(MKCONFIG) $(@:_config=) arm arm926ejs pc7302 picochip pc3xx
+	@$(MKCONFIG) $(@:_config=) arm arm926ejs pc7302 picochip picoxcell
 
 picochippc7302nor_config :	unconfig
-	@$(MKCONFIG) $(@:_config=) arm arm926ejs pc7302 picochip pc3xx
+	@$(MKCONFIG) $(@:_config=) arm arm926ejs pc7302 picochip picoxcell
 
 #########################################################################
 else	# !config.mk

@@ -4,7 +4,7 @@
 
 /*!
 * \file spi.h
-* \brief Definitions for the PC3xx SSI Block.
+* \brief Definitions for the picoxcell spi block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_SSI_H__
-#define __PC3XX_SSI_H__
+#ifndef __PICOXCELL_SPI_H__
+#define __PICOXCELL_SPI_H__
 
 /* Constants --------------------------------------------------------------- */
 
@@ -58,41 +58,40 @@
 /* Types ------------------------------------------------------------------- */
 
 /* Macros ------------------------------------------------------------------ */
-#define PC302_MAX_NUMBER_SPI_CS     (4)
-#define PC302_MAX_NUMBER_SPI_BUSSES (1)
-#define PC302_MIN_SPI_CLK_DIVIDER   (2)
-#define PC302_MAX_SPI_CLK_DIVIDER   (65534)
+#define PICOXCELL_MAX_NUMBER_SPI_CS     (4)
+#define PICOXCELL_MAX_NUMBER_SPI_BUSSES (1)
+#define PICOXCELL_MIN_SPI_CLK_DIVIDER   (2)
+#define PICOXCELL_MAX_SPI_CLK_DIVIDER   (65534)
 
 /* SSI_CTRL_REG_0_REG_OFFSET bites */
-#define PC302_SPI_LOOPBACK_MODE     (1 << 11)
-#define PC302_SPI_NORMAL_MODE       (0)
-#define PC302_SPI_TMOD_TX_RX        (0x0)
-#define PC302_SPI_TMOD_TX           (0x1 << 8)
-#define PC302_SPI_TMOD_RX           (0x2 << 8)
-#define PC302_SPI_TMOD_EEPROM_RX    (0x3 << 8)
-#define PC302_SPI_SCPOL             (1 << 7)
-#define PC302_SPI_SCPH              (1 << 6)
-#define PC302_SPI_MOTO_FORMAT       (0x0)
-#define PC302_SPI_DATA_FRM_8_BIT    (0x7)
-
+#define PICOXCELL_SPI_LOOPBACK_MODE     (1 << 11)
+#define PICOXCELL_SPI_NORMAL_MODE       (0)
+#define PICOXCELL_SPI_TMOD_TX_RX        (0x0)
+#define PICOXCELL_SPI_TMOD_TX           (0x1 << 8)
+#define PICOXCELL_SPI_TMOD_RX           (0x2 << 8)
+#define PICOXCELL_SPI_TMOD_EEPROM_RX    (0x3 << 8)
+#define PICOXCELL_SPI_SCPOL             (1 << 7)
+#define PICOXCELL_SPI_SCPH              (1 << 6)
+#define PICOXCELL_SPI_MOTO_FORMAT       (0x0)
+#define PICOXCELL_SPI_DATA_FRM_8_BIT    (0x7)
 
 /* SSI_ENABLE_REG_REG_OFFSET bits */
-#define PC302_SPI_ENABLE            (1)
-#define PC302_SPI_DISABLE           (0)
+#define PICOXCELL_SPI_ENABLE            (1)
+#define PICOXCELL_SPI_DISABLE           (0)
 
 /* SSI_SLAVE_ENABLE_REG_OFFSET bits */
-#define PC302_SPI_SLAVES_DISABLE    (0)
+#define PICOXCELL_SPI_SLAVES_DISABLE    (0)
 
 /* SSI_STATUS_REG_OFFSET bits */
-#define PC302_SPI_STATUS_DCOL       (1 << 6)
-#define PC302_SPI_STATUS_TXE        (1 << 5)
-#define PC302_SPI_STATUS_RFF        (1 << 4)
-#define PC302_SPI_STATUS_RFNE       (1 << 3)
-#define PC302_SPI_STATUS_TFE        (1 << 2)
-#define PC302_SPI_STATUS_TFNF       (1 << 1)
-#define PC302_SPI_STATUS_BUSY       (1 << 0)
+#define PICOXCELL_SPI_STATUS_DCOL       (1 << 6)
+#define PICOXCELL_SPI_STATUS_TXE        (1 << 5)
+#define PICOXCELL_SPI_STATUS_RFF        (1 << 4)
+#define PICOXCELL_SPI_STATUS_RFNE       (1 << 3)
+#define PICOXCELL_SPI_STATUS_TFE        (1 << 2)
+#define PICOXCELL_SPI_STATUS_TFNF       (1 << 1)
+#define PICOXCELL_SPI_STATUS_BUSY       (1 << 0)
 
 /* SSI_IMR_REG_RESET bits */
-#define PC302_SPI_MASK_ALL_INTS     (0xFFFF)
+#define PICOXCELL_SPI_MASK_ALL_INTS     (0xFFFF)
 
-#endif /* __PC302_SSI_H__ */
+#endif /* __PICOXCELL_SPI_H__ */

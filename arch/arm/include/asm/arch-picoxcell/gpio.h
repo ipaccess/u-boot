@@ -4,7 +4,7 @@
 
 /*!
 * \file gpio.h
-* \brief Definitions for the PC3xx GPIO Block.
+* \brief Definitions for the picoxcell gpio block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_GPIO_H__
-#define __PC3XX_GPIO_H__
+#ifndef __PICOXCELL_GPIO_H__
+#define __PICOXCELL_GPIO_H__
 
 /* Constants --------------------------------------------------------------- */
 
@@ -36,7 +36,6 @@
 #define GPIO_SW_PORT_D_DR_REG_OFFSET        (0x24)
 #define GPIO_SW_PORT_D_DDR_REG_OFFSET	    (0x28)
 #define GPIO_SW_PORT_D_CTL_REG_OFFSET       (0x2C)
-
 
 /* global GPIO registers */
 #define GPIO_INT_EN_REG_OFFSET              (0x30)
@@ -71,4 +70,4 @@
 #define GPIO_BIT_1  (0x02)
 #define GPIO_BIT_0  (0x01)
 
-#endif /* __PC3XX_GPIO_H__ */
+#endif /* __PICOXCELL_GPIO_H__ */

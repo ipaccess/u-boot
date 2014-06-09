@@ -4,7 +4,7 @@
 
 /*!
 * \file wdog.h
-* \brief Definitions for the PC3xx WDOG Block.
+* \brief Definitions for the picoxcell watchdog block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_WDOG_H__
-#define __PC3XX_WDOG_H__
+#ifndef __PICOXCELL_WDOG_H__
+#define __PICOXCELL_WDOG_H__
 
 /* Constants --------------------------------------------------------------- */
 
@@ -57,4 +57,4 @@
 #define WDOGCONTROLREGRMODMASK		    (1 << WDOGCONTROLREGRMODIDX)
 #define WDOGCONTROLREGRPLMASK		    (0x7 << WDOGCONTROLREGRPLIDX)
 
-#endif /* __PC3XX_WDOG_H__ */
+#endif /* __PICOXCELL_WDOG_H___ */

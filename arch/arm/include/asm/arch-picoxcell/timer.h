@@ -4,7 +4,7 @@
 
 /*!
 * \file timer.h
-* \brief Definitions for the PC3xx Timer Block.
+* \brief Definitions for the picoxcell timer block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_TIMER_H__
-#define __PC3XX_TIMER_H__
+#ifndef __PICOXCELL_TIMER_H__
+#define __PICOXCELL_TIMER_H__
 
 /* Constants --------------------------------------------------------------- */
 
@@ -73,7 +73,6 @@
 #define TIMERMODE                           (0x00000002)
 #define TIMERINTERRUPTMASK                  (0x00000004)
 
-
 /* Register definitions for global timer registers */
 #define TIMERSINTERRUPTSTATUSREGOFFSET      (0x00a0)
 #define TIMERSEOIREGOFFSET                  (0x00a4)
@@ -82,4 +81,4 @@
 /* Global Timer Registers bit definitions */
 #define TIMER(__N)                          (0x00000001 << (__N))
 
-#endif /* __PC3XX_TIMER_H__ */
+#endif /* __PICOXCELL_TIMER_H__ */

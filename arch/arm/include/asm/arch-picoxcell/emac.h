@@ -4,7 +4,7 @@
 
 /*!
 * \file emac.h
-* \brief Definitions for the PC3xx EMAC Block.
+* \brief Definitions for the picoxcell emac block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_EMAC_H__
-#define __PC3XX_EMAC_H__
+#ifndef __PICOXCELL_EMAC_H__
+#define __PICOXCELL_EMAC_H__
 
 /* Constant-s -------------------------------------------------------------- */
 
@@ -186,4 +186,4 @@
 #define EMAC_TX_LAST_BUFFER                                         (((unsigned int)1) << 15)
 #define EMAC_TX_BUFFER_LENGTH_MASK                                  (0x3FFF)
 
-#endif /* __PC3XX_EMAC_H__ */
+#endif /* __PICOXCELL_EMAC_H__ */

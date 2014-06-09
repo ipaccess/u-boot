@@ -18,15 +18,15 @@
 #ifndef __CONFIG_PC7302_NAND__
 #define __CONFIG_PC7302_NAND__
 
-#include <asm/arch/pc302.h>
+#include <asm/arch/picoxcell.h>
 #include <asm/sizes.h>
 
 /*-----------------------------------------------------------------------------
  * NAND Flash Memory Stuff
  */
-#define CONFIG_SYS_NAND_BASE        PC302_EBI_CS2_BASE
-#define CONFIG_SYS_NAND_MAX_CHIPS   1
-#define CONFIG_SYS_MAX_NAND_DEVICE  1
+#define CONFIG_SYS_NAND_BASE        (PICOXCELL_EBI_CS2_BASE)
+#define CONFIG_SYS_NAND_MAX_CHIPS   (1)
+#define CONFIG_SYS_MAX_NAND_DEVICE  (1)
 
 /* Define Flash memory sector size */
 #define NAND_FLASH_SECTOR_SIZE      (SZ_128K)
@@ -79,7 +79,7 @@
 #define CONFIG_USE_UBIFS
 
 /* Build U-Boot to run at this address */
-#define CONFIG_SYS_TEXT_BASE 0x06000000
+#define CONFIG_SYS_TEXT_BASE    0x06000000
 
 #include <configs/picochippc7302-common.h>
 

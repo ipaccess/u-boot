@@ -4,7 +4,7 @@
 
 /*!
 * \file uart.h
-* \brief Definitions for the PC3xx UART Block.
+* \brief Definitions for the picoxcell uart block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_UART_H__
-#define __PC3XX_UART_H__
+#ifndef __PICOXCELL_UART_H__
+#define __PICOXCELL_UART_H__
 
 /* Constants --------------------------------------------------------------- */
 
@@ -61,10 +61,10 @@
 						/*  written to only when THRE_MODE_USER == Enabled, */
 						/*  always readable. This is used to enable/disable the */
 						/*  generation of THRE Interrupt. */
-#define UART_INT_ENABLE_EDSSI_IDX       (0x3)   /*  R/W Enable Modem Status Interrupt. */
-#define UART_INT_ENABLE_ELSI_IDX        (0x2)   /*  R/W Enable Receiver Line Status Interrupt. */
-#define UART_INT_ENABLE_ETBEI_IDX       (0x1)   /*  R/W Enable Transmit Holding Register Empty Interrupt. */
-#define UART_INT_ENABLE_ERBFI_IDX       (0x0)   /*  R/W Enable Received Data Available Interrupt. */
+#define UART_INT_ENABLE_EDSSI_IDX       (0x3)	/*  R/W Enable Modem Status Interrupt. */
+#define UART_INT_ENABLE_ELSI_IDX        (0x2)	/*  R/W Enable Receiver Line Status Interrupt. */
+#define UART_INT_ENABLE_ETBEI_IDX       (0x1)	/*  R/W Enable Transmit Holding Register Empty Interrupt. */
+#define UART_INT_ENABLE_ERBFI_IDX       (0x0)	/*  R/W Enable Received Data Available Interrupt. */
 
 #define UART_INT_ENABLE_PTIME_MASK          (1 << UART_INT_ENABLE_PTIME_IDX)
 #define UART_INT_ENABLE_EDSSI_MASK          (1 << UART_INT_ENABLE_EDSSI_IDX)
@@ -84,22 +84,21 @@
 
 /* FCR */
 #define UART_FIFO_CTRL_RCVR_MASK	        (0xC0)
-#define UART_FIFO_CTRL_RCVR1_CHAR	        (0x00)  /* 00 = 1 character in the FIFO */
-#define UART_FIFO_CTRL_RCVR_QUARTER_FULL        (0x40)  /* 01 = FIFO ¼ full */
-#define UART_FIFO_CTRL_RCVR_HALF_FULL           (0x80)  /* 10 = FIFO ½ full */
-#define UART_FIFO_CTRL_RCVR_2_LESS_THAN_FULL    (0xC0)  /* 11 = FIFO 2 less than full */
+#define UART_FIFO_CTRL_RCVR1_CHAR	        (0x00)	/* 00 = 1 character in the FIFO */
+#define UART_FIFO_CTRL_RCVR_QUARTER_FULL        (0x40)	/* 01 = FIFO ¼ full */
+#define UART_FIFO_CTRL_RCVR_HALF_FULL           (0x80)	/* 10 = FIFO ½ full */
+#define UART_FIFO_CTRL_RCVR_2_LESS_THAN_FULL    (0xC0)	/* 11 = FIFO 2 less than full */
 
 #define UART_FIFO_CTRL_TX_EMPTY_MASK	        (0x30)
-#define UART_FIFO_CTRL_TX_EMPTY_EMPTY           (0x00)  /* 00 = FIFO empty */
-#define UART_FIFO_CTRL_TX_EMPTY_2_CHARS         (0x10)  /* 01 = 2 characters in the FIFO */
-#define UART_FIFO_CTRL_TX_EMPTY_QUARTER_FULL    (0x20)  /* 10 = FIFO ¼ full */
-#define UART_FIFO_CTRL_TX_EMPTY_HALF_FULL       (0x30)  /* 11 = FIFO ½ full */
+#define UART_FIFO_CTRL_TX_EMPTY_EMPTY           (0x00)	/* 00 = FIFO empty */
+#define UART_FIFO_CTRL_TX_EMPTY_2_CHARS         (0x10)	/* 01 = 2 characters in the FIFO */
+#define UART_FIFO_CTRL_TX_EMPTY_QUARTER_FULL    (0x20)	/* 10 = FIFO ¼ full */
+#define UART_FIFO_CTRL_TX_EMPTY_HALF_FULL       (0x30)	/* 11 = FIFO ½ full */
 
 #define UART_FIFO_CTRL_ENABLE		        (0x01)	/* fifo enable bit */
 
-
 /* LCR indices */
-#define UART_LINE_CTRL_DLAB_IDX                 (7)     /* Divisor latch access bit */
+#define UART_LINE_CTRL_DLAB_IDX                 (7)	/* Divisor latch access bit */
 #define UART_LINE_CTRL_BRK_IDX                  (6)
 #define UART_LINE_CTRL_EPS_IDX                  (4)
 #define UART_LINE_CTRL_PEN_IDX                  (3)
@@ -113,10 +112,10 @@
 #define UART_LINE_CTRL_PEN_MASK	                (1 << UART_LINE_CTRL_PEN_IDX)
 #define UART_LINE_CTRL_STOP_MASK                (1 << UART_LINE_CTRL_STOP_IDX)
 #define UART_LINE_CTRL_DLS_MASK	                (3)
-#define UART_LINE_CTRL_DLS_8BITS	        (3)     /* 8 bit data length */
-#define UART_LINE_CTRL_DLS_7BITS	        (2)     /* 7 bit data length */
-#define UART_LINE_CTRL_DLS_6BITS	        (1)     /* 6 bit data length */
-#define UART_LINE_CTRL_DLS_5BITS	        (0)     /* 5 bit data length */
+#define UART_LINE_CTRL_DLS_8BITS	        (3)	/* 8 bit data length */
+#define UART_LINE_CTRL_DLS_7BITS	        (2)	/* 7 bit data length */
+#define UART_LINE_CTRL_DLS_6BITS	        (1)	/* 6 bit data length */
+#define UART_LINE_CTRL_DLS_5BITS	        (0)	/* 5 bit data length */
 
 #define UART_LINE_CTRL_1STOP_BIT                (~(UART_LINE_CTRL_STOP_MASK))
 #define UART_LINE_CTRL_PARITY_DISABLE           (~(UART_LINE_CTRL_PEN_MASK))
@@ -135,16 +134,16 @@
 #define UART_MODEM_CTRL_CTS_MASK		(1 << UART_MODEM_CTRL_CTS_IDX)
 #define UART_MODEM_CTRL_DTR_MASK		(1 << UART_MODEM_CTRL_DTR_IDX)
 
-#define UART_MODEM_STATUS_CTS_IDX               (4)     /* CTS input */
-#define UART_MODEM_STATUS_DCTS_IDX              (0)     /* change in CTS input since last read */
+#define UART_MODEM_STATUS_CTS_IDX               (4)	/* CTS input */
+#define UART_MODEM_STATUS_DCTS_IDX              (0)	/* change in CTS input since last read */
 
 #define UART_LINE_STATUS_THRE_IDX	        (5)
 #define UART_LINE_STATUS_DATA_READY_IDX         (0)
 #define UART_LINE_STATUS_THRE_MASK	        (1 << UART_LINE_STATUS_THRE_IDX)
 #define UART_LINE_STATUS_DATA_READY_MASK        (1 << UART_LINE_STATUS_DATA_READY_IDX)
 
-#define UART_UART_STATUS_RFF_IDX                (4)     /* RX FIFO full */
-#define UART_UART_STATUS_RFNE_IDX	        (3)     /* RX FIFO not empty */
+#define UART_UART_STATUS_RFF_IDX                (4)	/* RX FIFO full */
+#define UART_UART_STATUS_RFNE_IDX	        (3)	/* RX FIFO not empty */
 #define UART_UART_STATUS_TFE_IDX	        (2)
 #define UART_UART_STATUS_TFNF_IDX	        (1)
 #define UART_UART_STATUS_BUSY_IDX	        (0)
@@ -155,4 +154,4 @@
 #define UART_UART_STATUS_TFNF_MASK              (1 << UART_UART_STATUS_TFNF_IDX)
 #define UART_UART_STATUS_BUSY_MASK              (1 << UART_UART_STATUS_BUSY_IDX)
 
-#endif /* __PC3XX_UART_H__ */
+#endif /* __PICOXCELL_UART_H__ */

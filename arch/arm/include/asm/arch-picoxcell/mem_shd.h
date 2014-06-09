@@ -4,7 +4,7 @@
 
 /*!
 * \file mem_shd.h
-* \brief Definitions for the PC3xx Memif-Shared Block.
+* \brief Definitions for the picoxcell memif-shared block.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -15,8 +15,8 @@
 * All enquiries to support@picochip.com
 */
 
-#ifndef __PC3XX_MEM_SHD_H__
-#define __PC3XX_MEM_SHD_H__
+#ifndef __PICOXCELL_MEM_SHD_H__
+#define __PICOXCELL_MEM_SHD_H__
 
 /* Includes ---------------------------------------------------------------- */
 #include "pa.h"
@@ -359,14 +359,12 @@
 #define PHY_RD1_DLL_SLAVE_IDX           (8)
 #define PHY_WR_DLL_SLAVE_IDX            (0)
 
-
 #define ADDR_PHY_RD_SLAVE_DATA          (0x00000000 | PA_CONFIG_WRITE | \
                                         (PHY_RD0_DLL_SLAVE_DELAY << PHY_RD0_DLL_SLAVE_IDX) | \
                                         (PHY_RD1_DLL_SLAVE_DELAY << PHY_RD1_DLL_SLAVE_IDX))
 
 #define ADDR_PHY_WR_SLAVE_DATA          (0x00000000 | PA_CONFIG_WRITE | \
                                         (PHY_WR_DLL_SLAVE_DELAY << PHY_WR_DLL_SLAVE_IDX))
-
 
 #define PHY_IO_CELL_CONFIG_FIFO_WE_IN_ODT_IDX   (4)
 
@@ -380,7 +378,6 @@
 #define PHY_CLK_DRV_STRENGTH_HALF_IDX           (2)
 #define PHY_FIFO_WE_DRV_STRENGTH_HALF_IDX       (3)
 
-
 #define ADDR_PHY_IO_CELL_CONFIG_DATA    (0x00000000 | PA_CONFIG_WRITE | \
                                         (PHY_LOCAL_ODT_75_OHM           << PHY_IO_CELL_CONFIG_FIFO_WE_IN_ODT_IDX) | \
                                         (PHY_FIFO_WE_DRV_STRENGTH_HALF  << PHY_FIFO_WE_DRV_STRENGTH_HALF_IDX) | \
@@ -392,4 +389,4 @@
 
 #define PA_WRITE_ZERO_DATA              (PA_CONFIG_WRITE)
 
-#endif /* __PC3XX_MEM_SHD_H__ */
+#endif /* __PICOXCELL_MEM_SHD_H__ */

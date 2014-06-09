@@ -4,7 +4,7 @@
 
 /*!
 * \file reset.S
-* \brief Function used to reset the PC302 device.
+* \brief Function used to reset the picoxcell device.
 *
 * Copyright (c) 2006-2011 Picochip Ltd
 *
@@ -17,7 +17,7 @@
 
 /* Includes ---------------------------------------------------------------- */
 #include <config.h>
-#include <asm/arch/pc302.h>
+#include <asm/arch/picoxcell.h>
 #include <asm/arch/wdog.h>
 
 /* Macros ------------------------------------------------------------------ */
@@ -26,18 +26,13 @@
 
 	.align	5
 
-/*!
- *
- * Perform a software reset of the PC302 device.
- *
- */
 .globl reset_cpu
 
 reset_cpu:
 
         /* Use the 'fallback' watchdog method for reseting */
 
-        ldr     r0, =PC302_WDOG_BASE
+        ldr     r0, =PICOXCELL_WDOG_BASE
 
         /* Read the control register */
         ldr     r1, [r0, #WDOG_CONTROL_REG_OFFSET]
