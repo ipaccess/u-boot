@@ -6,7 +6,7 @@
 * \file picoxcell.h
 * \brief Definitions for the picoxcell ARM sub-system.
 *
-* Copyright (c) 2006-2011 Picochip Ltd
+* Copyright (c) 2006-2012 Picochip Ltd
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License version 2 as
@@ -82,6 +82,8 @@
 /*****************************************************************************/
 #define PC3X2_REV_A                 (0)
 #define PC3X2_REV_D                 (1)
+
+#define PC30XX_REV_A                (0)
 
 /*****************************************************************************/
 /* Device Ids                                                                */

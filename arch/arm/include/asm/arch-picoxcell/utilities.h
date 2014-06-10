@@ -44,6 +44,14 @@ unsigned int picoxcell_get_revision (void);
 unsigned int picoxcell_is_rmii_enabled (void);
 
 /*!
+ * \brief Are we setup for RGMII on PC30XX ?
+ *
+ * \return 0 - RGMII not enabled
+ *         1 - RGMII enabled
+ */
+unsigned int picoxcell_is_rgmii_enabled (void);
+
+/*!
  * \brief Read a 32 bit value from an axi2cfg register.
  *
  * \param offs The register offset to read from

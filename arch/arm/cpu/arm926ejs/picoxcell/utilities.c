@@ -113,6 +113,18 @@ unsigned int picoxcell_is_rmii_enabled (void)
 	return ! !rmii_enabled;
 }
 
+unsigned int picoxcell_is_rgmii_enabled (void)
+{
+	unsigned int mii_mode;
+
+	mii_mode = axi2cfg_readl (AXI2CFG_SYS_CONFIG_REG_OFFSET);
+	mii_mode &= AXI2CFG_PC30XX_MII_MODE;
+	if (mii_mode == AXI2CFG_PC30XX_RGMII_EN)
+                return 1;
+
+	return 0;
+}
+
 u32 syscfg_read (void)
 {
 	return axi2cfg_readl (AXI2CFG_SYS_CONFIG_REG_OFFSET);

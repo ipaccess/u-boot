@@ -375,18 +375,22 @@ static int macb_phy_find(struct macb_device *macb)
 }
 #endif /* CONFIG_MACB_SEARCH_PHY */
 
-#if defined (CONFIG_PICOCHIP_PC7302)
-static int is_link_speed_100mpbs(struct macb_device *macb)
+#if defined (CONFIG_PICOCHIP_PC7302) || defined (CONFIG_PICOCHIP_PC73032)
+static int is_link_up(struct macb_device *macb)
 {
-	u16 status, adv, lpa;
+        u16 status = macb_mdio_read(macb, MII_BMSR);
+
+        return ! !(status & BMSR_LSTATUS);
+}
+
+static int is_link_speed_100mbps(struct macb_device *macb)
+{
+	u16 adv, lpa;
 
 	int media;
 
-	status = macb_mdio_read(macb, MII_BMSR);
-	if (!(status & BMSR_LSTATUS)) {
-		/* No link setup */
-		return 0;
-	}
+	if (!is_link_up(macb))
+            return 0;
 
 	/* We have a link, get the speed */
 	adv = macb_mdio_read(macb, MII_ADVERTISE);
@@ -396,20 +400,41 @@ static int is_link_speed_100mpbs(struct macb_device *macb)
 	return media & (ADVERTISE_100FULL | ADVERTISE_100HALF) ? 1 : 0;
 }
 
+static int is_link_speed_1000mbps(struct macb_device *macb)
+{
+	u16 btsr;
+
+	if (macb->is_gem) {
+		btsr = macb_mdio_read(macb, MII_STAT1000);
+		if (btsr != 0xFFFF &&
+                    (btsr & (PHY_1000BTSR_1000FD | PHY_1000BTSR_1000HD))){
+                        return 1;
+	        }
+        }
+        return 0;
+}
+
+static void disable_1000mpbs_advertisment(struct macb_device *macb)
+{
+        u16 btcr;
+
+        btcr = macb_mdio_read(macb, MII_CTRL1000);
+        btcr &= ~(PHY_1000BTCR_1000FD | PHY_1000BTCR_1000HD);
+        macb_mdio_write(macb, MII_CTRL1000, btcr);
+}
+
 static void setup_autoneg_advertisment(struct macb_device *macb)
 {
 	u16 adv;
 
 	adv = ADVERTISE_CSMA | ADVERTISE_100HALF | ADVERTISE_100FULL;
-	macb_mdio_write (macb, MII_ADVERTISE, adv);
+	macb_mdio_write(macb, MII_ADVERTISE, adv);
 }
 
 static void restart_phy_autoneg(struct macb_device *macb)
 {
-	macb_mdio_write (macb, MII_BMCR, (BMCR_ANENABLE | BMCR_ANRESTART));
-
-	/* Make sure the autonegotiation has started */
-	udelay (100);
+	macb_mdio_write(macb, MII_BMCR, (BMCR_ANENABLE | BMCR_ANRESTART));
+	udelay(100);
 }
 
 static void wait_for_autonegotiation_complete(struct macb_device *macb)
@@ -434,12 +459,27 @@ static void picoxcell_rmii_fixup(struct macb_device *macb)
 	 * Reduced MII (RMII) connected Ethernet Phy then we need the
 	 * link speed to be 100 mbps.
 	 */
-	if (picoxcell_is_pc3x2 () && (rev == PC3X2_REV_D) &&
-	    picoxcell_is_rmii_enabled () && !is_link_speed_100mpbs(macb)) {
+	if (picoxcell_is_pc3x2() && (rev == PC3X2_REV_D) &&
+	    picoxcell_is_rmii_enabled() && !is_link_speed_100mbps(macb)) {
 		setup_autoneg_advertisment(macb);
 		restart_phy_autoneg(macb);
 		wait_for_autonegotiation_complete(macb);
 	}
+}
+
+static void picoxcell_rgmii_fixup(struct macb_device *macb)
+{
+	unsigned int rev = picoxcell_get_revision ();
+
+        /* If we are running on PC3032 Rev A silicon and we are using
+         * an rgmii interface then we can only transmit at 10/100 mpbs
+         */
+        if (picoxcell_is_pc30xx() && (rev == PC30XX_REV_A) &&
+            picoxcell_is_rgmii_enabled() && is_link_speed_1000mbps(macb)) {
+                disable_1000mpbs_advertisment(macb);
+                restart_phy_autoneg(macb);
+		wait_for_autonegotiation_complete(macb);
+        }
 }
 #endif
 
@@ -483,6 +523,10 @@ static int macb_phy_init(struct macb_device *macb)
 
 #if defined (CONFIG_PICOCHIP_PC7302)
         picoxcell_rmii_fixup(macb);
+#endif
+
+#if defined (CONFIG_PICOCHIP_PC73032)
+        picoxcell_rgmii_fixup(macb);
 #endif
 
 	status = macb_mdio_read(macb, MII_BMSR);
@@ -548,16 +592,15 @@ static int macb_phy_init(struct macb_device *macb)
 	if (macb->is_gem) {
 		/* Do we have a gigabit link ? */
 		btsr = macb_mdio_read(macb, MII_STAT1000);
-		if (btsr != 0xFFFF &&
-				(btsr & (PHY_1000BTSR_1000FD |
-					 PHY_1000BTSR_1000HD))){
-			speed = _1000BASET;
-		}
 		if (btsr != 0xFFFF) {
-			if (btsr & PHY_1000BTSR_1000FD)
+			if (btsr & PHY_1000BTSR_1000FD) {
 				duplex = 1;
-			else if (btsr & PHY_1000BTSR_1000HD)
+				speed = _1000BASET;
+			}
+			else if (btsr & PHY_1000BTSR_1000HD) {
 				duplex = 0;
+				speed = _1000BASET;
+                        }
 		}
 	}
 

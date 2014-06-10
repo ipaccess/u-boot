@@ -135,6 +135,8 @@
 #define AXI2CFG_DMA_CHAN_7_MUX_IDX                  (2)
 #define AXI2CFG_BOOT_MODE_IDX                       (0)
 
+#define AXI2CFG_PC30XX_MII_MODE_IDX                 (11)
+
 #define AXI2CFG_PA_SOFT_RESET               (1 << AXI2CFG_PA_SOFT_RESET_IDX)
 #define AXI2CFG_SHD_GPIO_7                  (1 << AXI2CFG_SHD_GPIO_7_IDX)
 #define AXI2CFG_SHD_GPIO_6                  (1 << AXI2CFG_SHD_GPIO_6_IDX)
@@ -158,6 +160,9 @@
 #define AXI2CFG_DMA_CHAN_6_MUX              (1 << AXI2CFG_DMA_CHAN_6_MUX_IDX)
 #define AXI2CFG_DMA_CHAN_7_MUX              (1 << AXI2CFG_DMA_CHAN_7_MUX_IDX)
 #define AXI2CFG_BOOT_MODE                   (1 << AXI2CFG_BOOT_MODE_IDX)
+
+#define AXI2CFG_PC30XX_MII_MODE             (0x7 << AXI2CFG_PC30XX_MII_MODE_IDX)
+#define AXI2CFG_PC30XX_RGMII_EN             (0x2 << AXI2CFG_PC30XX_MII_MODE_IDX)
 
 /* Clock Control Stuff */
 #define PICOXCELL_TZ_PROT_CTRL_CLOCK        (1 << 0)
