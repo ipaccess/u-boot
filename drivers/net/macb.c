@@ -450,7 +450,7 @@ static int macb_phy_init(struct macb_device *macb)
 	struct phy_device *phydev;
 #endif
 	u32 ncfgr;
-	u16 phy_id, status, adv, lpa;
+	u16 phy_id, status, adv, lpa, btsr;
 	int media, speed, duplex;
 	int i;
 
@@ -545,9 +545,26 @@ static int macb_phy_init(struct macb_device *macb)
 	speed = (media & (ADVERTISE_100FULL | ADVERTISE_100HALF)
 		 ? 1 : 0);
 	duplex = (media & ADVERTISE_FULL) ? 1 : 0;
+	if (macb->is_gem) {
+		/* Do we have a gigabit link ? */
+		btsr = macb_mdio_read(macb, MII_STAT1000);
+		if (btsr != 0xFFFF &&
+				(btsr & (PHY_1000BTSR_1000FD |
+					 PHY_1000BTSR_1000HD))){
+			speed = _1000BASET;
+		}
+		if (btsr != 0xFFFF) {
+			if (btsr & PHY_1000BTSR_1000FD)
+				duplex = 1;
+			else if (btsr & PHY_1000BTSR_1000HD)
+				duplex = 0;
+		}
+	}
+
+
 	printf("%s: link up, %sMbps %s-duplex (lpa: 0x%04x)\n",
 	       netdev->name,
-	       speed ? "100" : "10",
+	       (speed == _1000BASET) ? "1000" : speed ? "100" : "10",
 	       duplex ? "full" : "half",
 	       lpa);
 
@@ -555,6 +572,10 @@ static int macb_phy_init(struct macb_device *macb)
 	ncfgr &= ~(MACB_BIT(SPD) | MACB_BIT(FD));
 	if (speed)
 		ncfgr |= MACB_BIT(SPD);
+	if (macb->is_gem) {
+		if (speed == _1000BASET)
+			ncfgr |= GEM_BIT(GBE);
+	}
 	if (duplex)
 		ncfgr |= MACB_BIT(FD);
 	macb_writel(macb, NCFGR, ncfgr);
