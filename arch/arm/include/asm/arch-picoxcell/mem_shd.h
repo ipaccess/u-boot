@@ -215,6 +215,7 @@
 #define MRS_DDR2_CAS_IDX                (4)
 #define MRS_DDR2_WR_IDX                 (9)
 
+#define EMRS_DRIVE_STRENGTH_IDX         (1)
 #define EMRS_ODT_LOW_BIT_IDX            (2)
 #define EMRS_ODT_HIGH_BIT_IDX           (6)
 #define EMRS_DQSN_DISABLE_IDX           (10)
@@ -316,10 +317,13 @@
 
 #define SDRAM_ODT_75_OHM_LO             (0x1)
 #define SDRAM_ODT_75_OHM_HI             (0x0)
+#define SDRAM_REDUCED_DRIVE             (0x1)
+#define SDRAM_FULL_DRIVE                (0x0)
 
 #define ADDR_SDRAM_EMRS_DATA            (0x00000000 | PA_CONFIG_WRITE | \
                                         (SDRAM_ODT_75_OHM_LO        << EMRS_ODT_LOW_BIT_IDX) | \
                                         (SDRAM_ODT_75_OHM_HI        << EMRS_ODT_HIGH_BIT_IDX) | \
+                                        (SDRAM_REDUCED_DRIVE        << EMRS_DRIVE_STRENGTH_IDX) | \
                                         (DDR2_DQSN_DISABLE << EMRS_DQSN_DISABLE_IDX))
 
 #define ADDR_PHY_CONFIG_DATA            (0x00000000 | PA_CONFIG_WRITE | \
