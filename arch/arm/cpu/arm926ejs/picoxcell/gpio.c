@@ -916,7 +916,8 @@ int picoxcell_gpio_init (void)
 	}
 
 	/* Populate the gpio_desc[] array */
-	for (chip = all_chips[0], i = 0; i < num_chips; ++i, ++chip) {
+	for (i = 0; i < num_chips; ++i) {
+                chip = all_chips[i];
 		int base = chip->base;
 		for (id = base; id < base + chip->ngpio; id++) {
 			gpio_desc[id].chip = chip;
