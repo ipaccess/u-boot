@@ -233,8 +233,12 @@
 #define CONFIG_RBTREE
 
 /*-----------------------------------------------------------------------------
- * FIT Image Support
+ * Enable FIT and OF control support 
  */
+#define CONFIG_OF_CONTROL
+#define CONFIG_OF_EMBED
+#define CONFIG_DEFAULT_DEVICE_TREE "ipa73xx"
+#define CONFIG_OF_LIBFDT
 #define CONFIG_FIT
 
 /*-----------------------------------------------------------------------------
