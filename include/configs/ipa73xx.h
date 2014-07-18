@@ -242,6 +242,7 @@
 #define CONFIG_FIT
 #define CONFIG_FIT_SIGNATURE
 #define CONFIG_RSA
+#define CONFIG_FIT_REVOCATION
 
 /*-----------------------------------------------------------------------------
  * UBIFS Support
