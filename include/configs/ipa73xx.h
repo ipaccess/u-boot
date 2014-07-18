@@ -240,6 +240,8 @@
 #define CONFIG_DEFAULT_DEVICE_TREE "ipa73xx"
 #define CONFIG_OF_LIBFDT
 #define CONFIG_FIT
+#define CONFIG_FIT_SIGNATURE
+#define CONFIG_RSA
 
 /*-----------------------------------------------------------------------------
  * UBIFS Support
