@@ -243,6 +243,7 @@
 #define CONFIG_FIT_SIGNATURE
 #define CONFIG_RSA
 #define CONFIG_FIT_REVOCATION
+#define CONFIG_FIT_SIGNATURE_REQUIRED_KEYNODE_ONLY
 
 /*-----------------------------------------------------------------------------
  * UBIFS Support
