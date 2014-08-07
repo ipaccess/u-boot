@@ -45,9 +45,6 @@
 /* As we might load u-boot over JTAG we would like to perform low level initialisation */
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
-/* We just need to load u-boot code directly to _TEXTBASE address */
-#define CONFIG_SKIP_RELOCATE_UBOOT
-
 /* No flash memory in the system */
 #define CONFIG_SYS_NO_FLASH
 
@@ -69,13 +66,13 @@
 #define CONFIG_ENV_IS_IN_NAND
 
 /* Offset address of environment variables */
-#define CONFIG_ENV_OFFSET           (NAND_FLASH_SECTOR_SIZE * 24)
+#define CONFIG_ENV_OFFSET           (NAND_FLASH_SECTOR_SIZE * 39)
 
 /* Size of environment variables */
 #define CONFIG_ENV_SIZE             (NAND_FLASH_SECTOR_SIZE)
 
 /* Offset address of the redundant envinronment variables */
-#define CONFIG_ENV_OFFSET_REDUND    (NAND_FLASH_SECTOR_SIZE * 25)
+#define CONFIG_ENV_OFFSET_REDUND    (NAND_FLASH_SECTOR_SIZE * 71)
 
 /* Turn off wite protection for vendor parameters */
 #define CONFIG_ENV_OVERWRITE
@@ -92,28 +89,26 @@
 
 #define MTDIDS_DEFAULT          "nand0=gpio-nand"
 
-#define MTDPARTS_DEFAULT        "mtdparts=gpio-nand:512K(Boot),"             \
-                                                   "512K(RedundantBoot),"    \
-                                                   "128K(BootEnvironment),"  \
-                                                   "128K(RedundantBootEnv)," \
-                                                   "8M@0x180000(KernelA),"   \
-                                                   "48M(FileSystemA),"       \
-                                                   "8M(Configuration),"      \
-                                                   "8M(KernelB),"            \
-                                                   "48M(FileSystemB),"       \
-                                                   "4M(Factory)"
+#define MTDPARTS_DEFAULT	"mtdparts=gpio-nand:256K@0K(SPL0),"	\
+						   "256K@256K(SPL1),"	\
+						   "256K@512K(SPL2),"	\
+						   "256K@768K(SPL3),"	\
+						   "4M@1M(UBOOT0),"	\
+						   "4M@5M(UBOOT1),"	\
+						   "-@9M(FS)"
 
 /*-----------------------------------------------------------------------------
  * Platform Identification Stuff
  */
-#define PICOCHIP "picochip"
+#define PICOCHIP "ip.access"
 
 /* Which hardware platform I am destined for */
-#define PICOCHIP_PLATFORM "PC7302"
+#define PICOCHIP_PLATFORM "ipapx3xx"
 
 /* Specific version of this build */
 #ifndef PICOCHIP_PLATFORM_VERSION
-#define PICOCHIP_PLATFORM_VERSION "dummy_release"
+/* a dummy value */
+#define PICOCHIP_PLATFORM_VERSION "42"
 #endif /* PICOCHIP_PLATFORM_VERSION */
 
 #define CONFIG_IDENT_STRING " "PICOCHIP"-"PICOCHIP_PLATFORM_VERSION \
@@ -130,9 +125,6 @@
 
 /* Running on a Picochip PC7302 platform */
 #define CONFIG_PICOCHIP_PC7302
-
-/* Define to disable the verify after U-Boot has relocated from ROM to RAM */
-#define CONFIG_SKIP_VERIFY_RELOCATE_UBOOT
 
 /* Base address of the onchip SRAM */
 #define PICOXCELL_ONCHIP_SRAM_BASE      (PICOXCELL_SRAM_BASE)
@@ -333,7 +325,7 @@
 
 #ifdef  CONFIG_SYS_HUSH_PARSER
 /* This defines the secondary prompt string */
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "IPaccess> "
+#define CONFIG_SYS_PROMPT_HUSH_PS2 "ipapx3xx> "
 #endif /* CONFIG_SYS_HUSH_PARSER */
 
 /* Enable command line editing and history */
@@ -350,7 +342,7 @@
 #define CONFIG_SYS_LONGHELP
 
 /* Monitor Command Prompt */
-#define CONFIG_SYS_PROMPT   "IPAccess=> "
+#define CONFIG_SYS_PROMPT   "ipapx3xx=> "
 
 /* Console I/O Buffer Size*/
 #define CONFIG_SYS_CBSIZE   (SZ_1K)
