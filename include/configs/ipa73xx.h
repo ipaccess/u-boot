@@ -184,6 +184,7 @@
 /* Allow passing of command line args (bootargs) to the linux kernel*/
 #define CONFIG_CMDLINE_TAG          1
 #define CONFIG_SETUP_MEMORY_TAGS    1
+#define CONFIG_INITRD_TAG           1
 
 /*-----------------------------------------------------------------------------
  * DDR2 RAM Memory Map
