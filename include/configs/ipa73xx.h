@@ -22,6 +22,20 @@
 #include <asm/sizes.h>
 #define DEBUG
 
+/*
+ * SPI flash stuff
+ */
+#define CONFIG_DW_SPI
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_STMICRO
+
+#define CONFIG_SF_DEFAULT_BUS 0
+#define CONFIG_SF_DEFAULT_CS 0
+#define CONFIG_SF_DEFAULT_MODE SPI_MODE_3 /* include/spi.h */
+#define CONFIG_SF_DEFAULT_SPEED 2000000
+
+#define CONFIG_SYS_NO_FLASH
+
 /*-----------------------------------------------------------------------------
  * NAND Flash Memory Stuff
  */
@@ -46,7 +60,7 @@
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
 /* No flash memory in the system */
-#define CONFIG_SYS_NO_FLASH
+
 
 /* We are runing from ram with NAND support */
 
@@ -293,7 +307,7 @@
 #define CONFIG_CMD_NAND
 
 /* Include commands for SPI Flash memory */
-#undef CONFIG_CMD_SF
+#define CONFIG_CMD_SF
 
 /* Include commands for BSP specific command */
 #define CONFIG_CMD_BSP
@@ -301,7 +315,7 @@
 /* Turn off a bunch of default commands */
 #undef CONFIG_CMD_BOOTD
 #undef CONFIG_CMD_CONSOLE
-#undef CONFIG_CMD_ECHO
+
 #undef CONFIG_CMD_EDITENV
 #undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_ITEST
