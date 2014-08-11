@@ -85,6 +85,7 @@ static const struct spi_flash_params spi_flash_params_table[] = {
 	{"S25FL512S_64K",  0x010220, 0x4d01,    64 * 1024,  1024,	             0},
 #endif
 #ifdef CONFIG_SPI_FLASH_STMICRO		/* STMICRO */
+	{"M25P05",	   0x202010, 0x0,       32 * 1024,     2,	             0},
 	{"M25P10",	   0x202011, 0x0,       32 * 1024,     4,	             0},
 	{"M25P20",	   0x202012, 0x0,       64 * 1024,     4,	             0},
 	{"M25P40",	   0x202013, 0x0,       64 * 1024,     8,	             0},
