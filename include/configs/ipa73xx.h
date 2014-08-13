@@ -20,7 +20,7 @@
 
 #include <asm/arch/picoxcell.h>
 #include <asm/sizes.h>
-#define DEBUG
+/* #define DEBUG */
 
 /*
  * SPI flash stuff
@@ -349,6 +349,9 @@
 #ifndef CONFIG_SYS_NO_FLASH
 #define CONFIG_FLASH_CFI_MTD
 #endif
+
+/* include DHCP options to make bootstrap setup easier */
+#define CONFIG_CMD_DHCP
 
 /*-----------------------------------------------------------------------------
  * Miscellaneous Configurable Options...
