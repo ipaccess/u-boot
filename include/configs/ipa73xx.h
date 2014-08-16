@@ -304,16 +304,14 @@
  */
 #include "config_cmd_default.h"
 
-/* Include 'ping' command */
-#undef CONFIG_CMD_PING
-
+#define CONFIG_CMD_DHCP
+/* #define CONFIG_CMD_SNTP */
+#define CONFIG_CMD_DNS
+#define CONFIG_CMD_PING
 #define CONFIG_CMD_NAND
-
-/* Include commands for SPI Flash memory */
 #define CONFIG_CMD_SF
-
-/* Include commands for BSP specific command */
 #define CONFIG_CMD_BSP
+#define CONFIG_CMD_SOURCE
 
 /* Turn off a bunch of default commands */
 #undef CONFIG_CMD_BOOTD
@@ -327,7 +325,6 @@
 #undef CONFIG_CMD_LOADS
 #undef CONFIG_CMD_NFS
 #undef CONFIG_CMD_SETGETDCR
-#undef CONFIG_CMD_SOURCE
 #undef CONFIG_CMD_XIMG
 
 #ifdef CONFIG_SYS_NO_FLASH
@@ -343,7 +340,7 @@
 
 #ifdef  CONFIG_SYS_HUSH_PARSER
 /* This defines the secondary prompt string */
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "ipapx3xx> "
+#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 #endif /* CONFIG_SYS_HUSH_PARSER */
 
 /* Enable command line editing and history */
@@ -353,8 +350,6 @@
 #define CONFIG_FLASH_CFI_MTD
 #endif
 
-/* include DHCP options to make bootstrap setup easier */
-#define CONFIG_CMD_DHCP
 
 /*-----------------------------------------------------------------------------
  * Miscellaneous Configurable Options...
