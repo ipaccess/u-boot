@@ -538,6 +538,12 @@ The following options need to be configured:
 		interleaving mode, handled by Dickens for Freescale layerscape
 		SoCs with ARM core.
 
+		CONFIG_SYS_FSL_SEC_BE
+		Defines the SEC controller register space as Big Endian
+
+		CONFIG_SYS_FSL_SEC_LE
+		Defines the SEC controller register space as Little Endian
+
 - Intel Monahans options:
 		CONFIG_SYS_MONAHANS_RUN_MODE_OSC_RATIO
 
