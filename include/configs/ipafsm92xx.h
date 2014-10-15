@@ -62,6 +62,7 @@
 #define CONFIG_CMD_KEY
 #define CONFIG_CMD_SECPARM
 #define CONFIG_CMD_LIE
+#define CONFIG_CMD_LEDC
  
 /* Use 'long' help messages */
 #define CONFIG_SYS_LONGHELP 
@@ -127,6 +128,9 @@
 /* Unless specified here we'll just rely on the kernel default */
 #define OTHERBOOTARGS
 
+/* Allow us to track boot progress */
+#define CONFIG_SHOW_BOOT_PROGRESS  1
+
 /* Define CONFIG_BOOTCOMMAND as */
 #define CONFIG_BOOTCOMMAND  "run ubiboot"
 
@@ -142,6 +146,7 @@
    "        if key unrequire manoem0; then"       \
    "          if key require dev conf; then"      \
    "            if bootm $loadaddr; then"         \
+   "              ledc 0 green red 3 1000;"       \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -153,6 +158,7 @@
    "        if key unrequire manoem0; then"       \
    "          if key require tstoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
+   "              ledc 0 green red 3 1000;"       \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -164,6 +170,7 @@
    "        if key unrequire manoem0; then"       \
    "          if key require ipaoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
+   "              ledc 0 green red 3 1000;"       \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -175,6 +182,7 @@
    "        if key unrequire ipaoem0; then"       \
    "          if key require manoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
+   "              ledc 0 green red 3 1000;"       \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -187,6 +195,7 @@
    "        if key unrequire manoem0; then"       \
    "          if key require ipaoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
+   "              ledc 0 green red 3 1000;"       \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -198,6 +207,7 @@
    "        if key unrequire ipaoem0; then"       \
    "          if key require manoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
+   "              ledc 0 green red 3 1000;"       \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -212,6 +222,7 @@
    "  key unrequire manoem0;"                     \
    "  bootm $loadaddr;"                           \
    "fi;"                                          \
+   "ledc 0 green red 3 1000;"                     \
    "reset;"
 
 #define TEST_BOOT_COUNT_EXCEEDED                                    \
@@ -270,7 +281,7 @@
    "reset;"
 
 #define BOOT_FAILED_HANG_COMMAND                                    \
-    "led all off; while true ; do sleep 1; done"
+    "ledc all off; while true ; do sleep 1; done"
 
 #define CONFIG_EXTRA_ENV_SETTINGS                                           \
    "consoledev=" LINUX_CONSOLEDEV "\0"                                      \
