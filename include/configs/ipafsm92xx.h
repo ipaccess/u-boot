@@ -137,6 +137,7 @@
 #define CONFIG_BOOTCOUNT_LIMIT 4
 
 #define SECURE_BOOT_COMMAND                       \
+   "ledc 1 2 3 green off 1 300;"                  \
    "setenv bootargs $bootargs $othbootargs;"      \
    "setenv bootargs $bootargs $bootbankargs;"     \
    "if secparm secboot; then"                     \
