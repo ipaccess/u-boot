@@ -26,11 +26,18 @@ ulong bootcount_load(void)
 static int do_bootcount_combined_exceeded(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
     ulong bc = bootcount_load();
-
+    
+    printf("*** Combined bootcount = %u ***\n", bc);
+    
     if ( bc > (CONFIG_BOOTCOUNT_LIMIT * 2) )
+    {
+        printf("!!! Maximum combined bootcount exceeded - halting !!!\n");
         return CMD_RET_SUCCESS;
+    }
     else
+    {
         return CMD_RET_FAILURE;
+    }
 }
 
 

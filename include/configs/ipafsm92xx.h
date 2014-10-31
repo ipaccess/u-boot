@@ -281,8 +281,14 @@
    "fi;"                                                            \
    "reset;"
 
-#define BOOT_FAILED_HANG_COMMAND                                    \
-    "ledc all off; while true ; do sleep 1; done"
+#define BOOT_FAILED_HANG_COMMAND    \
+    "while true ; do"               \
+    "  ledc all red;"               \
+    "  sleep 1;"                    \
+    "  ledc 0 green;"               \
+    "  ledc 1 2 3 off;"             \
+    "   sleep 1;"                   \
+    "done"
 
 #define CONFIG_EXTRA_ENV_SETTINGS                                           \
    "consoledev=" LINUX_CONSOLEDEV "\0"                                      \
