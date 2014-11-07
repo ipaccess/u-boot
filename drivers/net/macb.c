@@ -497,6 +497,7 @@ static int macb_phy_init(struct macb_device *macb)
 	u16 phy_id, status, adv, lpa, btsr;
 	int media, speed, duplex;
 	int i;
+	int fake_phy = 0; /* Flag indicating that PHY should be faked (assumes KSZ8463 switch is fitted) */
 
 	arch_get_mdio_control(netdev->name);
 #ifdef CONFIG_MACB_SEARCH_PHY
@@ -509,20 +510,23 @@ static int macb_phy_init(struct macb_device *macb)
 	/* Check if the PHY is up to snuff... */
 	phy_id = macb_mdio_read(macb, MII_PHYSID1);
 	if (phy_id == 0xffff) {
-		printf("%s: No PHY present\n", netdev->name);
-		return 0;
+		printf("%s: No PHY present, assuming KSZ8463 switch\n", netdev->name);
+		fake_phy = 1;
+		/* return 0; */
 	}
-
 #ifdef CONFIG_PHYLIB
-	/* need to consider other phy interface mode */
-	phydev = phy_connect(macb->bus, macb->phy_addr, netdev,
-			     PHY_INTERFACE_MODE_RGMII);
-	if (!phydev) {
-		printf("phy_connect failed\n");
-		return -ENODEV;
-	}
+	else
+	{
+		/* need to consider other phy interface mode */
+		phydev = phy_connect(macb->bus, macb->phy_addr, netdev,
+					PHY_INTERFACE_MODE_RGMII);
+	    if (!phydev) {
+	    	printf("phy_connect failed\n");
+	    	return -ENODEV;
+	    }
 
-	phy_config(phydev);
+	    phy_config(phydev);
+	}
 #endif
 
 #if defined (CONFIG_PICOCHIP_PC7302)
@@ -532,6 +536,30 @@ static int macb_phy_init(struct macb_device *macb)
 #if defined (CONFIG_PICOCHIP_PC73032)
         picoxcell_rgmii_fixup(macb);
 #endif
+
+    /*
+     * If no PHY was found on MDIO bus, just set the interface to
+     * 100 Mbits/s, full-duplex and assume that the link is up.
+     */
+   	if (fake_phy)
+   	{
+   		speed = 1;
+   		duplex = 1;
+   		printf("%s: link up, %sMbps %s-duplex - PHY FAKED\n",
+   				netdev->name,
+   				speed ? "100" : "10",
+   				duplex ? "full" : "half");
+
+   		ncfgr = macb_readl(macb, NCFGR);
+   		ncfgr &= ~(MACB_BIT(SPD) | MACB_BIT(FD));
+   		if (speed)
+   			ncfgr |= MACB_BIT(SPD);
+   		if (duplex)
+   			ncfgr |= MACB_BIT(FD);
+   		macb_writel(macb, NCFGR, ncfgr);
+
+   		return 1;
+   	}
 
 	status = macb_mdio_read(macb, MII_BMSR);
 	if (!(status & BMSR_LSTATUS)) {
