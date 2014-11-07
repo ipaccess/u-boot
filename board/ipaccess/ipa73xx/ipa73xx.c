@@ -20,6 +20,8 @@
 #include <asm/arch/mux.h>
 #include <asm/arch/utilities.h>
 #include <asm/arch/picoxcell_gpio.h>
+#include "ipa73xx_led.h"
+
 
 /* Macros ------------------------------------------------------------------ */
 static struct mux_def pc3x2_mux[] = {
@@ -172,7 +174,9 @@ int board_init (void)
 
 	/* Initialise the gpio library */
 	picoxcell_gpio_init ();
-
+     
+        setLED(LED_GREEN);
+        
 	return 0;
 }
 

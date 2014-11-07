@@ -434,6 +434,10 @@
 /* Define the UBIFS root filesystem partition for NAND Flash */
 #define NAND_UBIFS_ROOT         5
 
+/* IPA-specific commands */
+#define CONFIG_CMD_LEDSET
+
+
 #define	CONFIG_EXTRA_ENV_SETTINGS				            \
    "othbootargs=" __stringify(OTHERBOOTARGS) "\0"                               \
    "netdev=eth0\0"                                                          \
