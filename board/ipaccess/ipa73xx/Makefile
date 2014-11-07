@@ -21,9 +21,12 @@ LIB	= $(obj)lib$(BOARD).o
 
 SOBJS-y := lowlevel_init.o
 
-COBJS-y	:= ipa73xx.o
+COBJS-y := ipa73xx.o
 COBJS-y += nand.o
-COBJS-y	+= ipa73xx_led.o
+COBJS-y += ipa73xx_led.o
+COBJS-y += secboot.o
+COBJS-y += key.o
+COBJS-y += fuse.o
 
 SRCS    := $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS    := $(addprefix $(obj),$(COBJS-y))
