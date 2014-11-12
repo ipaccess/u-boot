@@ -112,6 +112,11 @@
 						   "4M@5M(UBOOT1),"	\
 						   "-@9M(FS)"
 
+#define LINUX_CONSOLEDEV "ttyS0"
+#define CMD_LINE_ARGS_LINUX "rdinit=/init console=" LINUX_CONSOLEDEV ","  __stringify(CONFIG_BAUDRATE) "n8 elevator=noop " MTDPARTS_DEFAULT
+#define CMD_LINE_ARGS_LINUX_SILENT "rdinit=/init console=tty0 elevator=noop " MTDPARTS_DEFAULT
+                           
+                           
 /*-----------------------------------------------------------------------------
  * Platform Identification Stuff
  */
@@ -239,6 +244,13 @@
 #define CONFIG_UBI_SILENCE_MSG
 #define CONFIG_LZO
 #define CONFIG_RBTREE
+
+/* fitImage location in UBIFS*/
+#define UBI_PART "FS"
+#define UBI_VOLUME "ubi0"
+#define UBIFS_0 "fs0"
+#define UBIFS_1 "fs1"
+#define FIT_IMAGE "fitImage"
 
 /*-----------------------------------------------------------------------------
  * Enable FIT and OF control support 
@@ -374,7 +386,7 @@
 #define CONFIG_SYS_BARGSIZE (CONFIG_SYS_CBSIZE)
 
 /* Default load address for tftp, bootm and friends */
-#define CONFIG_SYS_LOAD_ADDR    0x00200000
+#define CONFIG_SYS_LOAD_ADDR    0x02000000
 #define CONFIG_LOADADDR         CONFIG_SYS_LOAD_ADDR
 
 /*-----------------------------------------------------------------------
@@ -440,30 +452,176 @@
 #define CONFIG_CMD_LIE
 #define CONFIG_CMD_KEY
 
+#define CONFIG_BOOTCOUNT_LIMIT 4
 
-#define	CONFIG_EXTRA_ENV_SETTINGS				            \
-   "othbootargs=" __stringify(OTHERBOOTARGS) "\0"                               \
-   "netdev=eth0\0"                                                          \
-   "consoledev=ttyS0\0"                                                     \
-   "fixed_nfs=run nfs_args; tftp; bootm\0"				    \
-   "nand_ubifs_args=setenv bootargs root=$rootdev:rootfs "                  \
-    "ro rootfstype=ubifs "                                                  \
-    "ubi.mtd=5,2048 ubi.mtd=8,2048 ubi.mtd=6,2048 ubi.mtd=9,2048 "          \
-    "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "       \
-    "console=$consoledev,$baudrate $mtdparts $othbootargs;\0"               \
-   "nfs_args=setenv bootargs root=/dev/nfs rw nfsroot=$serverip:$rootpath " \
-    "ubi.mtd=5,2048 ubi.mtd=8,2048 ubi.mtd=6,2048 ubi.mtd=9,2048 "          \
-    "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:any "       \
-    "console=$consoledev,$baudrate $mtdparts $othbootargs;\0"               \
-   "mtdparts=" MTDPARTS_DEFAULT "\0"                                        \
-   "check_bank=if test -z $bank; then setenv bank 1; fi\0"                  \
-   "bootnand=run check_bank; if test $bank -eq 1; then run set_args_1; "    \
-    "else run set_args_2; fi; run nand_ubifs_args; "                        \
-    "nboot $loadaddr 0 $kernel_nand_offset; bootm $loadaddr\0"              \
-   "set_args_1=setenv kernel_nand_offset 0x180000;  setenv rootdev ubi0\0"  \
-   "set_args_2=setenv kernel_nand_offset 0x4180000; setenv rootdev ubi1\0"  \
-   "bank=1\0"
+#define SECURE_BOOT_COMMAND                        \
+    "setled green;"                  \
+    "setenv bootargs $bootargs $othbootargs;"      \
+    "setenv bootargs $bootargs $bootbankargs;"     \
+    "if secparm secboot; then"                     \
+    "  if secparm devmode; then"                   \
+    "    if key unrequire ipaoem0; then"           \
+    "      if key unrequire tstoem0; then"         \
+    "        if key unrequire manoem0; then"       \
+    "          if key require dev conf; then"      \
+    "            if bootm $loadaddr; then"         \
+    "              setled red;"                    \
+    "              reset;"                         \
+    "            fi;"                              \
+    "          fi;"                                \
+    "        fi;"                                  \
+    "      fi;"                                    \
+    "    fi;"                                      \
+    "    if key unrequire ipaoem0; then"           \
+    "      if key unrequire dev; then"             \
+    "        if key unrequire manoem0; then"       \
+    "          if key require tstoem0 conf; then"  \
+    "            if bootm $loadaddr; then"         \
+    "              setled red;"                    \
+    "              reset;"                         \
+    "            fi;"                              \
+    "          fi;"                                \
+    "        fi;"                                  \
+    "      fi;"                                    \
+    "    fi;"                                      \
+    "    if key unrequire tstoem0; then"           \
+    "      if key unrequire dev; then"             \
+    "        if key unrequire manoem0; then"       \
+    "          if key require ipaoem0 conf; then"  \
+    "            if bootm $loadaddr; then"         \
+    "              setled red;"                    \
+    "              reset;"                         \
+    "            fi;"                              \
+    "          fi;"                                \
+    "        fi;"                                  \
+    "      fi;"                                    \
+    "    fi;"                                      \
+    "    if key unrequire tstoem0; then"           \
+    "      if key unrequire dev; then"             \
+    "        if key unrequire ipaoem0; then"       \
+    "          if key require manoem0 conf; then"  \
+    "            if bootm $loadaddr; then"         \
+    "              setled red;"                    \
+    "              reset;"                         \
+    "            fi;"                              \
+    "          fi;"                                \
+    "        fi;"                                  \
+    "      fi;"                                    \
+    "    fi;"                                      \
+    "  else"                                       \
+    "    if key unrequire dev; then"               \
+    "      if key unrequire tstoem0; then"         \
+    "        if key unrequire manoem0; then"       \
+    "          if key require ipaoem0 conf; then"  \
+    "            if bootm $loadaddr; then"         \
+    "              setled red;"                    \
+    "              reset;"                         \
+    "            fi;"                              \
+    "          fi;"                                \
+    "        fi;"                                  \
+    "      fi;"                                    \
+    "    fi;"                                      \
+    "    if key unrequire dev; then"               \
+    "      if key unrequire tstoem0; then"         \
+    "        if key unrequire ipaoem0; then"       \
+    "          if key require manoem0 conf; then"  \
+    "            if bootm $loadaddr; then"         \
+    "              setled red;"                    \
+    "              reset;"                         \
+    "            fi;"                              \
+    "          fi;"                                \
+    "        fi;"                                  \
+    "      fi;"                                    \
+    "    fi;"                                      \
+    "  fi;"                                        \
+    "else"                                         \
+    "  key unrequire dev;"                         \
+    "  key unrequire tstoem0;"                     \
+    "  key unrequire ipaoem0;"                     \
+    "  key unrequire manoem0;"                     \
+    "  bootm $loadaddr;"                           \
+    "fi;"                                          \
+    "setled red;"                                  \
+    "reset;"
 
-#define CONFIG_BOOTCOMMAND  "run bootnand"
+#define TEST_BOOT_COUNT_EXCEEDED                                     \
+    "if bootcount_combined_exceeded; then"                           \
+    " run bootfailedhang;"                                           \
+    "fi;"
 
+#define SET_BOOTARGS                                                 \
+    "if silent_mode_enabled; then"                                   \
+    " setenv bootargs " CMD_LINE_ARGS_LINUX_SILENT ";"               \
+    "else"                                                           \
+    " setenv bootargs " CMD_LINE_ARGS_LINUX ";"                      \
+    "fi;"                                                            \
+
+
+#define UBIBOOT_COMMAND                                              \
+    TEST_BOOT_COUNT_EXCEEDED                                         \
+    SET_BOOTARGS                                                     \
+    "setenv fsactive " UBIFS_1 ";"                                   \
+    "setenv fsstandby " UBIFS_0 ";"                                  \
+    "ubi part " UBI_PART ";"                                         \
+    "ubifsmount " UBI_VOLUME ":$fsactive;"                           \
+    "if ubifsload $loadaddr primary.flag; then"                      \
+    " echo \"Normal boot from $fsactive\";"                          \
+    "else"                                                           \
+    " setenv fsactive " UBIFS_0 ";"                                  \
+    " setenv fsstandby " UBIFS_1 ";"                                 \
+    " ubifsmount " UBI_VOLUME ":$fsactive;"                          \
+    " echo \"Normal boot from $fsactive\";"                          \
+    "fi;"                                                            \
+    "if ubifsload $loadaddr " FIT_IMAGE "; then"                     \
+    " setenv bootbankargs fsactive=$fsactive fsstandby=$fsstandby;"  \
+    " run secureboot;"                                               \
+    "fi;"                                                            \
+    "reset;"
+
+#define UBIALTBOOT_COMMAND                                           \
+    TEST_BOOT_COUNT_EXCEEDED                                         \
+    SET_BOOTARGS                                                     \
+    "setenv fsactive " UBIFS_1 ";"                                   \
+    "setenv fsstandby " UBIFS_0 ";"                                  \
+    "ubi part " UBI_PART ";"                                         \
+    "ubifsmount " UBI_VOLUME ":$fsactive;"                           \
+    "if ubifsload $loadaddr primary.flag; then"                      \
+    " setenv fsactive " UBIFS_0 ";"                                  \
+    " setenv fsstandby " UBIFS_1 ";"                                 \
+    " ubifsmount " UBI_VOLUME ":$fsactive;"                          \
+    " echo \"Fallback boot from $fsactive\";"                        \
+    "else"                                                           \
+    " echo \"Fallback boot from $fsactive\";"                        \
+    "fi;"                                                            \
+    "if ubifsload $loadaddr " FIT_IMAGE "; then"                     \
+    " setenv bootbankargs fsactive=$fsactive fsstandby=$fsstandby;"  \
+    " run secureboot;"                                               \
+    "fi;"                                                            \
+    "reset;"
+
+#define BOOT_FAILED_HANG_COMMAND    \
+    "while true ; do"               \
+    "  setled red;"                 \
+    "  sleep 1;"                    \
+    "  setled green;"               \
+    "  sleep 1;"                    \
+    "done"
+
+#define CONFIG_EXTRA_ENV_SETTINGS                                            \
+    "bootlimit=" __stringify(CONFIG_BOOTCOUNT_LIMIT) "\0"                    \
+    "consoledev=ttyS0\0"                                                     \
+    "loadaddr=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0"                       \
+    "othbootargs=" __stringify (OTHERBOOTARGS) "\0"                          \
+    "mtdids=" MTDIDS_DEFAULT "\0"                                            \
+    "mtdparts=" MTDPARTS_DEFAULT "\0"                                        \
+    "secureboot=" SECURE_BOOT_COMMAND "\0"                                   \
+    "bootfailedhang=" BOOT_FAILED_HANG_COMMAND "\0"                          \
+    "ubiboot=" UBIBOOT_COMMAND "\0"                                          \
+    "ubialtboot=" UBIALTBOOT_COMMAND "\0"                                    \
+    "altbootcmd=run ubialtboot;\0"                                           \
+    "netdev=eth0\0"
+
+#define CONFIG_BOOTCOMMAND  "run ubiboot"
+    
+   
 #endif /* __CONFIG_H__ */
