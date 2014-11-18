@@ -1,20 +1,33 @@
 #include <common.h>
 #include "tlmm.h"
 
-#define GPIO_LED_INVAL 0  /* Special value, no line corresponds to this state */
-#define GPIO_LED_RED_2 49
-#define GPIO_LED_RED_3 51
-#define GPIO_LED_RED_4 53
+#define LED_PWR_GREEN_INDEX      0
+#define LED_PWR_GREEN_GPIO      48
 
-#define GPIO_LED_GRN_1 48
-#define GPIO_LED_GRN_2 47
-#define GPIO_LED_GRN_3 50
-#define GPIO_LED_GRN_4 52
+#define LED_LNK_RED_INDEX        1
+#define LED_LNK_RED_GPIO        49
+
+#define LED_LNK_GREEN_INDEX      2
+#define LED_LNK_GREEN_GPIO      47
+
+#define LED_SVC_RED_INDEX        3
+#define LED_SVC_RED_GPIO        51
+
+#define LED_SVC_GREEN_INDEX      4
+#define LED_SVC_GREEN_GPIO      50
+
+#define LED_GPS_RED_INDEX        5
+#define LED_GPS_RED_GPIO        53
+
+#define LED_GPS_GREEN_INDEX      6
+#define LED_GPS_GREEN_GPIO      52
+
+/* Use this to limit array access below */
+#define NUM_GPIO_LINES           7
 
 #define GPIO_HI 1
 #define GPIO_LO 0
 
-#define GPIO_LED_COUNT 4
 #define MAX_STEPS 6    /* Number of allowed states in a cycle */
 
 /* Min, mxx and default repetitions of a sequence */
@@ -27,6 +40,10 @@
 #define MAX_PERIOD 2000
 #define DEF_PERIOD 1000
 
+typedef enum { LED_OFF, LED_GREEN, LED_RED, LED_YELLOW, NUM_COLOURS } led_colour;
+typedef enum { LED_PWR, LED_LNK, LED_SVC, LED_GPS, NUM_LEDS } led_index;
+
+
 /* Map of GPIO address and states */
 typedef struct
 {
@@ -34,39 +51,124 @@ typedef struct
     int state;
 } ledc_gpio;
 
-typedef struct
+
+/* Table which keeps a record of GPIO states - note that the indexes in the
+ * comments correspond to the _INDEX values defined above, so DON'T CHANGE!
+ */
+static ledc_gpio gpio_info[NUM_GPIO_LINES] = 
 {
-    ledc_gpio red;    /* GPIO line to turn red */
-    ledc_gpio green;  /* GPIO line to turn green */
-} ledc_gpio_map;
+    {LED_PWR_GREEN_GPIO,   GPIO_LO},  /* 0  (red when off) */
+    {LED_LNK_RED_GPIO,     GPIO_LO},  /* 1 */
+    {LED_LNK_GREEN_GPIO,   GPIO_LO},  /* 2 */
+    {LED_SVC_RED_GPIO,     GPIO_LO},  /* 3 */
+    {LED_SVC_GREEN_GPIO,   GPIO_LO},  /* 4 */
+    {LED_GPS_RED_GPIO,     GPIO_LO},  /* 5 */
+    {LED_GPS_GREEN_GPIO,   GPIO_LO}   /* 6 */
+};
 
-ledc_gpio_map gpio_map[GPIO_LED_COUNT] = { { {GPIO_LED_INVAL, GPIO_LO}, {GPIO_LED_GRN_1, GPIO_LO} },
-                                           { {GPIO_LED_RED_2, GPIO_LO}, {GPIO_LED_GRN_2, GPIO_LO} },
-                                           { {GPIO_LED_RED_3, GPIO_LO}, {GPIO_LED_GRN_3, GPIO_LO} },
-                                           { {GPIO_LED_RED_4, GPIO_LO}, {GPIO_LED_GRN_4, GPIO_LO} } };
+/* Set maximum GPIO lines associated with one physical LED 
+ * Only the Service LED actually has this many 
+ */
+#define GPIO_LINES_PER_LED 2
+#define GPIO_NA -1
 
+/* Look up table for GPIO line addresses for each LED */
+typedef int led_lines[GPIO_LINES_PER_LED];
+
+static const led_lines led_addr_table[NUM_LEDS] = 
+{
+    { LED_PWR_GREEN_INDEX,   GPIO_NA,           }, /* PWR  */
+    { LED_LNK_GREEN_INDEX,   LED_LNK_RED_INDEX  }, /* LNK  */
+    { LED_SVC_GREEN_INDEX,   LED_SVC_RED_INDEX  }, /* SVC  */
+    { LED_GPS_GREEN_INDEX,   LED_GPS_RED_INDEX  }  /* GPS  */
+};
+
+/* MASTER LED LOOK-UP TABLE
+ *  This table contains bitmaps indicating the GPIO states required to obtain a given colour for any given LED
+ *  Bit 0 indicates the first line state and bit 1 the second
+ *  If the colour is not available for that LED, the entry is 0xFF.
+ */
+typedef unsigned char led_settings[NUM_COLOURS];  /* How to get each colour for a given LED */
+
+static const led_settings led_lookup[NUM_LEDS] =
+{   /*  Off     Green   Red     Yellow */ 
+    {   0xFF,   0x01,   0x02,   0xFF  }, /* PWR */
+    {   0x00,   0x01,   0x02,   0x03  }, /* NWK  */
+    {   0x00,   0x01,   0x02,   0x03  }, /* SVC  */
+    {   0x00,   0x01,   0x02,   0x03  }  /* GPS  */
+};
+
+
+static void set_gpio(int index, int state)
+{
+    if (gpio_info[index].state != state)
+    {
+        tlmm_out(gpio_info[index].addr, state);
+        gpio_info[index].state = state;
+    }
+};
+
+
+static int set_one_led(led_index index, led_colour colour)
+{
+    unsigned char setting;
+    int i;
+    
+    if ( (index < NUM_LEDS) && (colour < NUM_COLOURS) )
+    {
+        setting = led_lookup[index][colour];
+        if (setting == 0xFF)
+        {
+            return 1; /* No can do - quietly ignore */
+        }
+        
+        for (i = 0; i < GPIO_LINES_PER_LED; ++i)
+        {
+            int gpio_index = led_addr_table[index][i];
+            if (gpio_index == GPIO_NA)
+            {
+                break; /* No more lines for this LED */
+            }
+            
+            set_gpio(gpio_index, (setting & 0x1) ? GPIO_HI : GPIO_LO);
+            
+            setting >>= 1;
+        }
+    }
+    else
+    {
+        printf("set_one_led out of range error for index %d and colour %d\n", index, colour);
+        return 1;
+    }
+    return 0;
+}
+                                           
+                                           
                                            
 /* Old function - sets the LEDs red, except LED 0 */
 void __led_set (led_id_t mask, int state)
 {
     int i;
-    ledc_gpio *entry;
-    int gpio_state;
     
-    /* printf("%s mask:0x%x state:%d\n",__func__,mask,state); */
-    
-    for (i=0; i<GPIO_LED_COUNT; i++)
+    for (i=0; i<NUM_LEDS; i++)
     {
+        led_colour colour;
         int bit = (0x1 << i);
+        
         /* If this LED bit isn't set go around the loop again. */
         if (0 == (bit & mask))
             continue;
         
         /* Qualcomm oddity: led 0 - on means green, for others it's red */
-        entry = (i == 0) ? &(gpio_map[i].green) : &(gpio_map[i].red);
-        gpio_state = (STATUS_LED_ON == state) ? GPIO_HI : GPIO_LO;
-        tlmm_out(entry->addr, gpio_state);
-        entry->state = gpio_state;
+        if (state == STATUS_LED_ON)
+        {
+            colour = (i == 0) ? LED_GREEN : LED_RED;
+        }
+        else
+        {
+            colour = (i == 0) ? LED_RED : LED_OFF;
+        }
+        set_one_led(i, colour);
     }
 }
 
@@ -74,22 +176,32 @@ void __led_set (led_id_t mask, int state)
 void __led_toggle (led_id_t mask)
 {
     int i;
-    ledc_gpio *entry;
-    int gpio_state;
     
-    //printf("%s mask:0x%x state:%d\n",__func__,mask);
-    
-    for (i=0; i<GPIO_LED_COUNT; i++)
+    for (i=0; i<NUM_LEDS; i++)
     {
+        led_colour colour;
+        int line_index;
+        int gpio_index;
+        int new_state;
         int bit = (0x1 << i);
         if (0 == (bit & mask))
             continue;
         
+        /* Awkward - read current state, green line for pwr, red for others */
+        line_index = (i == 0) ? 0 : 1;
+        gpio_index = led_addr_table[i][line_index];
+        new_state = (1 == gpio_info[gpio_index].state) ? 0 : 1;
+        
         /* Qualcomm oddity: led 0 - on means green, for others it's red */
-        entry = (i == 0) ? &(gpio_map[i].green) : &(gpio_map[i].red);        
-        gpio_state = (entry->state == GPIO_LO) ? GPIO_HI : GPIO_LO;
-        tlmm_out(entry->addr, gpio_state);
-        entry->state = gpio_state;
+        if (new_state == 1)
+        {
+            colour = (i == 0) ? LED_GREEN : LED_RED;
+        }
+        else
+        {
+            colour = (i == 0) ? LED_RED : LED_OFF;
+        }
+        set_one_led(i, colour);
     }
 }
 
@@ -97,25 +209,13 @@ void __led_toggle (led_id_t mask)
 void __led_init (led_id_t mask, int state)
 {
     int i;
-    //printf("%s mask:0x%x state:%d\n",__func__,mask,state);
 
-    for(i=0; i<GPIO_LED_COUNT; i++)
+    for(i=0; i<NUM_GPIO_LINES; i++)
     {
-        if (gpio_map[i].red.addr != GPIO_LED_INVAL)
-        {
-            tlmm_oe  (gpio_map[i].red.addr, TLMM_OE_ENABLE);
-            tlmm_pull(gpio_map[i].red.addr, TLMM_PULL_NONE);
-            tlmm_drv (gpio_map[i].red.addr, TLMM_DRIVE_2MA);
-            tlmm_out (gpio_map[i].red.addr, gpio_map[i].red.state);
-        }
-        
-        if (gpio_map[i].green.addr != GPIO_LED_INVAL)
-        {
-            tlmm_oe  (gpio_map[i].green.addr, TLMM_OE_ENABLE);
-            tlmm_pull(gpio_map[i].green.addr, TLMM_PULL_NONE);
-            tlmm_drv (gpio_map[i].green.addr, TLMM_DRIVE_2MA);
-            tlmm_out (gpio_map[i].green.addr, gpio_map[i].green.state);
-        }
+        tlmm_oe  (gpio_info[i].addr, TLMM_OE_ENABLE);
+        tlmm_pull(gpio_info[i].addr, TLMM_PULL_NONE);
+        tlmm_drv (gpio_info[i].addr, TLMM_DRIVE_2MA);
+        tlmm_out (gpio_info[i].addr, gpio_info[i].state);
     }
 }
 
@@ -135,47 +235,27 @@ void __led_init (led_id_t mask, int state)
  *   Note that this command still relies on the __led_init function above associated with the
  *   original led command. The led command still functions as far as it can.
  * 
- *   General syntax:   
- * 
- *   ledc <ledspec> <sequence> [<reps> [<period>]]
- *      <ledspec> = <led_id> [<ledspec>]   (Between 1 and 4 LED ids)
- *      <led_id> = 0|1|2|3|all
- *      <sequence> = <state> [<sequence>]  (Between 1 and 6 LED states)
- *      <state> = off|red|green|yellow
- *      1 <= <reps> <= 100                 (number of times to repeat the sequence)
- *      100 <= <period> <= 2000            (time in ms between steps)
- * 
- *   Examples:
- * 
- *    ledc 1 red                                     Turn led 1 red
- *    ledc 2 3 yellow                                Turn leds 2 and 3 yellow
- *    ledc all green                                 Turn all leds green
- *    ledc 2 3 1 off                                 Turn leds 1 2 3 off (order doesn't matter)
- *    ledc 1 3 off red off green off yellow 10 200   Step leds 1 and 3 through sequence
- *                                                     10 times, 200ms between steps
- * 
- *   After running a sequence, leds are left in the final state of the sequence
+ *   See usage message below for more details   
  * 
  *   Note re. Qualcomm ipafsm92xx board - led 0 can only show red or green.
- *     If set to "off", it shows red,
- *     if set to "yellow" it shows green
+ *     If set to "off" or "yellow", it remains unchanged,
  */
 
 /* Summary of above as a help text */
 static const char detailed_help[] =
     "ledc <ledspec> <sequence> [<reps> [<period>]]\n"
     "  <ledspec> = <led_id> [<ledspec>]   (Between 1 and 4 LED ids)\n"
-    "  <led_id> = 0|1|2|3|all\n"
+    "  <led_id> = pwr|lnk|svc|gps|all\n"
     "  <sequence> = <state> [<sequence>]  (Between 1 and 6 LED states)\n"
     "  <state> = off|red|green|yellow\n"
     "  1 <= <reps> <= 100                 (number of times to repeat the sequence)\n"
     "  100 <= <period> <= 2000            (time in ms between steps)\n\n"
     "   Examples:\n"
-    "    ledc 1 red                                     Turn led 1 red\n"
-    "    ledc 2 3 yellow                                Turn leds 2 and 3 yellow\n"
-    "    ledc all green                                 Turn all leds green\n"
-    "    ledc 2 3 1 off                                 Turn leds 1 2 3 off (order doesn't matter)\n"
-    "    ledc 1 3 off red off green off yellow 10 200   Step leds 1 and 3 through sequence\n\n";
+    "    ledc pwr red                     Turn power led red\n"
+    "    ledc lnk svc yellow              Turn link and service leds yellow\n"
+    "    ledc all green                   Turn all leds green\n"
+    "    ledc svc gps nwk off             Turn service, gps and link leds off (order doesn't matter)\n"
+    "    ledc lnk gps off red off green off yellow 10 200   Step link and gps leds through sequence\n\n";
 
     
 /* Map of mask values for LED Ids */
@@ -187,57 +267,31 @@ typedef struct
 
 static const led_mask_entry led_mask_table[] =
 {
-    { "0",      0x1 },
-    { "1",      0x2 },
-    { "2",      0x4 },
-    { "3",      0x8 },
-    { "all",    0xF },
+    { "pwr",    0x01 },
+    { "lnk",    0x02 },
+    { "svc",    0x04 },
+    { "gps",    0x08 },
+    { "all",    0x0F },
     { "",       -1  }
 };
 
-/* Map of GPIO states for LED colours */
-typedef struct
-{
-    char* colour;
-    int rstate;
-    int gstate;
-} ledc_colour_entry;
+static const char* colour_strings[NUM_COLOURS] =
+{ "off", "green", "red", "yellow" };
 
-static const ledc_colour_entry ledc_colour_table[] =
-{
-    { "off",     GPIO_LO, GPIO_LO }, /* Both low -> off */
-    { "red",     GPIO_HI, GPIO_LO }, /* Red high, green low -> red */
-    { "green",   GPIO_LO, GPIO_HI }, /* Red low, green high -> green */
-    { "yellow",  GPIO_HI, GPIO_HI }, /* Both high -> yellow(ish) */
-    { "",        -1,      -1      }
-};
+/* Table for cycling round colours */
+led_colour led_sequence[MAX_STEPS];         
 
-/* Table for cyling round colours */
-int led_sequence[MAX_STEPS];         
-
-
-/* Set a GPIO line if it's not already in the required state */
-void gpio_ledc_set(ledc_gpio* gpio_entry, int new_state)
-{
-    if ( (gpio_entry->state != new_state)
-      && (gpio_entry->addr != GPIO_LED_INVAL) )
-    {
-        tlmm_out(gpio_entry->addr, new_state);
-        gpio_entry->state = new_state;
-    }
-}
 
 /* Apply specified states to all LEDs specified by the mask */
-void ledc_set_leds(int mask, int colour)
+void ledc_set_leds(int mask, led_colour colour)
 {
     int i, im;
     
-    for (i = 0, im = 1; i < GPIO_LED_COUNT; i++, im <<= 1)
+    for (i = 0, im = 1; i < NUM_LEDS; i++, im <<= 1)
     {
         if ( (mask & im) != 0)
         {
-            gpio_ledc_set(&(gpio_map[i].red),   ledc_colour_table[colour].rstate);
-            gpio_ledc_set(&(gpio_map[i].green), ledc_colour_table[colour].gstate);
+            set_one_led((led_index)i, colour);
         }
     }
 }
@@ -260,12 +314,12 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     }
     
     /* Validate arguments */
-    if ( (argc < 3) || (argc > (7 + MAX_STEPS)) )
+    if ( (argc < 3) || (argc > (8 + MAX_STEPS)) )
     {
         printf("Incorrect number of arguments\n");
         return CMD_RET_USAGE;
     }
-    
+
     /* Find mask for specified LED(s) - step through args until we reach a non-led value */
     i = 0; argi = 1; mask = 0;
     while ((led_mask_table[i].mask >= 0) && (argi < argc))
@@ -278,7 +332,7 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         }
         ++i;
     }
-        
+    
     if (mask <= 0)
     {
         printf("No valid LED id specified\n");
@@ -287,9 +341,9 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     
     /* Step through next args until we run out or hit a non-colour */
     i = 0; steps = 0;
-    while ((ledc_colour_table[i].rstate >= 0) && (argi < argc) && (steps < MAX_STEPS))
+    while ( (i < NUM_COLOURS) && (argi < argc) && (steps < MAX_STEPS))
     {
-        if (strcmp(ledc_colour_table[i].colour, argv[argi]) == 0)
+        if (strcmp(colour_strings[i], argv[argi]) == 0)
         {
             led_sequence[steps] = i; /* Each sequence step contains the index of the colour table entry */
             i = 0; ++steps; ++argi;
@@ -345,7 +399,7 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         return CMD_RET_USAGE;
     }
     
-    /* Now go through the sequence the requisite number of times */
+    /* All OK, go through the sequence the requisite number of times */
     while (reps > 0)
     {
         for (i=0; i < steps; i++)
@@ -355,8 +409,10 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         }
         --reps;
     }
+        
     return CMD_RET_SUCCESS;
 }
+
 
 
 U_BOOT_CMD(

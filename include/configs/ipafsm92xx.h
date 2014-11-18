@@ -137,7 +137,7 @@
 #define CONFIG_BOOTCOUNT_LIMIT 4
 
 #define SECURE_BOOT_COMMAND                       \
-   "ledc 1 2 3 green off 1 300;"                  \
+   "ledc lnk svc gps green off 1 300;"            \
    "setenv bootargs $bootargs $othbootargs;"      \
    "setenv bootargs $bootargs $bootbankargs;"     \
    "if secparm secboot; then"                     \
@@ -147,7 +147,7 @@
    "        if key unrequire manoem0; then"       \
    "          if key require dev conf; then"      \
    "            if bootm $loadaddr; then"         \
-   "              ledc 0 green red 3 1000;"       \
+   "              ledc pwr green red 3 1000;"     \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -159,7 +159,7 @@
    "        if key unrequire manoem0; then"       \
    "          if key require tstoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
-   "              ledc 0 green red 3 1000;"       \
+   "              ledc pwr green red 3 1000;"     \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -171,7 +171,7 @@
    "        if key unrequire manoem0; then"       \
    "          if key require ipaoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
-   "              ledc 0 green red 3 1000;"       \
+   "              ledc pwr green red 3 1000;"     \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -183,7 +183,7 @@
    "        if key unrequire ipaoem0; then"       \
    "          if key require manoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
-   "              ledc 0 green red 3 1000;"       \
+   "              ledc pwr green red 3 1000;"     \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -196,7 +196,7 @@
    "        if key unrequire manoem0; then"       \
    "          if key require ipaoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
-   "              ledc 0 green red 3 1000;"       \
+   "              ledc pwr green red 3 1000;"     \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -208,7 +208,7 @@
    "        if key unrequire ipaoem0; then"       \
    "          if key require manoem0 conf; then"  \
    "            if bootm $loadaddr; then"         \
-   "              ledc 0 green red 3 1000;"       \
+   "              ledc pwr green red 3 1000;"     \
    "              reset;"                         \
    "            fi;"                              \
    "          fi;"                                \
@@ -223,7 +223,7 @@
    "  key unrequire manoem0;"                     \
    "  bootm $loadaddr;"                           \
    "fi;"                                          \
-   "ledc 0 green red 3 1000;"                     \
+   "ledc pwr green red 3 1000;"                   \
    "reset;"
 
 #define TEST_BOOT_COUNT_EXCEEDED                                    \
@@ -285,8 +285,8 @@
     "while true ; do"               \
     "  ledc all red;"               \
     "  sleep 1;"                    \
-    "  ledc 0 green;"               \
-    "  ledc 1 2 3 off;"             \
+    "  ledc pwr green;"             \
+    "  ledc lnk svc gps off;"       \
     "   sleep 1;"                   \
     "done"
 
