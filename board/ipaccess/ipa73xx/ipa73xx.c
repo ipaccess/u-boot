@@ -174,10 +174,10 @@ int board_init (void)
 
 	/* Initialise the gpio library */
 	picoxcell_gpio_init ();
-     
-        setLED(LED_GREEN);
-        
-	return 0;
+
+    led_confidence();
+
+    return 0;
 }
 
 /*****************************************************************************

@@ -448,6 +448,7 @@
 
 /* IPA-specific commands */
 #define CONFIG_CMD_LEDSET
+#define CONFIG_CMD_LEDC
 #define CONFIG_CMD_SECPARM
 #define CONFIG_CMD_LIE
 #define CONFIG_CMD_KEY
@@ -455,7 +456,7 @@
 #define CONFIG_BOOTCOUNT_LIMIT 4
 
 #define SECURE_BOOT_COMMAND                        \
-    "setled green;"                  \
+    "ledc all green off 1 300;"                    \
     "setenv bootargs $bootargs $othbootargs;"      \
     "setenv bootargs $bootargs $bootbankargs;"     \
     "if secparm secboot; then"                     \
@@ -465,7 +466,7 @@
     "        if key unrequire manoem0; then"       \
     "          if key require dev conf; then"      \
     "            if bootm $loadaddr; then"         \
-    "              setled red;"                    \
+    "              ledc pwr green red 3 1000;"     \
     "              reset;"                         \
     "            fi;"                              \
     "          fi;"                                \
@@ -477,7 +478,7 @@
     "        if key unrequire manoem0; then"       \
     "          if key require tstoem0 conf; then"  \
     "            if bootm $loadaddr; then"         \
-    "              setled red;"                    \
+    "              ledc pwr green red 3 1000;"     \
     "              reset;"                         \
     "            fi;"                              \
     "          fi;"                                \
@@ -489,7 +490,7 @@
     "        if key unrequire manoem0; then"       \
     "          if key require ipaoem0 conf; then"  \
     "            if bootm $loadaddr; then"         \
-    "              setled red;"                    \
+    "              ledc pwr green red 3 1000;"     \
     "              reset;"                         \
     "            fi;"                              \
     "          fi;"                                \
@@ -501,7 +502,7 @@
     "        if key unrequire ipaoem0; then"       \
     "          if key require manoem0 conf; then"  \
     "            if bootm $loadaddr; then"         \
-    "              setled red;"                    \
+    "              ledc pwr green red 3 1000;"     \
     "              reset;"                         \
     "            fi;"                              \
     "          fi;"                                \
@@ -514,7 +515,7 @@
     "        if key unrequire manoem0; then"       \
     "          if key require ipaoem0 conf; then"  \
     "            if bootm $loadaddr; then"         \
-    "              setled red;"                    \
+    "              ledc pwr green red 3 1000;"     \
     "              reset;"                         \
     "            fi;"                              \
     "          fi;"                                \
@@ -526,7 +527,7 @@
     "        if key unrequire ipaoem0; then"       \
     "          if key require manoem0 conf; then"  \
     "            if bootm $loadaddr; then"         \
-    "              setled red;"                    \
+    "              ledc pwr green red 3 1000;"     \
     "              reset;"                         \
     "            fi;"                              \
     "          fi;"                                \
@@ -541,7 +542,7 @@
     "  key unrequire manoem0;"                     \
     "  bootm $loadaddr;"                           \
     "fi;"                                          \
-    "setled red;"                                  \
+    "ledc pwr green red 3 1000;"                   \
     "reset;"
 
 #define TEST_BOOT_COUNT_EXCEEDED                                     \
@@ -599,12 +600,14 @@
     "fi;"                                                            \
     "reset;"
 
-#define BOOT_FAILED_HANG_COMMAND    \
-    "while true ; do"               \
-    "  setled red;"                 \
-    "  sleep 1;"                    \
-    "  setled green;"               \
-    "  sleep 1;"                    \
+#define BOOT_FAILED_HANG_COMMAND      \
+    "ledc all off;"                   \
+    "while true ; do"                 \
+    "  ledc all red;"                 \
+    "  sleep 1;"                      \
+    "  ledc all off;"                 \
+    "  ledc pwr green;"               \
+    "  sleep 1;"                      \
     "done"
 
 #define CONFIG_EXTRA_ENV_SETTINGS                                            \
