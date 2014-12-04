@@ -28,6 +28,9 @@ COBJS-y += secboot.o
 COBJS-y += key.o
 COBJS-y += fuse.o
 COBJS-y += ipa73xx_bootcount.o
+COBJS-y += ipa73xx_fuse.o
+COBJS-y += ipa73xx_characterise_hw.o
+COBJS-y += damm.o
 
 SRCS    := $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS    := $(addprefix $(obj),$(COBJS-y))
