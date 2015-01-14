@@ -427,6 +427,9 @@
 
 /* Time in seconds before autoboot, -1 disables auto-boot */
 #define CONFIG_BOOTDELAY        3
+#define CONFIG_AUTOBOOT_KEYED
+#define CONFIG_AUTOBOOT_STOP_STR "stop"
+#define CONFIG_AUTOBOOT_PROMPT "autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
 
 /* The boot command will set bootargs */
 #undef  CONFIG_BOOTARGS
@@ -453,6 +456,9 @@
 #define CONFIG_CMD_LIE
 #define CONFIG_CMD_KEY
 #define CONFIG_CMD_CHARACTERISE_HW
+
+/* Allow us to track boot progress */
+#define CONFIG_SHOW_BOOT_PROGRESS  1
 
 #define CONFIG_BOOTCOUNT_LIMIT 4
 

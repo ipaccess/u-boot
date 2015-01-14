@@ -148,13 +148,13 @@ void __udelay (unsigned long usec)
 }
 
 /*
- * This function is derived from PowerPC code (timebase clock frequency).
- * On ARM it returns the number of timer ticks per second.
+ * IPA modification - return clock frequency, not CONFIG_SYS_HZ
+ * This is necessary for the function abortboot_keyed() in main.c to work
  */
 ulong get_tbclk (void)
 {
 	ulong tbclk;
 
-	tbclk = CONFIG_SYS_HZ;
+    tbclk = PICOXCELL_AHB_CLOCK_FREQ;
 	return tbclk;
 }
