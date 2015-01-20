@@ -21,6 +21,7 @@
 #include <asm/arch/utilities.h>
 #include <asm/arch/picoxcell_gpio.h>
 #include "ipa73xx_led.h"
+#include "ipa73xx_fuse.h"
 
 
 /* Macros ------------------------------------------------------------------ */
@@ -207,8 +208,15 @@ int checkboard (void)
  *****************************************************************************/
 int misc_init_r (void)
 {
-	/* Not used right now, function template left here as a place holder */
-	return 0;
+    char ethaddr_str[18];
+    
+    if (read_ethaddr_from_fuses(ethaddr_str, 0))
+    {
+        setenv("ethaddr", ethaddr_str);
+        printf("ethaddr set from fuses: %s\n", ethaddr_str);
+    }
+    
+    return 0;
 }
 
 /*****************************************************************************

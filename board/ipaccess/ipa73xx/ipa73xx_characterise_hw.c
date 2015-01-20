@@ -683,6 +683,7 @@ static int parse_pcb_assembly_issue(const char * pcb_assembly_issue_text, uint32
     return 0;
 }
 
+
 int read_and_dump_all_fuse_regions()
 {
     char key2_buffer[PC73XX_KEY2_SIZE];
@@ -983,6 +984,69 @@ cleanup:
     return ret;
 }
 
+
+/*
+ *  Reads an ethernet address from fuses:
+ *   eth_addr_string - buffer for string version of ethernet address - length >= 18
+ *   index 0-1, for different addresses, as enabled
+ *   Returns: 0 if all fuses are 0 (unset address) otherwise 1
+ */
+int read_ethaddr_from_fuses(char* eth_addr_str, int index)
+{
+    unsigned int offset1;
+    unsigned int offset2;
+    unsigned char ethaddr[6];
+    int i;
+    unsigned char check = 0;
+    
+    switch (index)
+    {
+        case 0:
+            offset1 = PC73XX_KEY2_OFFSET + 32;
+            offset2 = PC73XX_KEY3_OFFSET + 32;
+            break;
+            
+        case 1:
+            offset1 = PC73XX_KEY4_OFFSET + 0;
+            offset2 = PC73XX_KEY4_OFFSET + 48;
+            break;
+            
+        default:
+            sprintf(eth_addr_str, "Invalid index");
+            return 0;
+    }
+    
+    for (i = 0; i < 6; ++i, offset1 += 8, offset2 += 8)
+    {
+        unsigned char val =   ((unsigned char)(read_and_reverse_fuses(offset1, 8) & 0xff))
+        | ((unsigned char)(read_and_reverse_fuses(offset2, 8) & 0xff));
+        check |= val;
+        ethaddr[i] = val;
+    }
+    
+    if (!check) /* All zeros means not set */
+    {
+        sprintf(eth_addr_str, "Not set");
+        return 0;
+    }
+    
+    sprintf(eth_addr_str, "%02X:%02X:%02X:%02X:%02X:%02X",
+            ethaddr[0], ethaddr[1], ethaddr[2], ethaddr[3], ethaddr[4], ethaddr[5]);
+    return 1;
+}
+
+
+int do_read_ethaddr_from_fuses(void)
+{
+    char ethaddr0[18];
+    char ethaddr1[18];
+    read_ethaddr_from_fuses(ethaddr0, 0);
+    read_ethaddr_from_fuses(ethaddr1, 1);
+    printf("eth0: %s\neth1: %s\n", ethaddr0, ethaddr1);
+    return 0;
+}
+
+
 #ifdef CONFIG_CMD_CHARACTERISE_HW
 U_BOOT_CMD(
         characterise_hw, 12, 1, do_characterise,
@@ -996,5 +1060,11 @@ U_BOOT_CMD(
         read_hwinfo_from_fuse, 1, 1, read_and_dump_all_fuse_regions,
         "command to see the bit dump of fuse regions KEY2 KEY3 KEY4",
         "<read_hwinfo_from_fuse>"
+        );
+
+U_BOOT_CMD(
+    read_ethaddr_from_fuse, 1, 1, do_read_ethaddr_from_fuses,
+    "Read ethernet address(es) from fuses",
+    "<read_ethaddr_from_fuses>"
         );
 #endif

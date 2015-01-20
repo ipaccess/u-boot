@@ -23,7 +23,7 @@
 
 u8 test = 0;
 
-void set_fuse_test_mode()
+void set_fuse_test_mode(void)
 {
     test = 1;
 }
@@ -136,4 +136,23 @@ int read_fuse_in_range(unsigned int offset, char *buffer, unsigned int *buffer_l
     }
 
     return 0;
+}
+
+
+/* Read fuses from offset, fill result from LSB upwards for number of fuses required
+ * (max 32)
+ */
+unsigned int read_and_reverse_fuses(unsigned int offset, int n_fuses)
+{
+    int i;
+    int j = (n_fuses <= 32) ? n_fuses : 32;
+    unsigned int val = 0;
+    unsigned int f = offset;
+    
+    for (i = 0; i < j; ++i, ++f)
+    {
+        val |= ((unsigned int)read_fuse(f) << i);
+    }
+    
+    return val;
 }

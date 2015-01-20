@@ -37,6 +37,9 @@
 
 #define CONFIG_SYS_NO_FLASH
 
+/* Ensure we run misc_init_r */
+#define CONFIG_MISC_INIT_R 1
+
 /*-----------------------------------------------------------------------------
  * NAND Flash Memory Stuff
  */
