@@ -101,19 +101,6 @@ static int usage(const char * progname, int ret)
 }
 
 
-#define PC73XX_KEY2_OFFSET 256
-#define PC73XX_KEY2_SIZE 128
-#define PC73XX_KEY2_RELEVANT_OFFSET 0
-#define PC73XX_KEY2_RELEVANT_SIZE 113
-#define PC73XX_KEY3_OFFSET 384
-#define PC73XX_KEY3_SIZE 128
-#define PC73XX_KEY3_RELEVANT_OFFSET 0
-#define PC73XX_KEY3_RELEVANT_SIZE 113
-#define PC73XX_KEY4_OFFSET 512
-#define PC73XX_KEY4_SIZE 128
-#define PC73XX_KEY4_RELEVANT_OFFSET 0
-#define PC73XX_KEY4_RELEVANT_SIZE 96
-
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
 
@@ -982,57 +969,6 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 cleanup:
 
     return ret;
-}
-
-
-/*
- *  Reads an ethernet address from fuses:
- *   eth_addr_string - buffer for string version of ethernet address - length >= 18
- *   index 0-1, for different addresses, as enabled
- *   Returns: 0 if all fuses are 0 (unset address) otherwise 1
- */
-int read_ethaddr_from_fuses(char* eth_addr_str, int index)
-{
-    unsigned int offset1;
-    unsigned int offset2;
-    unsigned char ethaddr[6];
-    int i;
-    unsigned char check = 0;
-    
-    switch (index)
-    {
-        case 0:
-            offset1 = PC73XX_KEY2_OFFSET + 32;
-            offset2 = PC73XX_KEY3_OFFSET + 32;
-            break;
-            
-        case 1:
-            offset1 = PC73XX_KEY4_OFFSET + 0;
-            offset2 = PC73XX_KEY4_OFFSET + 48;
-            break;
-            
-        default:
-            sprintf(eth_addr_str, "Invalid index");
-            return 0;
-    }
-    
-    for (i = 0; i < 6; ++i, offset1 += 8, offset2 += 8)
-    {
-        unsigned char val =   ((unsigned char)(read_and_reverse_fuses(offset1, 8) & 0xff))
-        | ((unsigned char)(read_and_reverse_fuses(offset2, 8) & 0xff));
-        check |= val;
-        ethaddr[i] = val;
-    }
-    
-    if (!check) /* All zeros means not set */
-    {
-        sprintf(eth_addr_str, "Not set");
-        return 0;
-    }
-    
-    sprintf(eth_addr_str, "%02X:%02X:%02X:%02X:%02X:%02X",
-            ethaddr[0], ethaddr[1], ethaddr[2], ethaddr[3], ethaddr[4], ethaddr[5]);
-    return 1;
 }
 
 

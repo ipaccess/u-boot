@@ -37,7 +37,7 @@ ulong bootcount_load(void)
     
     if ( (r0 != r1) || (r0 != r2) || (r0 != r3) )
     {
-        printf("*** Invalid bootcount - power on? Setting to 0 ***\n", r0, r1, r2, r3);
+        printf("*** Invalid bootcount - power on? Setting to 0 ***\n");
         save_addr[3] = ~0;
         save_addr[2] = 0;
         save_addr[1] = ~0;
@@ -51,7 +51,7 @@ static int do_bootcount_combined_exceeded(cmd_tbl_t *cmdtp, int flag, int argc, 
 {
     ulong bc = bootcount_load();
 
-    printf("*** Combined bootcount = %u ***\n", bc);
+    printf("*** Combined bootcount = %lu ***\n", bc);
     
     if ( bc > (CONFIG_BOOTCOUNT_LIMIT * 2) )
     {

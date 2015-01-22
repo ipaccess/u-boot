@@ -22,6 +22,7 @@
 #include <asm/arch/picoxcell_gpio.h>
 #include "ipa73xx_led.h"
 #include "ipa73xx_fuse.h"
+#include "secboot.h"
 
 
 /* Macros ------------------------------------------------------------------ */
@@ -208,12 +209,16 @@ int checkboard (void)
  *****************************************************************************/
 int misc_init_r (void)
 {
-    char ethaddr_str[18];
-    
-    if (read_ethaddr_from_fuses(ethaddr_str, 0))
+    if (0 != load_security_requirements())
     {
-        setenv("ethaddr", ethaddr_str);
-        printf("ethaddr set from fuses: %s\n", ethaddr_str);
+        printf("FATAL: %s\n", "Failed to load security requirements, cannot proceed");
+        return -1;
+    }
+    
+    if (silent_mode_enabled())
+    {
+        setenv("silent", "1");
+        setenv("bootdelay", "0");
     }
     
     return 0;

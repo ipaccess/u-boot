@@ -465,96 +465,55 @@
 
 #define CONFIG_BOOTCOUNT_LIMIT 4
 
-#define SECURE_BOOT_COMMAND                        \
-    "ledc all green off 1 300;"                    \
-    "setenv bootargs $bootargs $othbootargs;"      \
-    "setenv bootargs $bootargs $bootbankargs;"     \
-    "if secparm secboot; then"                     \
-    "  if secparm devmode; then"                   \
-    "    if key unrequire ipaoem0; then"           \
-    "      if key unrequire tstoem0; then"         \
-    "        if key unrequire manoem0; then"       \
-    "          if key require dev conf; then"      \
-    "            if bootm $loadaddr; then"         \
-    "              ledc pwr green red 3 1000;"     \
-    "              reset;"                         \
-    "            fi;"                              \
-    "          fi;"                                \
-    "        fi;"                                  \
-    "      fi;"                                    \
-    "    fi;"                                      \
-    "    if key unrequire ipaoem0; then"           \
-    "      if key unrequire dev; then"             \
-    "        if key unrequire manoem0; then"       \
-    "          if key require tstoem0 conf; then"  \
-    "            if bootm $loadaddr; then"         \
-    "              ledc pwr green red 3 1000;"     \
-    "              reset;"                         \
-    "            fi;"                              \
-    "          fi;"                                \
-    "        fi;"                                  \
-    "      fi;"                                    \
-    "    fi;"                                      \
-    "    if key unrequire tstoem0; then"           \
-    "      if key unrequire dev; then"             \
-    "        if key unrequire manoem0; then"       \
-    "          if key require ipaoem0 conf; then"  \
-    "            if bootm $loadaddr; then"         \
-    "              ledc pwr green red 3 1000;"     \
-    "              reset;"                         \
-    "            fi;"                              \
-    "          fi;"                                \
-    "        fi;"                                  \
-    "      fi;"                                    \
-    "    fi;"                                      \
-    "    if key unrequire tstoem0; then"           \
-    "      if key unrequire dev; then"             \
-    "        if key unrequire ipaoem0; then"       \
-    "          if key require manoem0 conf; then"  \
-    "            if bootm $loadaddr; then"         \
-    "              ledc pwr green red 3 1000;"     \
-    "              reset;"                         \
-    "            fi;"                              \
-    "          fi;"                                \
-    "        fi;"                                  \
-    "      fi;"                                    \
-    "    fi;"                                      \
-    "  else"                                       \
-    "    if key unrequire dev; then"               \
-    "      if key unrequire tstoem0; then"         \
-    "        if key unrequire manoem0; then"       \
-    "          if key require ipaoem0 conf; then"  \
-    "            if bootm $loadaddr; then"         \
-    "              ledc pwr green red 3 1000;"     \
-    "              reset;"                         \
-    "            fi;"                              \
-    "          fi;"                                \
-    "        fi;"                                  \
-    "      fi;"                                    \
-    "    fi;"                                      \
-    "    if key unrequire dev; then"               \
-    "      if key unrequire tstoem0; then"         \
-    "        if key unrequire ipaoem0; then"       \
-    "          if key require manoem0 conf; then"  \
-    "            if bootm $loadaddr; then"         \
-    "              ledc pwr green red 3 1000;"     \
-    "              reset;"                         \
-    "            fi;"                              \
-    "          fi;"                                \
-    "        fi;"                                  \
-    "      fi;"                                    \
-    "    fi;"                                      \
-    "  fi;"                                        \
-    "else"                                         \
-    "  key unrequire dev;"                         \
-    "  key unrequire tstoem0;"                     \
-    "  key unrequire ipaoem0;"                     \
-    "  key unrequire manoem0;"                     \
-    "  bootm $loadaddr;"                           \
-    "fi;"                                          \
-    "ledc pwr green red 3 1000;"                   \
+#define SECURE_BOOT_COMMAND                      \
+    "ledc all green off 1 300;"                  \
+    "setenv bootargs $bootargs $othbootargs;"    \
+    "setenv bootargs $bootargs $bootbankargs;"   \
+    "if secparm blank; then"                     \
+    "  key unrequire dev;"                       \
+    "  key unrequire tstoem0;"                   \
+    "  key unrequire ipaoem0;"                   \
+    "  bootm $loadaddr;"                         \
+    "fi;"                                        \
+    "if secparm devmode; then"                   \
+    "  if key unrequire ipaoem0; then"           \
+    "    if key unrequire tstoem0; then"         \
+    "      if key require dev conf; then"        \
+    "        if bootm $loadaddr; then"           \
+    "          ledc pwr green red 3 1000;"       \
+    "          reset;"                           \
+    "        fi;"                                \
+    "      fi;"                                  \
+    "    fi;"                                    \
+    "  fi;"                                      \
+    "fi;"                                        \
+    "if secparm testmode; then"                  \
+    "  if key unrequire ipaoem0; then"           \
+    "    if key unrequire dev; then"             \
+    "      if key require tstoem0 conf; then"    \
+    "        if bootm $loadaddr; then"           \
+    "          ledc pwr green red 3 1000;"       \
+    "          reset;"                           \
+    "        fi;"                                \
+    "      fi;"                                  \
+    "    fi;"                                    \
+    "  fi;"                                      \
+    "fi;"                                        \
+    "if secparm prodmode; then"                  \
+    "  if key unrequire tstoem0; then"           \
+    "    if key unrequire dev; then"             \
+    "      if key require ipaoem0 conf; then"    \
+    "        if bootm $loadaddr; then"           \
+    "          ledc pwr green red 3 1000;"       \
+    "          reset;"                           \
+    "        fi;"                                \
+    "      fi;"                                  \
+    "    fi;"                                    \
+    "  fi;"                                      \
+    "fi;"                                        \
+    "ledc pwr green red 3 1000;"                 \
     "reset;"
-
+    
 #define TEST_BOOT_COUNT_EXCEEDED                                     \
     "if bootcount_combined_exceeded; then"                           \
     " run bootfailedhang;"                                           \

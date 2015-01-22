@@ -115,8 +115,6 @@ int unrequire_key(const char * name)
 #if defined(CONFIG_CMD_KEY)
 static int do_key(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-    const char * keyname;
-    u8 action;
     int sig_offset;
 
     if (0 != fdt_check_header(gd_fdt_blob()))

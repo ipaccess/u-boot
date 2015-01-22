@@ -26,7 +26,6 @@ COBJS-y += nand.o
 COBJS-y += ipa73xx_led.o
 COBJS-y += secboot.o
 COBJS-y += key.o
-COBJS-y += fuse.o
 COBJS-y += ipa73xx_bootcount.o
 COBJS-y += ipa73xx_fuse.o
 COBJS-y += ipa73xx_characterise_hw.o
