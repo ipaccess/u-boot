@@ -107,30 +107,28 @@ static int usage(const char * progname, int ret)
 #if defined(_DEBUG) || 1
 static void _dump_key_region_buffer_bits(const char * name, const char * buffer)
 {
-    /*
-     * Yes, this is agricultural.  No, I don't care.
-     */
+    #define BLOCK_MASK  0x03   /* Space every 4 bits */
+    #define LINE_MASK   0x1F   /* Line every 32 bits */
+    #define BUFF_LEN    128
+    
+    int i = 0;
+    
     fprintf(stdout, "%s bit dump\n", name);
-    fprintf(stdout, "%d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d\n"
-            "%d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d\n"
-            "%d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d\n"
-            "%d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d\n",
-            buffer[  0], buffer[  1], buffer[  2], buffer[  3], buffer[  4], buffer[  5], buffer[  6], buffer[  7],
-            buffer[  8], buffer[  9], buffer[ 10], buffer[ 11], buffer[ 12], buffer[ 13], buffer[ 14], buffer[ 15],
-            buffer[ 16], buffer[ 17], buffer[ 18], buffer[ 19], buffer[ 20], buffer[ 21], buffer[ 22], buffer[ 23],
-            buffer[ 24], buffer[ 25], buffer[ 26], buffer[ 27], buffer[ 28], buffer[ 29], buffer[ 30], buffer[ 31],
-            buffer[ 32], buffer[ 33], buffer[ 34], buffer[ 35], buffer[ 36], buffer[ 37], buffer[ 38], buffer[ 39],
-            buffer[ 40], buffer[ 41], buffer[ 42], buffer[ 43], buffer[ 44], buffer[ 45], buffer[ 46], buffer[ 47],
-            buffer[ 48], buffer[ 49], buffer[ 50], buffer[ 51], buffer[ 52], buffer[ 53], buffer[ 54], buffer[ 55],
-            buffer[ 56], buffer[ 57], buffer[ 58], buffer[ 59], buffer[ 60], buffer[ 61], buffer[ 62], buffer[ 63],
-            buffer[ 64], buffer[ 65], buffer[ 66], buffer[ 67], buffer[ 68], buffer[ 69], buffer[ 70], buffer[ 71],
-            buffer[ 72], buffer[ 73], buffer[ 74], buffer[ 75], buffer[ 76], buffer[ 77], buffer[ 78], buffer[ 79],
-            buffer[ 80], buffer[ 81], buffer[ 82], buffer[ 83], buffer[ 84], buffer[ 85], buffer[ 86], buffer[ 87],
-            buffer[ 88], buffer[ 89], buffer[ 90], buffer[ 91], buffer[ 92], buffer[ 93], buffer[ 94], buffer[ 95],
-            buffer[ 96], buffer[ 97], buffer[ 98], buffer[ 99], buffer[100], buffer[101], buffer[102], buffer[103],
-            buffer[104], buffer[105], buffer[106], buffer[107], buffer[108], buffer[109], buffer[110], buffer[111],
-            buffer[112], buffer[113], buffer[114], buffer[115], buffer[116], buffer[117], buffer[118], buffer[119],
-            buffer[120], buffer[121], buffer[122], buffer[123], buffer[124], buffer[125], buffer[126], buffer[127]);
+    
+    while (i < BUFF_LEN)
+    {
+        fprintf(stdout, "%d", buffer[i]);
+        ++i;
+        if ((i & LINE_MASK) == 0)
+        {
+            fprintf(stdout, "\n");
+        }
+        else if ((i & BLOCK_MASK) == 0)
+        {
+            fprintf(stdout, " ");
+        }
+    }
+    fprintf(stdout, "\n");
 }
 #endif
 
