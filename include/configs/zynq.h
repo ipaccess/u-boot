@@ -129,6 +129,7 @@
 /* OF */
 #define CONFIG_FIT
 #define CONFIG_OF_LIBFDT
+#define CONFIG_IMAGE_FORMAT_LEGACY /* enable also legacy image format */
 
 /* Commands */
 #include <config_cmd_default.h>
