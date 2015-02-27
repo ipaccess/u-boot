@@ -1,3 +1,5 @@
+dtb-$(CONFIG_IPA9131) += ipa9131.dtb
+
 targets += $(dtb-y)
 
 DTC_FLAGS += -R 4 -p 0x1000
