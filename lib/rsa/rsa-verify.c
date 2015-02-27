@@ -395,8 +395,12 @@ int rsa_verify(struct image_sign_info *info,
 	if (info->required_keynode != -1) {
 		ret = rsa_verify_with_keynode(info, hash, sig, sig_len,
 			info->required_keynode);
+#ifdef CONFIG_FIT_SIGNATURE_REQUIRED_KEYNODE_ONLY
+		return ret;
+#else
 		if (!ret)
 			return ret;
+#endif
 	}
 
 	/* Look for a key that matches our hint */
