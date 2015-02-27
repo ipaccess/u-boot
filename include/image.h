@@ -714,6 +714,7 @@ int bootz_setup(ulong image, ulong *start, ulong *end);
 #define FIT_KERNEL_PROP		"kernel"
 #define FIT_RAMDISK_PROP	"ramdisk"
 #define FIT_FDT_PROP		"fdt"
+#define FIT_REVOCATION_PROP	"revocation"
 #define FIT_DEFAULT_PROP	"default"
 
 #define FIT_MAX_HASH_LEN	HASH_MAX_DIGEST_SIZE
@@ -767,6 +768,7 @@ static inline const char *fit_get_name(const void *fit_hdr,
 
 int fit_get_desc(const void *fit, int noffset, char **desc);
 int fit_get_timestamp(const void *fit, int noffset, time_t *timestamp);
+int fit_get_revocation(const void *fit, int noffset, uint64_t *revocation);
 
 int fit_image_get_node(const void *fit, const char *image_uname);
 int fit_image_get_os(const void *fit, int noffset, uint8_t *os);
@@ -808,6 +810,7 @@ int fit_add_verification_data(const char *keydir, void *keydest, void *fit,
 
 int fit_image_verify(const void *fit, int noffset);
 int fit_config_verify(const void *fit, int conf_noffset);
+int fit_config_check_revocation(const void *fit, int conf_noffset);
 int fit_all_image_verify(const void *fit);
 int fit_image_check_os(const void *fit, int noffset, uint8_t os);
 int fit_image_check_arch(const void *fit, int noffset, uint8_t arch);

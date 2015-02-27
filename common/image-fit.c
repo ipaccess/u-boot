@@ -485,6 +485,25 @@ int fit_get_timestamp(const void *fit, int noffset, time_t *timestamp)
 	return 0;
 }
 
+int fit_get_revocation(const void *fit, int noffset, uint64_t *revocation)
+{
+	int len;
+	const void *data;
+
+	data = fdt_getprop(fit, noffset, FIT_REVOCATION_PROP, &len);
+	if (data == NULL) {
+		fit_get_debug(fit, noffset, FIT_REVOCATION_PROP, len);
+		return -1;
+	}
+	if (len != sizeof(uint64_t)) {
+		debug("FIT revocation with incorrect size of (%u)\n", len);
+		return -2;
+	}
+
+	*revocation = be64_to_cpu(*((uint64_t *)data));
+	return 0;
+}
+
 /**
  * fit_image_get_node - get node offset for component image of a given unit name
  * @fit: pointer to the FIT format image header
@@ -1568,6 +1587,16 @@ int fit_image_load(bootm_headers_t *images, ulong addr,
 					return -EACCES;
 				}
 				puts("OK\n");
+#if defined(CONFIG_FIT_REVOCATION)
+				puts("   Checking Configuration Revocation ... ");
+				if (0 != fit_config_check_revocation(fit, cfg_noffset)) {
+					puts("Revocation Check Failed\n");
+					bootstage_error(bootstage_id +
+						BOOTSTAGE_SUB_HASH);
+					return -EACCES;
+				}
+				puts("OK\n");
+#endif
 			}
 			bootstage_mark(BOOTSTAGE_ID_FIT_CONFIG);
 		}
