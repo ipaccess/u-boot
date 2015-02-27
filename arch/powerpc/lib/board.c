@@ -10,6 +10,7 @@
 #include <command.h>
 #include <malloc.h>
 #include <stdio_dev.h>
+#include <fdtdec.h>
 #ifdef CONFIG_8xx
 #include <mpc8xx.h>
 #endif
@@ -238,6 +239,23 @@ int init_func_watchdog_reset(void)
 }
 #endif /* CONFIG_WATCHDOG */
 
+#ifdef CONFIG_OF_CONTROL
+static int setup_fdt(void)
+{
+#ifdef CONFIG_OF_EMBED
+	/* Get a pointer to the FDT */
+	gd->fdt_blob = __dtb_dt_begin;
+#elif defined CONFIG_OF_SEPARATE
+	/* FDT is at end of image */
+	gd->fdt_blob = (ulong *)&_end;
+#endif
+	/* Allow the early environment to override the fdt address */
+	gd->fdt_blob = (void *)getenv_ulong("fdtcontroladdr", 16,
+						(uintptr_t)gd->fdt_blob);
+	return 0;
+}
+#endif
+
 /*
  * Initialization sequence
  */
@@ -305,6 +323,10 @@ static init_fnc_t *init_sequence[] = {
 #endif
 	INIT_FUNC_WATCHDOG_RESET
 	init_func_ram,
+#ifdef CONFIG_OF_CONTROL
+	setup_fdt,
+	fdtdec_check_fdt,
+#endif
 #if defined(CONFIG_SYS_DRAM_TEST)
 	testdram,
 #endif /* CONFIG_SYS_DRAM_TEST */
