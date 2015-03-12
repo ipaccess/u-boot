@@ -828,8 +828,11 @@ int ft_verify_fdt(void *fdt)
 		return 0;
 	}
 
-	if (addr != CONFIG_SYS_CCSRBAR_PHYS) {
-		msg("CCSR", CONFIG_SYS_CCSRBAR_PHYS, addr);
+	if ((addr != CONFIG_SYS_FSL_DSP_CCSRBAR_DEFAULT) &&
+	    (addr != CONFIG_SYS_CCSRBAR_PHYS)) {
+		printf("U-Boot soc CSSR at address %llx but should have been \n"
+		       "either %llx or %llx, boot terminated!\n", addr,
+		       CONFIG_SYS_FSL_DSP_CCSRBAR_DEFAULT, CONFIG_SYS_CCSRBAR_PHYS);
 		/* No point in checking anything else */
 		return 0;
 	}
