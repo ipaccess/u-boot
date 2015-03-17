@@ -17,6 +17,10 @@
 #include <tsec.h>
 #include <netdev.h>
 
+#if defined(CONFIG_CHARACTERISATION_IPA9131)
+#include "characterisation.h"
+#endif
+
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -41,13 +45,31 @@ int board_early_init_f(void)
 
 int checkboard(void)
 {
+#if !defined(CONFIG_MISC_INIT_R) || !defined(CONFIG_CHARACTERISATION_IPA9131)
 	struct cpu_type *cpu;
 
 	cpu = gd->arch.cpu;
 	printf("Board: %sRDB\n", cpu->name);
-
+#endif
 	return 0;
 }
+
+#if defined(CONFIG_MISC_INIT_R)
+int misc_init_r(void)
+{
+#if defined(CONFIG_CHARACTERISATION_IPA9131)
+	int ret;
+
+	ret = characterisation_init();
+
+	if (ret != 1)
+		return 1;
+
+	(void)print_characterisation();
+#endif
+	return 0;
+}
+#endif
 
 #if defined(CONFIG_OF_BOARD_SETUP)
 void ft_board_setup(void *blob, bd_t *bd)
