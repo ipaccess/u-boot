@@ -34,6 +34,11 @@
 
 
 /*
+ * Add a nand write command to trim 0xff pages (required for UBI)
+ */
+#define CONFIG_CMD_NAND_TRIMFFS
+
+/*
  * Needed for UBI and command-line partitioning
  */
 #define CONFIG_MTD_DEVICE
