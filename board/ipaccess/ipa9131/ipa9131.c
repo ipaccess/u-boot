@@ -16,6 +16,8 @@
 #include <fsl_mdio.h>
 #include <tsec.h>
 #include <netdev.h>
+#include <mtd_node.h>
+#include <jffs2/load_kernel.h> /* sadly needed for the MTD FDT update */
 
 #if defined(CONFIG_CHARACTERISATION_IPA9131)
 #include "characterisation.h"
@@ -77,6 +79,11 @@ void ft_board_setup(void *blob, bd_t *bd)
 	phys_addr_t base;
 	phys_size_t size;
 
+	struct node_info nodes[] = {
+		{ "fsl,espi-flash",	MTD_DEV_TYPE_NOR },  /* SPI-NOR flash */
+		{ "fsl,ifc-nand",	MTD_DEV_TYPE_NAND }, /* NAND flash */
+	};
+
 	ft_cpu_setup(blob, bd);
 
 	base = getenv_bootm_low();
@@ -85,5 +92,8 @@ void ft_board_setup(void *blob, bd_t *bd)
 	fdt_fixup_memory(blob, (u64)base, (u64)size);
 
 	fdt_fixup_dr_usb(blob, bd);
+
+	puts("Updating MTD partitions...\n");
+	fdt_fixup_mtdparts(blob, nodes, ARRAY_SIZE(nodes));
 }
 #endif
