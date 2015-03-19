@@ -572,6 +572,7 @@ static int init_phy(struct eth_device *dev)
 {
 	struct tsec_private *priv = (struct tsec_private *)dev->priv;
 	struct phy_device *phydev;
+	char phyenv_name[50];
 	struct tsec __iomem *regs = priv->regs;
 	u32 supported = (SUPPORTED_10baseT_Half |
 			SUPPORTED_10baseT_Full |
@@ -590,6 +591,21 @@ static int init_phy(struct eth_device *dev)
 		tsec_configure_serdes(priv);
 
 	phydev = phy_connect(priv->bus, priv->phyaddr, dev, priv->interface);
+
+	if (!phydev) {
+		if (priv->phyaddr == 1)
+			priv->phyaddr = 3;
+		else if (priv->phyaddr == 3)
+			priv->phyaddr = 1;
+
+		phydev = phy_connect(priv->bus, priv->phyaddr, dev, priv->interface);
+
+		if (!phydev)
+			return 0;
+	}
+
+	sprintf(phyenv_name, "ipa_phyaddr_%s", dev->name);
+	setenv_hex(phyenv_name, priv->phyaddr);
 
 	phydev->supported &= supported;
 	phydev->advertising = phydev->supported;

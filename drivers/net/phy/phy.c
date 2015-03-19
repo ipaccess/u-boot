@@ -751,10 +751,11 @@ struct phy_device *phy_find_by_mask(struct mii_dev *bus, unsigned phy_mask,
 	return get_phy_device_by_mask(bus, phy_mask, interface);
 }
 
-void phy_connect_dev(struct phy_device *phydev, struct eth_device *dev)
+int phy_connect_dev(struct phy_device *phydev, struct eth_device *dev)
 {
 	/* Soft Reset the PHY */
-	phy_reset(phydev);
+	if (0 != phy_reset(phydev))
+		return -1;
 	if (phydev->dev) {
 		printf("%s:%d is connected to %s.  Reconnecting to %s\n",
 				phydev->bus->name, phydev->addr,
@@ -762,6 +763,7 @@ void phy_connect_dev(struct phy_device *phydev, struct eth_device *dev)
 	}
 	phydev->dev = dev;
 	debug("%s connected to %s\n", dev->name, phydev->drv->name);
+	return 0;
 }
 
 struct phy_device *phy_connect(struct mii_dev *bus, int addr,
@@ -770,10 +772,12 @@ struct phy_device *phy_connect(struct mii_dev *bus, int addr,
 	struct phy_device *phydev;
 
 	phydev = phy_find_by_mask(bus, 1 << addr, interface);
-	if (phydev)
-		phy_connect_dev(phydev, dev);
-	else
+	if (phydev) {
+		if (0 != phy_connect_dev(phydev, dev))
+			return NULL;
+	} else {
 		printf("Could not get PHY for %s: addr %d\n", bus->name, addr);
+	}
 	return phydev;
 }
 
