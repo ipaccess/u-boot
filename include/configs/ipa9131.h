@@ -104,6 +104,8 @@
  * IPA Commands
  */
 #define CONFIG_CMD_KEY
+#define CONFIG_CMD_SECPARM
+#define CONFIG_CMD_LIE
 
 
 

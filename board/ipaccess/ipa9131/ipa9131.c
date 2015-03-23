@@ -23,6 +23,8 @@
 #include "characterisation.h"
 #endif
 
+#include "secboot.h"
+
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -69,6 +71,8 @@ int misc_init_r(void)
 
 	(void)print_characterisation();
 #endif
+
+	load_security_requirements();
 	return 0;
 }
 #endif
