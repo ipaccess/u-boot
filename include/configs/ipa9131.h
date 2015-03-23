@@ -99,6 +99,15 @@
 
 
 
+
+/*
+ * IPA Commands
+ */
+#define CONFIG_CMD_KEY
+
+
+
+
 /*
  * Automatic Boot Scripts and Environment (temporary for now)
  */
