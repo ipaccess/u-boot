@@ -26,5 +26,6 @@ obj-$(CONFIG_CHARACTERISATION_IPA9131) += characterisation.o damm.o
 #obj-y		+= bsc9131rdb_mux.o
 obj-y        += key.o
 obj-y        += secboot.o
+obj-y        += led.o
 
 endif

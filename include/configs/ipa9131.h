@@ -106,6 +106,8 @@
 #define CONFIG_CMD_KEY
 #define CONFIG_CMD_SECPARM
 #define CONFIG_CMD_LIE
+#define CONFIG_CMD_LEDSET
+#define CONFIG_CMD_LEDC
 
 
 
