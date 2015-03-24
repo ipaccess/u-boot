@@ -2982,6 +2982,37 @@ static const struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	 */
 	if (*maf_id != NAND_MFR_SAMSUNG && !type->pagesize)
 		chip->options &= ~NAND_SAMSUNG_LP_OPTIONS;
+
+	/* Disable sub-page writes for 128MiB NAND parts on the
+	 * ip.access E-40.  This is rather hacky and definitely
+	 * the wrong way to do this, but subtle hardware changes
+	 * in minor revisions of a board are plain evil and
+	 * require capital punishment to be reinstated.
+	 *
+	 * Since we're trying to limit brain-deadness of our
+	 * previous hacky code, this code only acts on 0xF1
+	 * device IDs, which means 128MiB 3,3V 8-bit.  This
+	 * matches both our (older) Samsung part and (newer)
+	 * Micron part, and works around the case where the
+	 * Micron part has the (previously) hacked Samsung-specific
+	 * large-page options automatically cleared.
+	 *
+	 * Finally: why is this mecessary at all?  At some stage
+	 * in the past, somebody turned off sub-page writes on
+	 * the then-Samsung NAND part by tweaking the options
+	 * used for (all) Samsung large page devices.  Why
+	 * they did this is a mystery.  When we changed from
+	 * Samsung to Micron parts (same device ID, minor
+	 * board revision) we suddenly have a situation where
+	 * prepared UBI images (which are aware of sub-pages)
+	 * stop working.  The workaround is to just avoid
+	 * sub-page writes for these device IDs.
+	 *
+	 * Note that a corresponding change has been made
+	 * to the Linux kernel for the same reasons.
+	 */
+	if (dev_id == 0xf1)
+		chip->options |= NAND_NO_SUBPAGE_WRITE;
 ident_done:
 
 	/* Try to identify manufacturer */
