@@ -123,6 +123,16 @@
 #undef CONFIG_EXTRA_ENV_SETTINGS
 #undef CONFIG_RAMBOOTCOMMAND
 #undef CONFIG_BOOTCOMMAND
+#undef CONFIG_ENV_IS_IN_NAND
+#undef CONFIG_SYS_EXTRA_ENV_RELOC
+#undef CONFIG_ENV_SIZE
+#undef CONFIG_ENV_OFFSET
+#undef CONFIG_ENV_RANGE
+
+#define CONFIG_ENV_IS_NOWHERE
+#define CONFIG_ENV_ADDR	(CONFIG_SYS_MONITOR_BASE - 0x1000)
+#define CONFIG_ENV_SIZE	0x2000 /* 8k for the environment - should be enough */
+
 
 #define IPA_BASE_BOOTARGS							\
 	"rdinit=/init " 							\
