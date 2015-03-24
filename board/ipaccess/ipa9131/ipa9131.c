@@ -37,7 +37,8 @@ int board_early_init_f(void)
 
 	clrbits_be32(&gur->pmuxcr2, MPC85xx_PMUXCR2_UART_RTS_B0_GPIO43);
 	setbits_be32(&gur->pmuxcr2, MPC85xx_PMUXCR2_UART_RTS_B0_DSP_TCK |
-			MPC85xx_PMUXCR2_UART_CTS_B1_SIM_PD);
+			MPC85xx_PMUXCR2_UART_CTS_B1_SIM_PD |
+			MPC85xx_PMUXCR2_ANT1_DIO4_7_GPIO85_88);
 	setbits_be32(&gur->halt_req_mask, HALTED_TO_HALT_REQ_MASK_0);
 	clrsetbits_be32(&gur->pmuxcr, MPC85xx_PMUXCR_IFC_AD_GPIO_MASK |
 			MPC85xx_PMUXCR_IFC_AD17_GPO_MASK,
