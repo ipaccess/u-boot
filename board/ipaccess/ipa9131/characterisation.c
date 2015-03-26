@@ -222,9 +222,34 @@ int characterisation_init(void)
 
 void print_characterisation(void)
 {
+    unsigned char pcbai0;
+    unsigned char pcbai1;
+
     if (memcmp(cdo.eth0addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth0addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
     {
-        printf("Board: %s%s-%c%c\n", lookup_variant(cdo.variant)->full, lookup_oscillator(cdo.osc), (cdo.pcbai & 0xFF00) >> 8, cdo.pcbai & 0xFF);
+        pcbai0 = (cdo.pcbai & 0xFF00) >> 8;
+        pcbai1 = cdo.pcbai & 0xFF;
+
+        printf("Board: %s%s", lookup_variant(cdo.variant)->full, lookup_oscillator(cdo.osc));
+
+        if (pcbai0 >= 0x41 && pcbai0 <= 0x7a)
+        {
+            printf("-%c", pcbai0);
+        }
+
+        if (pcbai1 >= 0x41 && pcbai1 <= 0x7a)
+        {
+            if (pcbai0 >= 0x41 && pcbai0 <= 0x7a)
+            {
+                printf("%c", pcbai1);
+            }
+            else
+            {
+                printf("-%c", pcbai1);
+            }
+        }
+
+        printf("%s", "\n");
         printf("EID:   %02X%02X%02X-%010u\n", cdo.oui[0], cdo.oui[1], cdo.oui[2], cdo.serial);
         printf("eMAC0: %02X:%02X:%02X:%02X:%02X:%02X\n", cdo.eth0addr[0], cdo.eth0addr[1], cdo.eth0addr[2], cdo.eth0addr[3], cdo.eth0addr[4], cdo.eth0addr[5]);
         printf("eMAC1: %02X:%02X:%02X:%02X:%02X:%02X\n", cdo.eth1addr[0], cdo.eth1addr[1], cdo.eth1addr[2], cdo.eth1addr[3], cdo.eth1addr[4], cdo.eth1addr[5]);
