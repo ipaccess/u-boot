@@ -108,6 +108,8 @@
 #define CONFIG_CMD_LIE
 #define CONFIG_CMD_LEDSET
 #define CONFIG_CMD_LEDC
+/* temporary - for easy fuse development */
+#define CONFIG_CMD_IPA9131_FUSE
 
 
 

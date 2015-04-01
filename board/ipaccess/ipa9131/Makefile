@@ -27,5 +27,6 @@ obj-$(CONFIG_CHARACTERISATION_IPA9131) += characterisation.o damm.o
 obj-y        += key.o
 obj-y        += secboot.o
 obj-y        += led.o
+obj-y        += ipa9131_fuse.o
 
 endif
