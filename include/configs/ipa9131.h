@@ -133,6 +133,8 @@
 #define CONFIG_ENV_ADDR	(CONFIG_SYS_MONITOR_BASE - 0x1000)
 #define CONFIG_ENV_SIZE	0x2000 /* 8k for the environment - should be enough */
 
+/* this board uses eth1 only - eth0 faces into the plastics */
+#define CONFIG_ETHPRIME "eTSEC2"
 
 #define IPA_BASE_BOOTARGS							\
 	"rdinit=/init " 							\
@@ -310,7 +312,8 @@
     "reset"
 
 #define CONFIG_EXTRA_ENV_SETTINGS						\
-	"netdev=eth0\0"								\
+	"netdev=eth1\0"								\
+	"ethrotate=no\0"							\
 	"loadaddr=1000000\0"							\
 	"consoledev=ttyS0\0"							\
 	"select_bootargs=" SET_BOOTARGS "\0"					\
