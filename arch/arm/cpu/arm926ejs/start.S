@@ -20,6 +20,9 @@
 #include <common.h>
 #include <version.h>
 
+
+//#define MINIMAL_EXCEPTION_HANDLERS
+
 /*
  *************************************************************************
  *
@@ -28,6 +31,8 @@
  *************************************************************************
  */
 
+.equ UART_LSR_THRE, 0x20
+.equ VECTOR_BASE_DST, 0x0
 
 #ifdef CONFIG_SYS_DV_NOR_BOOT_CFG
 .globl _start
@@ -84,6 +89,8 @@ _irq:
 	.word irq
 _fiq:
 	.word fiq
+.global vectors_end
+vectors_end:
 
 #endif	/* CONFIG_SPL_BUILD */
 	.balignl 16,0xdeadbeef
@@ -141,15 +148,47 @@ FIQ_STACK_START:
 #endif
 
 /* IRQ stack memory (calculated at run-time) + 8 bytes */
+/* Use internal SRAM for now. */
 .globl IRQ_STACK_START_IN
 IRQ_STACK_START_IN:
-	.word	0x0badc0de
+	.word	0x20010000  /*TODO Middle of SRAM : is this a good place, will this play nicely with TZ? */
+
+.macro print_char char_arg
+    ldr r0, =PICOXCELL_UART1_BASE
+uart_wait\@:
+    ldr r2, [r0, #20] /* Test LSR_THRE */
+    tst r2, #UART_LSR_THRE
+    beq uart_wait\@
+    ldr r1, =\char_arg
+    str r1, [r0]
+.endm
 
 /*
  * the actual reset code
  */
 
 reset:
+    /* Clear the BSS */
+    /* C functions can get called (verbose exception handlers) before the BSS*/
+    /* is cleared, so do it here as well.*/
+    ldr r0, =__bss_start
+    ldr r1, =__bss_end
+    mov r2, #0
+clbss_loop:
+    str r2, [r0], #4
+    cmp r0, r1
+    bne clbss_loop
+
+    /* Relocate CPU exception vectors */
+    ldr r0, =_start
+    ldr r1, =vectors_end
+    mov r2, #VECTOR_BASE_DST
+v_copy_loop:
+    ldr r3, [r0], #4
+    str r3, [r2], #4
+    cmp r0, r1
+    bne v_copy_loop
+
 	/*
 	 * set the cpu to SVC32 mode
 	 */
@@ -307,6 +346,7 @@ cpu_init_crit:
 	mov	r13, #MODE_SVC	@ prepare SVC-Mode
 	@ msr	spsr_c, r13
 	msr	spsr, r13	@ switch modes, make sure moves will execute
+    ldr	r13, IRQ_STACK_START_IN		@ setup our mode stack, the SP is banked
 	mov	lr, pc		@ capture return pc
 	movs	pc, lr		@ jump to next instruction & switch modes.
 	.endm
@@ -332,30 +372,54 @@ do_hang:
 #else	/* !CONFIG_SPL_BUILD */
 	.align  5
 undefined_instruction:
+#ifdef MINIMAL_EXCEPTION_HANDLERS
+    print_char 'u'
+    mov r12, lr
+    bl print_r12
+    b .
+#endif
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_undefined_instruction
 
 	.align	5
 software_interrupt:
+#ifdef MINIMAL_EXCEPTION_HANDLERS
+    print_char 's'
+    b .
+#endif
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_software_interrupt
 
 	.align	5
 prefetch_abort:
+#ifdef MINIMAL_EXCEPTION_HANDLERS
+    print_char 'p'
+    b .
+#endif
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_prefetch_abort
 
 	.align	5
 data_abort:
+#ifdef MINIMAL_EXCEPTION_HANDLERS
+    print_char 'd'
+    mov r12, lr
+    bl print_r12
+    b .
+#endif
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_data_abort
 
 	.align	5
 not_used:
+#ifdef MINIMAL_EXCEPTION_HANDLERS
+    print_char 'n'
+    b .
+#endif
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_not_used
@@ -364,6 +428,10 @@ not_used:
 
 	.align	5
 irq:
+#ifdef MINIMAL_EXCEPTION_HANDLERS
+    print_char 'i'
+    b .
+#endif
 	get_irq_stack
 	irq_save_user_regs
 	bl	do_irq
@@ -371,6 +439,10 @@ irq:
 
 	.align	5
 fiq:
+#ifdef MINIMAL_EXCEPTION_HANDLERS
+    print_char 'f'
+    b .
+#endif
 	get_fiq_stack
 	/* someone ought to write a more effiction fiq_save_user_regs */
 	irq_save_user_regs
@@ -381,15 +453,47 @@ fiq:
 
 	.align	5
 irq:
+#ifdef MINIMAL_EXCEPTION_HANDLERS
+    print_char 'i'
+    b .
+#endif
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_irq
 
 	.align	5
 fiq:
+#ifdef MINIMAL_EXCEPTION_HANDLERS
+    print_char 'f'
+    b .
+#endif
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_fiq
 
 #endif
 #endif	/* CONFIG_SPL_BUILD */
+
+print_r12:
+    /* Print ascii for value in register r12                */
+    /* Modified registers: r0,r1,r2,r3                      */
+    ldr r0, =PICOXCELL_UART1_BASE
+    ldr r1, =0xf0000000         /* mask                     */
+    ldr r2, =28                 /* shift                    */
+char_loop:
+    and r3, r12, r1             /* mask the value           */
+    lsr r3, r3, r2              /* r3 = r3 >> r2            */
+    cmp r3, #0xa
+    addlt r3, r3, #48           /* if(r3 < 10) r3 = r3 + '0'*/
+    addge r3, r3, #55           /* if(r3 >= 10)r3 = r3 + 'A'*/
+    str r3, [r0]                /* output char              */
+    lsr r1, r1, #4              /* r1 = r1 >> 4             */
+    sub r2, r2, #4              /* r2 = r2 - 4              */
+uart_wait_r12:
+    ldr r3, [r0, #20]           /* reuse r3 for delay       */
+    tst r3, #UART_LSR_THRE      /* wait for UART LSR_THRE   */
+    beq uart_wait_r12
+    cmp r1, #0
+    bne char_loop
+    mov pc, lr
+

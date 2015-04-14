@@ -47,5 +47,9 @@ static void cache_flush (void)
 {
 	unsigned long i = 0;
 
-	asm ("mcr p15, 0, %0, c7, c7, 0": :"r" (i));
+    // For more info on cache flushing see ARM doc "3.2.22. c7, Cache operations":
+    // http://infocenter.arm.com/help/topic/com.arm.doc.ddi0333h/Babhejba.html
+    asm ("mcr	p15, 0, r0, c7, c14, 0": :"r"(i));  // clean+invalidate D cache
+    asm ("mcr	p15, 0, r0, c7, c5, 0": :"r"(i));   // invalidate I cache
+    asm ("mcr	p15, 0, r0, c7, c5, 6": :"r"(i));   // Flush Entire Branch Target Cache
 }
