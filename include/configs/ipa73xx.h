@@ -20,6 +20,7 @@
 
 #include <asm/arch/picoxcell.h>
 #include <asm/sizes.h>
+#include <asm/arch-picoxcell/uart.h>
 /* #define DEBUG */
 
 /*
@@ -282,6 +283,8 @@
 /*-----------------------------------------------------------------------------
  * U-Boot Memory Test (mtest command) Stuff
  */
+#define CONFIG_CMD_MEMTEST
+
 /* Default start address for memory test */
 #define CONFIG_SYS_MEMTEST_START    (PICOXCELL_ONCHIP_SRAM_BASE)
 
@@ -290,7 +293,7 @@
                                  PICOXCELL_ONCHIP_SRAM_SIZE - 1)
 
 /* Define this to use the super duper memory test */
-#undef CONFIG_SYS_ALT_MEMTEST
+#define CONFIG_SYS_ALT_MEMTEST
 
 /* Use Uart #1 scratch pad reg */
 #define CONFIG_SYS_MEMTEST_SCRATCH  (PICOXCELL_UART1_BASE + \
