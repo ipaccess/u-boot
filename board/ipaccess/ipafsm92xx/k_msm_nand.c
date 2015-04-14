@@ -31,6 +31,8 @@
 #include "k_nand.h"
 #include "linux/mtd/mtd.h"
 
+
+
 unsigned long msm_nand_phys;
 unsigned long msm_nandc01_phys;
 unsigned long msm_nandc10_phys;
@@ -1288,7 +1290,7 @@ static int
 msm_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	      size_t *retlen, u_char *buf)
 {
-	int ret;
+	int ret, final_ret;
 	struct mtd_oob_ops ops;
 	int (*read_oob)(struct mtd_info *, loff_t, struct mtd_oob_ops *);
 
@@ -1300,6 +1302,7 @@ msm_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	ops.ooblen = 0;
 	ops.oobbuf = NULL;
 	ret = 0;
+    final_ret = 0;
 	*retlen = 0;
 
 	if ((from & (mtd->writesize - 1)) == 0 && len == mtd->writesize) {
@@ -1309,6 +1312,7 @@ msm_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 		ops.datbuf = buf;
 		ret = read_oob(mtd, from, &ops);
 		*retlen = ops.retlen;
+        final_ret = ret;
 	} else if (len > 0) {
 		/* reading any size on any offset. partial page is supported */
         //printf("%s not on boundary\n",__func__);
@@ -1338,8 +1342,30 @@ msm_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 			no_copy = (offset == 0 && actual_len == mtd->writesize);
 			ops.datbuf = (no_copy) ? buf : bounce_buf;
 			ret = read_oob(mtd, aligned_from, &ops);
-			if (ret < 0)
-				break;
+            // -EINVAL - invalid argument, return early
+            // -EIO - I/O error, failed to get dma addr, protection violation
+            // -EBADMSG - uncorrectable errors
+            // -EUCLEAN - correctable errors
+            // 0 - success
+
+            //Don't exit early unless we really have to.
+            if (ret < 0)
+            {
+                // Fatal errors, don't continue with this read request
+                if ((ret == -EINVAL) || (ret == -EIO))
+                    break;
+
+                if (ret == -EBADMSG)
+                {
+                    final_ret = -EBADMSG;
+                }
+                else if(ret == -EUCLEAN)
+                {
+                    // EBADMSG trumps EUCLEAN
+                    if (final_ret != -EBADMSG)
+                        final_ret = -EUCLEAN;
+                }
+            }
 
 			if (!no_copy)
 				memcpy(buf, bounce_buf + offset, actual_len);
@@ -1358,7 +1384,7 @@ msm_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	}
 
 out:
-	return ret;
+	return final_ret;
 }
 
 static int
