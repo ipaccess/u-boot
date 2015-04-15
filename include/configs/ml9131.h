@@ -49,4 +49,12 @@
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
 #define CONFIG_BOOTDELAY 2
 
+#define CONFIG_CMD_FIMAGE
+
+/*TODO remove the following config options, they are only here for debugging during development.*/
+#if 1
+#define CONFIG_MD5
+#define CONFIG_CMD_MD5SUM
+#endif
+
 #endif

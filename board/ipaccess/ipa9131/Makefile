@@ -28,5 +28,7 @@ obj-$(CONFIG_CMD_KEY)        += key.o
 obj-y        += secboot.o
 obj-y        += led.o
 obj-y        += ipa9131_fuse.o
+#TODO for now only compile this command in binaries that include usefull debug functions like printf
+obj-$(CONFIG_CMD_FIMAGE) += fimage.o
 
 endif
