@@ -72,7 +72,9 @@ int misc_init_r(void)
 	if (ret != 1)
 		return 1;
 
+#if !defined(CONFIG_ML9131)
 	(void)print_characterisation();
+#endif
 #endif
 
 	load_security_requirements();

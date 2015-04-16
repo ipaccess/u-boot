@@ -36,6 +36,13 @@
 #define CONFIG_ENV_ADDR        (CONFIG_SYS_MONITOR_BASE - 0x1000)
 #define CONFIG_ENV_SIZE        0x2000 /* 8k for the environment - should be enough */
 
+#define CONFIG_CHARACTERISATION_IPA9131
+#define CONFIG_CHARACTERISATION_EEPROM_ADDR SPD_EEPROM_ADDRESS
+#define CONFIG_CHARACTERISATION_IPA9131_OFFSET 0
+#define CONFIG_CHARACTERISATION_IPA9131_SIZE 31
+#define CONFIG_CHARACTERISATION_IPA9131_VERSION 0x0
+#define CONFIG_MISC_INIT_R
+
 #define CONFIG_ETHPRIME "eTSEC2"
 
 #define CONFIG_EXTRA_ENV_SETTINGS                                              \
@@ -48,11 +55,5 @@
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
 #define CONFIG_BOOTDELAY 2
-
-/*TODO remove the following config options, they are only here for debugging during development.*/
-#if 1
-#define CONFIG_MD5
-#define CONFIG_CMD_MD5SUM
-#endif
 
 #endif
