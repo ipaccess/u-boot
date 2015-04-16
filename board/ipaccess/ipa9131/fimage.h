@@ -13,6 +13,9 @@
 
 #define FIMAGE_HEADER_TYPE_APPS9131 0xe8a45c93
 
+
+
+
 struct fimage_header_s
 {
     unsigned int type;               /* Image type */
@@ -38,6 +41,6 @@ struct fimage_header_s
 };
 typedef struct fimage_header_s fimage_header_t;
 
-#define FIMAGE_HEADER_SIZE (sizeof(struct fimage_header_s))
+extern int fimage_init(unsigned int start_block, unsigned int num_blocks, unsigned int image_type, unsigned int max_size, unsigned int entrypoint, fimage_header_t * table, unsigned int * num_entries, unsigned int max_entries);
 
-#endif //FIMAGE_H_20150408
+#endif
