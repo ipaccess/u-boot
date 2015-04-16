@@ -28,6 +28,9 @@
 #undef CONFIG_BOOTCOMMAND
 #undef CONFIG_ETHPRIME
 
+#define CONFIG_TFM
+#define CONFIG_SHA1
+#define CONFIG_SHA256
 #define CONFIG_DISABLE_IMAGE_LEGACY
 #define CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_ADDR        (CONFIG_SYS_MONITOR_BASE - 0x1000)
@@ -40,12 +43,16 @@
 	"ethrotate=no\0"
 
 #define STANDARD_BOOT_COMMAND							\
-	"if nand read 200000 0x200000 0x100000; then "				\
-	 "go 200000; "								\
-	"fi; "									\
+	"ml9131; "								\
 	"reset"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
 #define CONFIG_BOOTDELAY 2
+
+/*TODO remove the following config options, they are only here for debugging during development.*/
+#if 1
+#define CONFIG_MD5
+#define CONFIG_CMD_MD5SUM
+#endif
 
 #endif
