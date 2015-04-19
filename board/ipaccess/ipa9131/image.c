@@ -118,26 +118,26 @@ int load_image(unsigned int start_block, unsigned int num_blocks, unsigned int i
 
     for (i = 0; i < fimage_table.entries; ++i)
     {
-        fimage_table.images[i].reserved_3 = 0;
+        fimage_table.images[i].reserved = 0;
 
         if (0 != flash_read_bytes((unsigned char *)image_load_address,
                                   fimage_table.images[i].source - sizeof(fimage_header_t),
                                   fimage_table.images[i].image_size + sizeof(fimage_header_t)))
         {
-            fimage_table.images[i].reserved_3 = IMAGE_LOAD_ERROR;
+            fimage_table.images[i].reserved = IMAGE_LOAD_ERROR;
             continue;
         }
 
         if (0 != verify_image(&fimage_table.images[i]))
         {
-            fimage_table.images[i].reserved_3 = IMAGE_VERIFY_ERROR;
+            fimage_table.images[i].reserved = IMAGE_VERIFY_ERROR;
             puts("Image failed verification\n");
             continue;
         }
 
         if (fimage_table.images[i].revocation > revocation_count)
         {
-            fimage_table.images[i].reserved_3 = IMAGE_REVOKED_ERROR;
+            fimage_table.images[i].reserved = IMAGE_REVOKED_ERROR;
             puts("Image is revoked\n");
             continue;
         }
@@ -159,7 +159,7 @@ int load_image(unsigned int start_block, unsigned int num_blocks, unsigned int i
 
     for (i = 0; i < fimage_table.entries; ++i)
     {
-        if (0 != fimage_table.images[i].reserved_3)
+        if (0 != fimage_table.images[i].reserved)
         {
             continue;
         }
