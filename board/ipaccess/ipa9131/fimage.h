@@ -30,11 +30,11 @@ struct fimage_header_s
     unsigned int cert_chain_size;    /* Size of certificate chain */
     unsigned int ub_cookie_magic;    /* IBN cookie (identification ) */
     unsigned int ub_cookie_version;  /* IBN cookie version (identification ) */
-    unsigned int reserved_0;         /* Unused */
-    unsigned int reserved_1;         /* Unused */
+    unsigned int code_crc;           /* A crc32 over the code area of the IBN (for booting unsigned images) */
+    unsigned int unused;             /* Unused (for now) */
     unsigned int swversion;          /* IBN payload version (i.e. version of the wrapped software) */
     unsigned int revocation;         /* IBN revocation count */
-    unsigned int reserved_3;         /* Unused */
+    unsigned int reserved;           /* Reserved for runtime status tracking */
     unsigned int magic1;             /* IBN identification */
     unsigned int magic2;             /* IBN identification */
     unsigned int magic3;             /* IBN identification */

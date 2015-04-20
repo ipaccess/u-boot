@@ -8,6 +8,7 @@
 #include "fimage.h"
 #include "security.h"
 #include "verify_image.h"
+#include "crc_image.h"
 
 
 #define FIMAGE_MAX_REPLICA_COUNT 4
@@ -15,6 +16,7 @@
 #define IMAGE_LOAD_ERROR 42
 #define IMAGE_VERIFY_ERROR 43
 #define IMAGE_REVOKED_ERROR 44
+#define IMAGE_CRC_ERROR 45
 
 struct fimage_table_s
 {
@@ -91,8 +93,14 @@ int load_image(unsigned int start_block, unsigned int num_blocks, unsigned int i
     unsigned int image_load_address;
     unsigned int revocation_count;
     unsigned int i;
+    unsigned int oper_mode;
     fimage_header_t * most_suitable;
     fimage_header_t * fallback;
+
+    if (0 != read_operating_mode(&oper_mode))
+    {
+        return -1;
+    }
 
     read_board_revocation_count(&revocation_count);
 
@@ -118,28 +126,50 @@ int load_image(unsigned int start_block, unsigned int num_blocks, unsigned int i
 
     for (i = 0; i < fimage_table.entries; ++i)
     {
-        fimage_table.images[i].reserved_3 = 0;
+        fimage_table.images[i].reserved = 0;
 
         if (0 != flash_read_bytes((unsigned char *)image_load_address,
                                   fimage_table.images[i].source - sizeof(fimage_header_t),
                                   fimage_table.images[i].image_size + sizeof(fimage_header_t)))
         {
-            fimage_table.images[i].reserved_3 = IMAGE_LOAD_ERROR;
+            fimage_table.images[i].reserved = IMAGE_LOAD_ERROR;
             continue;
         }
 
         if (0 != verify_image(&fimage_table.images[i]))
         {
-            fimage_table.images[i].reserved_3 = IMAGE_VERIFY_ERROR;
-            puts("Image failed verification\n");
-            continue;
+            if (oper_mode == SPECIALS_MODE || oper_mode == DEVELOPMENT_MODE)
+            {
+                if (0 != crc_image(&fimage_table.images[i]))
+                {
+                    fimage_table.images[i].reserved = IMAGE_CRC_ERROR;
+                    puts("Image failed CRC check\n");
+                    continue;
+                }
+
+                puts("Suppressing image verification failure as we are in either specials or development mode\n");
+            }
+            else
+            {
+                puts("Image failed verification\n");
+                fimage_table.images[i].reserved = IMAGE_VERIFY_ERROR;
+                continue;
+            }
         }
 
-        if (fimage_table.images[i].revocation > revocation_count)
+        if (oper_mode != SPECIALS_MODE && fimage_table.images[i].revocation > revocation_count)
         {
-            fimage_table.images[i].reserved_3 = IMAGE_REVOKED_ERROR;
-            puts("Image is revoked\n");
-            continue;
+            fimage_table.images[i].reserved = IMAGE_REVOKED_ERROR;
+
+            if (oper_mode == DEVELOPMENT_MODE)
+            {
+                puts("Suppressing image revoked error as we are in development mode\n");
+            }
+            else
+            {
+                puts("Image is revoked\n");
+                continue;
+            }
         }
     }
 
@@ -159,7 +189,7 @@ int load_image(unsigned int start_block, unsigned int num_blocks, unsigned int i
 
     for (i = 0; i < fimage_table.entries; ++i)
     {
-        if (0 != fimage_table.images[i].reserved_3)
+        if (0 != fimage_table.images[i].reserved)
         {
             continue;
         }
