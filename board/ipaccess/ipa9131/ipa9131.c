@@ -47,12 +47,12 @@ int board_early_init_f(void)
 			MPC85xx_PMUXCR_IFC_AD17_GPO_MASK,
 			MPC85xx_PMUXCR_IFC_AD_GPIO |
 			MPC85xx_PMUXCR_IFC_AD17_GPO | MPC85xx_PMUXCR_SDHC_USIM);
-    
+
 	return 0;
 }
 
 /*****************************************************************************
- * 
+ *
  * board_init()
  *
  * Purpose: Hardware platform initialisation functions
@@ -63,7 +63,7 @@ int board_early_init_f(void)
  *****************************************************************************/
 int checkboard(void)
 {
-    #if !defined(CONFIG_MISC_INIT_R) || !defined(CONFIG_CHARACTERISATION_IPA9131)
+#if !defined(CONFIG_MISC_INIT_R) || !defined(CONFIG_CHARACTERISATION_IPA9131)
 	struct cpu_type *cpu;
 
 	cpu = gd->arch.cpu;
@@ -77,7 +77,12 @@ int misc_init_r(void)
 {
 #if defined(CONFIG_CHARACTERISATION_IPA9131)
 	int ret;
+#endif
 
+#if defined(CONFIG_ML9131)
+	led_confidence();
+#endif
+#if defined(CONFIG_CHARACTERISATION_IPA9131)
 	ret = characterisation_init();
 
 	if (ret != 1)
@@ -87,12 +92,8 @@ int misc_init_r(void)
 	(void)print_characterisation();
 #endif
 #endif
-
 	load_security_requirements();
-#if defined(CONFIG_ML9131)
-    led_confidence();
-#endif
-    return 0;
+	return 0;
 }
 #endif
 
