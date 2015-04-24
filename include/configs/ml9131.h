@@ -42,6 +42,19 @@
 #define CONFIG_CHARACTERISATION_IPA9131_SIZE 31
 #define CONFIG_CHARACTERISATION_IPA9131_VERSION 0x0
 #define CONFIG_MISC_INIT_R
+
+/* Auto-boot options */
+#define CONFIG_BOOTDELAY 3
+#define CONFIG_AUTOBOOT_KEYED
+#define CONFIG_AUTOBOOT_STOP_STR "stop"
+#define CONFIG_AUTOBOOT_PROMPT "ml9131: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
+
+/* Monitor Command Prompt */
+#define CONFIG_SYS_PROMPT   "ml9131=> "
+
+/*
+ * IPA Commands
+ */
 #define CONFIG_CMD_LEDC
 
 #define CONFIG_ETHPRIME "eTSEC2"
@@ -57,6 +70,5 @@
 	"reset"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
-#define CONFIG_BOOTDELAY 2
 
 #endif
