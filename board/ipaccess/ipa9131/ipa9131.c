@@ -24,6 +24,7 @@
 #endif
 
 #include "secboot.h"
+#include "led.h"
 
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -46,13 +47,23 @@ int board_early_init_f(void)
 			MPC85xx_PMUXCR_IFC_AD17_GPO_MASK,
 			MPC85xx_PMUXCR_IFC_AD_GPIO |
 			MPC85xx_PMUXCR_IFC_AD17_GPO | MPC85xx_PMUXCR_SDHC_USIM);
-
+    
 	return 0;
 }
 
+/*****************************************************************************
+ * 
+ * board_init()
+ *
+ * Purpose: Hardware platform initialisation functions
+ *          (Actually for ipa9131 it's only for LED confidence function
+ *
+ * Returns: 0 - Success
+ *
+ *****************************************************************************/
 int checkboard(void)
 {
-#if !defined(CONFIG_MISC_INIT_R) || !defined(CONFIG_CHARACTERISATION_IPA9131)
+    #if !defined(CONFIG_MISC_INIT_R) || !defined(CONFIG_CHARACTERISATION_IPA9131)
 	struct cpu_type *cpu;
 
 	cpu = gd->arch.cpu;
@@ -78,7 +89,10 @@ int misc_init_r(void)
 #endif
 
 	load_security_requirements();
-	return 0;
+#if defined(CONFIG_ML9131)
+    led_confidence();
+#endif
+    return 0;
 }
 #endif
 

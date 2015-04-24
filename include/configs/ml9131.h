@@ -43,14 +43,21 @@
 #define CONFIG_CHARACTERISATION_IPA9131_VERSION 0x0
 #define CONFIG_MISC_INIT_R
 
+/*
+ * IPA Commands
+ */
+#define CONFIG_CMD_LEDC
+
 #define CONFIG_ETHPRIME "eTSEC2"
 
-#define CONFIG_EXTRA_ENV_SETTINGS                                              \
-	"netdev=eth1\0"                                                         \
+#define CONFIG_EXTRA_ENV_SETTINGS          \
+	"netdev=eth1\0"                        \
 	"ethrotate=no\0"
 
-#define STANDARD_BOOT_COMMAND							\
-	"ml9131; "								\
+#define STANDARD_BOOT_COMMAND				\
+    "ledc all yellow off 1 300; "          \
+    "ml9131; "								\
+	"ledc nwk green red 3 1000; "          \
 	"reset"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND

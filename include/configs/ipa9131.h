@@ -193,7 +193,7 @@
       "if key unrequire tstoem0; then "						\
        "if key require ipaoem0 conf; then "					\
         "if bootm ${loadaddr}#${selected_config}; then "			\
-         "ledc pwr green red 3 1000; "						\
+         "ledc all green red 3 1000; "						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
@@ -205,7 +205,7 @@
       "if key unrequire ipaoem0; then "						\
        "if key require tstoem0 conf; then "					\
         "if bootm ${loadaddr}#${selected_config}; then "			\
-         "ledc pwr green red 3 1000; "						\
+         "ledc all green red 3 1000; "						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
@@ -217,7 +217,7 @@
       "if key unrequire ipaoem0; then "						\
        "if key require dev conf; then "						\
         "if bootm ${loadaddr}#${selected_config}; then "			\
-         "ledc pwr green red 3 1000; "						\
+         "ledc all green red 3 1000; "						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
@@ -229,14 +229,14 @@
       "if key unrequire ipaoem0; then "						\
        "if key unrequire dev; then "						\
         "if bootm ${loadaddr}#${selected_config}; then "			\
-         "ledc pwr green red 3 1000; "						\
+         "ledc all green red 3 1000; "						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
       "fi; "									\
      "fi; "									\
     "fi; "									\
-    "ledc pwr green red 3 1000; "						\
+    "ledc all green red 3 1000; "						\
     "reset"
 
 /*
@@ -282,7 +282,7 @@
       "fi; "									\
      "fi; "									\
     "fi; "									\
-    "ledc pwr green red 3 1000; "						\
+    "ledc all green red 3 1000; "						\
     "reset"
 
 #define FALLBACK_BOOT_COMMAND							\
@@ -311,7 +311,7 @@
       "fi; "									\
      "fi; "									\
     "fi; "									\
-    "ledc pwr green red 3 1000; "						\
+    "ledc all green red 3 1000; "						\
     "reset"
 
 #define CONFIG_EXTRA_ENV_SETTINGS						\
