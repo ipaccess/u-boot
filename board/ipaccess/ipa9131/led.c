@@ -52,7 +52,7 @@
 #define DEF_REPS 3
 
 /* Min, max and default period between steps in a sequence (ms) */
-#define MIN_PERIOD 100   
+#define MIN_PERIOD 100
 #define MAX_PERIOD 2000
 #define DEF_PERIOD 1000
 
@@ -67,7 +67,7 @@ typedef struct
 /* Table which keeps a record of GPIO states - note that the indexes in the
  * comments correspond to the _INDEX values defined above, so DON'T CHANGE!
  */
-static ledc_gpio gpio_info[NUM_GPIO_LINES] = 
+static ledc_gpio gpio_info[NUM_GPIO_LINES] =
 {
     {LED_NWK_GREEN_GPIO,    GPIO_LO},  /* 0 */
     {LED_NWK_RED_GPIO,      GPIO_LO},  /* 1 */
@@ -84,7 +84,7 @@ static ledc_gpio gpio_info[NUM_GPIO_LINES] =
   (a little trivial for ipa9131, but hey-ho) */
 typedef int led_lines[GPIO_LINES_PER_LED];
 
-static const led_lines led_addr_table[NUM_LEDS] = 
+static const led_lines led_addr_table[NUM_LEDS] =
 {
     { LED_NWK_GREEN_INDEX,   LED_NWK_RED_INDEX }, /* NWK  */
     { LED_SVC_GREEN_INDEX,   LED_SVC_RED_INDEX }, /* SVC  */
@@ -154,7 +154,7 @@ int setLED(led_index index, led_colour colour)
 {
     unsigned char setting;
     int i;
-    
+
     if ( (index < NUM_LEDS) && (colour < NUM_COLOURS) )
     {
         /* This is a short cut, saving a table lookup, because all LEDs in ipa9131
@@ -163,13 +163,13 @@ int setLED(led_index index, led_colour colour)
          * - so don't you dare change the led_colour enum!
          */
         setting = (unsigned char)colour;
-        
+
         for (i = 0; i < GPIO_LINES_PER_LED; ++i)
         {
             int gpio_index = led_addr_table[index][i];
-            
+
             set_gpio(gpio_index, (setting & 0x1) ? GPIO_HI : GPIO_LO);
-            
+
             setting >>= 1;
         }
     }
@@ -196,7 +196,7 @@ int do_set_led(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     int result = 1;
     led_index  index;
     led_colour colour;
-    
+
     if (argc == 3)
     {
         for (i = 0; i < NUM_LEDS; i++)
@@ -207,7 +207,7 @@ int do_set_led(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 break;
             }
         }
-        
+
         if (i < NUM_LEDS)
         {
             for (i = 0; i < NUM_COLOURS; i++)
@@ -220,7 +220,7 @@ int do_set_led(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 }
             }
         }
-        
+
         if (result == 0)
         {
             if (setLED(index, colour))
@@ -229,12 +229,12 @@ int do_set_led(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
             }
         }
     }
-    
+
     if (result)
     {
         return CMD_RET_USAGE;
     }
-    
+
     return CMD_RET_SUCCESS;
 }
 
@@ -252,14 +252,14 @@ U_BOOT_CMD(
 
 /*
  *  ledc command for U-Boot
- * 
+ *
  *   This command provides a flexible way to control a set of multi-coloured LEDs.
  *   The standard U-Boot LED command only handles two-state LEDs, and the existing extensions
  *   for colours are not really suitable for a bank of LEDs. This command is designed to
  *   deal with 3 colours, and is easily extensible to deal with more. It also permits
  *   a fixed sequence to be applied to one or more of the LEDs, though more complex patterns
  *   where not all LEDs behave the same will still need to be programmed manually.
- * 
+ *
  *   General syntax - see help text below
  */
 
@@ -297,14 +297,14 @@ static const led_mask_entry led_mask_table[] =
 };
 
 /* Table for cycling round colours */
-led_colour led_sequence[MAX_STEPS];         
+led_colour led_sequence[MAX_STEPS];
 
 
 /* Apply specified states to all LEDs specified by the mask */
 void ledc_set_leds(int mask, led_colour colour)
 {
     int i, im;
-    
+
     for (i = 0, im = 1; i < NUM_LEDS; i++, im <<= 1)
     {
         if ( (mask & im) != 0)
@@ -323,21 +323,21 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     int steps;
     int reps = DEF_REPS;
     int period_us = (DEF_PERIOD * 1000);
-    
+
     /* Check first for a detailed help request */
     if ( (argc > 0) && (strcmp("?", argv[1]) == 0) )
     {
         printf(detailed_help);
         return CMD_RET_SUCCESS;
     }
-    
+
     /* Validate arguments */
     if ( (argc < 3) || (argc > (8 + MAX_STEPS)) )
     {
         printf("Incorrect number of arguments\n");
         return CMD_RET_USAGE;
     }
-    
+
     /* Find mask for specified LED(s) - step through args until we reach a non-led value */
     i = 0; argi = 1; mask = 0;
     while ((led_mask_table[i].mask >= 0) && (argi < argc))
@@ -350,13 +350,13 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         }
         ++i;
     }
-    
+
     if (mask <= 0)
     {
         printf("No valid LED id specified\n");
         return CMD_RET_USAGE;
     }
-    
+
     /* Step through next args until we run out or hit a non-colour */
     i = 0; steps = 0;
     while ( (i < NUM_COLOURS) && (argi < argc) && (steps < MAX_STEPS))
@@ -369,21 +369,21 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         }
         ++i;
     }
-    
+
     /* If no colours detected, oops */
     if (steps == 0)
     {
         printf("Invalid LED id, or no valid LED colour/state specified\n");
         return CMD_RET_USAGE;
     }
-    
+
     /* If we only have one colour, just set it - no sequence */
     if (steps == 1)
     {
         ledc_set_leds(mask, led_sequence[0]);
         return CMD_RET_SUCCESS;
     }
-    
+
     /* Read reps if present */
     if (argi < argc)
     {
@@ -396,7 +396,7 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         reps = new_reps;
         ++argi;
     }
-    
+
     /* Read period if present */
     if (argi < argc)
     {
@@ -409,14 +409,14 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         period_us = 1000 * new_period_ms;
         ++argi;
     }
-    
+
     /* Should be no more args! */
     if (argi < argc)
     {
         printf("Extra arguments found\n");
         return CMD_RET_USAGE;
     }
-    
+
     /* Now go through the sequence the requisite number of times */
     while (reps > 0)
     {
@@ -427,8 +427,8 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         }
         --reps;
     }
-    
-    
+
+
     return CMD_RET_SUCCESS;
 }
 
@@ -447,4 +447,3 @@ void led_confidence(void)
 }
 
 #endif /* defined CONFIG_CMD_LEDC */
-
