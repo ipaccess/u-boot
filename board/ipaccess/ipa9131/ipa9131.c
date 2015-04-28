@@ -24,6 +24,7 @@
 #endif
 
 #include "secboot.h"
+#include "led.h"
 
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -50,6 +51,16 @@ int board_early_init_f(void)
 	return 0;
 }
 
+/*****************************************************************************
+ *
+ * board_init()
+ *
+ * Purpose: Hardware platform initialisation functions
+ *          (Actually for ipa9131 it's only for LED confidence function
+ *
+ * Returns: 0 - Success
+ *
+ *****************************************************************************/
 int checkboard(void)
 {
 #if !defined(CONFIG_MISC_INIT_R) || !defined(CONFIG_CHARACTERISATION_IPA9131)
@@ -66,15 +77,21 @@ int misc_init_r(void)
 {
 #if defined(CONFIG_CHARACTERISATION_IPA9131)
 	int ret;
+#endif
 
+#if defined(CONFIG_ML9131)
+	led_confidence();
+#endif
+#if defined(CONFIG_CHARACTERISATION_IPA9131)
 	ret = characterisation_init();
 
 	if (ret != 1)
 		return 1;
 
+#if !defined(CONFIG_ML9131)
 	(void)print_characterisation();
 #endif
-
+#endif
 	load_security_requirements();
 	return 0;
 }

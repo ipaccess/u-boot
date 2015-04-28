@@ -28,24 +28,47 @@
 #undef CONFIG_BOOTCOMMAND
 #undef CONFIG_ETHPRIME
 
+#define CONFIG_TFM
+#define CONFIG_SHA1
+#define CONFIG_SHA256
 #define CONFIG_DISABLE_IMAGE_LEGACY
 #define CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_ADDR        (CONFIG_SYS_MONITOR_BASE - 0x1000)
 #define CONFIG_ENV_SIZE        0x2000 /* 8k for the environment - should be enough */
 
+#define CONFIG_CHARACTERISATION_IPA9131
+#define CONFIG_CHARACTERISATION_EEPROM_ADDR SPD_EEPROM_ADDRESS
+#define CONFIG_CHARACTERISATION_IPA9131_OFFSET 0
+#define CONFIG_CHARACTERISATION_IPA9131_SIZE 31
+#define CONFIG_CHARACTERISATION_IPA9131_VERSION 0x0
+#define CONFIG_MISC_INIT_R
+
+/* Auto-boot options */
+#define CONFIG_BOOTDELAY 3
+#define CONFIG_AUTOBOOT_KEYED
+#define CONFIG_AUTOBOOT_STOP_STR "stop"
+#define CONFIG_AUTOBOOT_PROMPT "ml9131: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
+
+/* Monitor Command Prompt */
+#define CONFIG_SYS_PROMPT   "ml9131=> "
+
+/*
+ * IPA Commands
+ */
+#define CONFIG_CMD_LEDC
+
 #define CONFIG_ETHPRIME "eTSEC2"
 
-#define CONFIG_EXTRA_ENV_SETTINGS                                              \
-	"netdev=eth1\0"                                                         \
+#define CONFIG_EXTRA_ENV_SETTINGS	\
+	"netdev=eth1\0"			\
 	"ethrotate=no\0"
 
-#define STANDARD_BOOT_COMMAND							\
-	"if nand read 200000 0x200000 0x100000; then "				\
-	 "go 200000; "								\
-	"fi; "									\
+#define STANDARD_BOOT_COMMAND		\
+	"ledc all yellow off 1 300; "	\
+	"ml9131; "			\
+	"ledc nwk green red 3 1000; "	\
 	"reset"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
-#define CONFIG_BOOTDELAY 2
 
 #endif

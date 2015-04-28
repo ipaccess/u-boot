@@ -87,6 +87,11 @@
 /* Offset with in the EEPROM */
 #define CONFIG_BOOTCOUNT_IPA9131_OFFSET 255
 
+/* Auto-boot options */
+#define CONFIG_AUTOBOOT_KEYED
+#define CONFIG_AUTOBOOT_STOP_STR "stop"
+#define CONFIG_AUTOBOOT_PROMPT "ipa9131: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
+
 #define CONFIG_CHARACTERISATION_IPA9131
 #define CONFIG_CHARACTERISATION_EEPROM_ADDR SPD_EEPROM_ADDRESS
 #define CONFIG_CHARACTERISATION_IPA9131_OFFSET 0
@@ -100,6 +105,11 @@
 
 #define CONFIG_MISC_INIT_R
 
+/* Use 'long' help messages */
+#define CONFIG_SYS_LONGHELP
+
+/* Monitor Command Prompt */
+#define CONFIG_SYS_PROMPT   "ipa9131=> "
 
 
 
@@ -196,7 +206,7 @@
       "if key unrequire tstoem0; then "						\
        "if key require ipaoem0 conf; then "					\
         "if bootm ${loadaddr}#${selected_config}; then "			\
-         "ledc pwr green red 3 1000; "						\
+         "ledc all green red 3 1000; "						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
@@ -208,7 +218,7 @@
       "if key unrequire ipaoem0; then "						\
        "if key require tstoem0 conf; then "					\
         "if bootm ${loadaddr}#${selected_config}; then "			\
-         "ledc pwr green red 3 1000; "						\
+         "ledc all green red 3 1000; "						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
@@ -220,7 +230,7 @@
       "if key unrequire ipaoem0; then "						\
        "if key require dev conf; then "						\
         "if bootm ${loadaddr}#${selected_config}; then "			\
-         "ledc pwr green red 3 1000; "						\
+         "ledc all green red 3 1000; "						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
@@ -232,14 +242,14 @@
       "if key unrequire ipaoem0; then "						\
        "if key unrequire dev; then "						\
         "if bootm ${loadaddr}#${selected_config}; then "			\
-         "ledc pwr green red 3 1000; "						\
+         "ledc all green red 3 1000; "						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
       "fi; "									\
      "fi; "									\
     "fi; "									\
-    "ledc pwr green red 3 1000; "						\
+    "ledc all green red 3 1000; "						\
     "reset"
 
 /*
@@ -285,7 +295,7 @@
       "fi; "									\
      "fi; "									\
     "fi; "									\
-    "ledc pwr green red 3 1000; "						\
+    "ledc all green red 3 1000; "						\
     "reset"
 
 #define FALLBACK_BOOT_COMMAND							\
@@ -314,7 +324,7 @@
       "fi; "									\
      "fi; "									\
     "fi; "									\
-    "ledc pwr green red 3 1000; "						\
+    "ledc all green red 3 1000; "						\
     "reset"
 
 #define CONFIG_EXTRA_ENV_SETTINGS						\

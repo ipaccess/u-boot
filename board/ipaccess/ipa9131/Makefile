@@ -28,5 +28,5 @@ obj-$(CONFIG_CMD_KEY)        += key.o
 obj-y        += secboot.o
 obj-y        += led.o
 obj-y        += ipa9131_fuse.o
-obj-y        += ipa9131_test_board.o
+obj-$(CONFIG_ML9131) += flash.o fimage.o security.o hash_sw.o asn1.o x509.o verify_image.o crc_image.o image.o ml9131.o
 endif
