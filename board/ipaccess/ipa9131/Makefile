@@ -14,7 +14,7 @@ endif
 
 ifdef MINIMAL
 
-obj-y	+= spl_minimal.o tlb.o law.o
+obj-y	+= spl_minimal.o tlb.o law.o temp_monitor.o
 
 else
 
@@ -29,5 +29,5 @@ obj-y        += secboot.o
 obj-y        += led.o
 obj-y        += ipa9131_fuse.o
 obj-$(CONFIG_ML9131) += flash.o fimage.o security.o hash_sw.o asn1.o x509.o verify_image.o crc_image.o image.o ml9131.o
-
+obj-$(CONFIG_ML9131) += temp_monitor.o
 endif
