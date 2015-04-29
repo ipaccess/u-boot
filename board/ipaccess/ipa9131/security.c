@@ -8,6 +8,7 @@
 
 #include "ipa9131_fuse.h"
 #include "hash.h"
+#include "characterisation.h"
 
 
 #define REVOCATION_NUM_BITS 12
@@ -76,33 +77,20 @@ cleanup:
 
 int read_operating_mode(unsigned int * oper_mode)
 {
-    u8 p;
-    u8 d;
-    u8 s;
-
-    if (0 != ipa9131_fuse_read_security_profile(&p, &d, &s))
+    if (!oper_mode)
         return -1;
 
-    if ((p && (d || s)) || (d && (p || s)) || (s && (p || d)))
-    {
+    if (characterisation_is_production_mode())
         *oper_mode = PRODUCTION_MODE;
-        return 0;
-    }
-
-    if (p)
-        *oper_mode = PRODUCTION_MODE;
-    else if (d)
+    else if (characterisation_is_test_mode())
+        *oper_mode = TEST_MODE;
+    else if (characterisation_is_development_mode())
         *oper_mode = DEVELOPMENT_MODE;
-    else if (s)
+    else if (characterisation_is_specials_mode())
         *oper_mode = SPECIALS_MODE;
     else
-        *oper_mode = DEVELOPMENT_MODE; /* TODO: perhaps later on this must return -1 */
+        return -1;
 
-    if (*oper_mode == DEVELOPMENT_MODE)
-    {
-        /* TODO: promote to test mode if appropriate */
-    }
-    
     return 0;
 }
 
@@ -118,14 +106,8 @@ int read_operating_mode(unsigned int * oper_mode)
  */
 void read_board_revocation_count(unsigned int * rc)
 {
-    u16 r;
-
-    *rc = REVOCATION_NUM_BITS;
-
-    if (0 != ipa9131_fuse_read_loader_revocation(&r))
+    if (rc)
     {
-        return;
+        *rc = characterisation_loader_revocation();
     }
-
-    *rc = r;
 }

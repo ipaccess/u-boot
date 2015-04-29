@@ -23,6 +23,7 @@
 #include "characterisation.h"
 #endif
 
+#include "ipa9131_fuse.h"
 #include "secboot.h"
 #include "led.h"
 
@@ -47,6 +48,11 @@ int board_early_init_f(void)
 			MPC85xx_PMUXCR_IFC_AD17_GPO_MASK,
 			MPC85xx_PMUXCR_IFC_AD_GPIO |
 			MPC85xx_PMUXCR_IFC_AD17_GPO | MPC85xx_PMUXCR_SDHC_USIM);
+
+	(void)ipa9131_fuse_init();
+
+	if (ipa9131_fuse_should_be_silent())
+		gd->flags |= GD_FLG_SILENT;
 
 	return 0;
 }
