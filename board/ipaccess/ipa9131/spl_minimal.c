@@ -13,6 +13,8 @@
 #include <fsl_ddr_sdram.h>
 #include <asm/global_data.h>
 
+#include "temp_monitor.h"
+
 DECLARE_GLOBAL_DATA_PTR;
 
 /*
@@ -71,6 +73,8 @@ void board_init_f(ulong bootflag)
 
 	NS16550_init((NS16550_t)CONFIG_SYS_NS16550_COM1,
 		     gd->bus_clk / 16 / CONFIG_BAUDRATE);
+
+    ipa9131_stall_on_thermal_alert();
 
 	puts("\nNAND boot... ");
 
