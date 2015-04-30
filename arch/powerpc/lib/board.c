@@ -114,7 +114,7 @@ ulong monitor_flash_len;
 #include <bedbug/type.h>
 #endif
 
-#ifdef CONFIG_ML9131
+#if defined(CONFIG_ML9131) && !defined(CONFIG_ML9131_NO_THERMAL_ALERT)
 extern int ipa9131_stall_on_thermal_alert(void);
 #endif
 
@@ -326,7 +326,7 @@ static init_fnc_t *init_sequence[] = {
 	post_init_f,
 #endif
 	INIT_FUNC_WATCHDOG_RESET
-#ifdef CONFIG_ML9131
+#if defined(CONFIG_ML9131) && !defined(CONFIG_ML9131_NO_THERMAL_ALERT)
     ipa9131_stall_on_thermal_alert,
 #endif
 	init_func_ram,

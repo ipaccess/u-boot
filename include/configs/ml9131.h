@@ -28,6 +28,9 @@
 #undef CONFIG_BOOTCOMMAND
 #undef CONFIG_ETHPRIME
 
+/* disable the thermal alert for now - this needs board mods */
+#define CONFIG_ML9131_NO_THERMAL_ALERT
+
 #define CONFIG_TFM
 #define CONFIG_SHA1
 #define CONFIG_SHA256
