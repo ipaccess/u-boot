@@ -39,6 +39,13 @@ int load_security_requirements()
 
 
 
+int silent_mode_enabled(void)
+{
+    return BT_PROD == g_board_type;
+}
+
+
+
 #if defined(CONFIG_CMD_SECPARM)
 int do_secparm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
@@ -92,14 +99,6 @@ int do_secparm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     }
 
     return CMD_RET_FAILURE;
-}
-
-
-
-int silent_mode_enabled(void)
-{
-    /* when in production mode we shall perform silent boot */
-    return BT_PROD == g_board_type;
 }
 
 
