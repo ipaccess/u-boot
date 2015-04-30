@@ -45,7 +45,7 @@
 
 
 #define fuse_in_be32(x)	in_be32((const volatile unsigned __iomem *)(x))
-#define fuse_out_be32(x,y) out_be32((const volatile unsigned __iomem *)(x),(y))
+#define fuse_out_be32(x,y) out_be32((volatile unsigned __iomem *)(x),(y))
 
 
 
