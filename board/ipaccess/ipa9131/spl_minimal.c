@@ -74,7 +74,9 @@ void board_init_f(ulong bootflag)
 	NS16550_init((NS16550_t)CONFIG_SYS_NS16550_COM1,
 		     gd->bus_clk / 16 / CONFIG_BAUDRATE);
 
-    ipa9131_stall_on_thermal_alert();
+#if !defined(CONFIG_ML9131_NO_THERMAL_ALERT)
+	ipa9131_stall_on_thermal_alert();
+#endif
 
 	puts("\nNAND boot... ");
 
