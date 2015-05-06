@@ -28,6 +28,9 @@
 #undef CONFIG_BOOTCOMMAND
 #undef CONFIG_ETHPRIME
 
+#undef TSEC2_PHY_ADDR
+#define TSEC2_PHY_ADDR		1
+
 /* disable the thermal alert for now - this needs board mods */
 #define CONFIG_ML9131_NO_THERMAL_ALERT
 

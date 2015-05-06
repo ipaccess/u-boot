@@ -8,7 +8,10 @@
 
 #include "BSC9131RDB.h"
 
-/* #undef CONFIG_FIT_VERBOSE */
+#undef TSEC2_PHY_ADDR
+#define TSEC2_PHY_ADDR		1
+
+#undef CONFIG_FIT_VERBOSE
 
 /*
  * U-Boot execution will be controlled from an embedded OF tree
@@ -64,14 +67,14 @@
  */
 #define CONFIG_CMD_UBI
 #define CONFIG_RBTREE
-/* #define CONFIG_UBI_SILENCE_MSG */
+#define CONFIG_UBI_SILENCE_MSG
 
 /*
  * We will support UBIFS filesystems
  */
 #define CONFIG_CMD_UBIFS
 #define CONFIG_LZO
-/* #define CONFIG_UBIFS_SILENCE_MSG */
+#define CONFIG_UBIFS_SILENCE_MSG
 
 
 /*
