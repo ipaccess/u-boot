@@ -27,8 +27,20 @@
 #include "secboot.h"
 #include "led.h"
 
-
 DECLARE_GLOBAL_DATA_PTR;
+
+#if defined(CONFIG_ML9131)
+#define ML9131_VERSION 201407001
+#define ML9131_REVOCATION_VALUE 0
+
+#define ml9131_macro_xstr(s) ml9131_macro_str(s)
+#define ml9131_macro_str(s) #s
+
+static const char CURRENT_ML9131_VERSION[] = "@(#)VERSION_VALUE=" ml9131_macro_xstr(ML9131_VERSION) "\0";
+static const char CURRENT_ML9131_REVOCATION[] = "@(#)REVOCATION_VALUE=" ml9131_macro_xstr(ML9131_REVOCATION_VALUE) "\0";
+#endif
+
+
 
 int board_early_init_f(void)
 {
@@ -50,6 +62,22 @@ int board_early_init_f(void)
 			MPC85xx_PMUXCR_IFC_AD17_GPO | MPC85xx_PMUXCR_SDHC_USIM);
 
 	(void)ipa9131_fuse_init();
+
+#if defined(CONFIG_ML9131)
+	if (ML9131_REVOCATION_VALUE < ipa9131_fuse_read_loader_revocation()) {
+		puts("Revoked\n");
+		while (1) {
+			setLED(LED_NWK, LED_RED);
+			setLED(LED_SVC, LED_RED);
+			setLED(LED_GPS, LED_RED);
+			udelay(250000);
+			setLED(LED_NWK, LED_YELLOW);
+			setLED(LED_SVC, LED_YELLOW);
+			setLED(LED_GPS, LED_YELLOW);
+			udelay(250000);
+		}
+	}
+#endif
 
 	if (ipa9131_fuse_should_be_silent())
 		gd->flags |= GD_FLG_SILENT;

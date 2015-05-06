@@ -157,7 +157,7 @@ int load_image(unsigned int start_block, unsigned int num_blocks, unsigned int i
             }
         }
 
-        if (oper_mode != SPECIALS_MODE && fimage_table.images[i].revocation > revocation_count)
+        if (oper_mode != SPECIALS_MODE && fimage_table.images[i].revocation < revocation_count)
         {
             fimage_table.images[i].reserved = IMAGE_REVOKED_ERROR;
 

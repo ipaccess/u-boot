@@ -81,8 +81,6 @@ struct characterisation_data_t
     uint8_t test_mode;
     uint8_t development_mode;
     uint8_t specials_mode;
-    uint8_t loader_revocation;
-    uint8_t application_revocation;
 };
 
 struct characterisation_data_t cdo;
@@ -159,8 +157,6 @@ void deserialise_characterisation_info(const uint8_t payload[CONFIG_CHARACTERISA
     cd->test_mode = 0;
     cd->development_mode = 0;
     cd->specials_mode = 0;
-    cd->loader_revocation = 0;
-    cd->application_revocation = 0;
 
     cd->eth0addr[0] = payload[1];
     cd->eth0addr[1] = payload[2];
@@ -301,13 +297,13 @@ int characterisation_is_specials_mode(void)
 
 u8 characterisation_loader_revocation(void)
 {
-    return cdo.loader_revocation;
+    return ipa9131_fuse_read_loader_revocation();
 }
 
 
 u8 characterisation_application_revocation(void)
 {
-    return cdo.application_revocation;
+    return ipa9131_fuse_read_application_revocation();
 }
 
 

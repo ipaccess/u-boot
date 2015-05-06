@@ -5,6 +5,8 @@
 #include <asm/io.h>
 #include <asm/immap_85xx.h>
 
+#define IPA9131_LOADER_REVOCATION_MAX 12
+#define IPA9131_APPLICATION_REVOCATION_MAX 28
 
 #define SFP_INGR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7020)
 #define SFP_DESSR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7024)
@@ -105,7 +107,7 @@ int ipa9131_fuse_should_be_silent(void)
 }
 
 
-int ipa9131_fuse_read_loader_revocation(u16 * r)
+int ipa9131_fuse_read_loader_revocation_value(u16 * r)
 {
 	u32 r0;
 
@@ -116,6 +118,61 @@ int ipa9131_fuse_read_loader_revocation(u16 * r)
 	r0 >>= 4;
 	*r = r0 & 0xfff;
 	return 0;
+}
+
+
+int ipa9131_fuse_read_application_revocation_value(u32 * r)
+{
+	u32 r0;
+	u32 r1;
+	u32 r2;
+
+	if (!r)
+		return -EINVAL;
+
+	r0 = fuse_in_be32(SFP_OUIDR_ADDRESS);
+	r1 = fuse_in_be32(SFP_DCVR0_ADDRESS);
+	r2 = fuse_in_be32(SFP_DCVR1_ADDRESS);
+	*r = (((r0 >> 16) & 0x0000ffff) | ((r1 << 16) & 0x00ff0000) | ((r2 >>  4) & 0x0f000000)) & 0x0fffffff;
+	return 0;
+}
+
+
+static u32 determine_fused_bit_count(u32 N, u32 M)
+{
+	u32 i;
+
+	for (i = N; i > 0; --i)
+	{
+		if (M & (1U << (i - 1)))
+		{
+			return i;
+		}
+	}
+
+	return 0;
+}
+
+
+u16 ipa9131_fuse_read_loader_revocation(void)
+{
+	u16 constructed;
+
+	if (0 != ipa9131_fuse_read_loader_revocation_value(&constructed))
+		return IPA9131_LOADER_REVOCATION_MAX;
+
+	return determine_fused_bit_count(IPA9131_LOADER_REVOCATION_MAX, constructed);
+}
+
+
+u32 ipa9131_fuse_read_application_revocation(void)
+{
+	u32 constructed;
+
+	if (0 != ipa9131_fuse_read_application_revocation_value(&constructed))
+		return IPA9131_APPLICATION_REVOCATION_MAX;
+
+	return determine_fused_bit_count(IPA9131_APPLICATION_REVOCATION_MAX, constructed);
 }
 
 
@@ -188,13 +245,12 @@ int do_ipa9131_fuse(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 
 	if (0 == strcmp(argv[1], "ldr_revo")) {
-		u16 r;
+		printf("loader revocation: %u\n", ipa9131_fuse_read_loader_revocation());
+		return CMD_RET_SUCCESS;
+	}
 
-		if (0 != ipa9131_fuse_read_loader_revocation(&r)) {
-			return CMD_RET_FAILURE;
-		}
-
-		printf("loader revocation: %u\n", r);
+	if (0 == strcmp(argv[1], "app_revo")) {
+		printf("application revocation: %u\n", ipa9131_fuse_read_application_revocation());
 		return CMD_RET_SUCCESS;
 	}
 
@@ -203,6 +259,6 @@ int do_ipa9131_fuse(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 U_BOOT_CMD(ipa9131_fuse, 2, 0, do_ipa9131_fuse,
 	"Excercise ipa9131 fuse functions",
-	" init|eid|security|ldr_revo"
+	" init|eid|security|ldr_revo|app_revo"
 );
 #endif
