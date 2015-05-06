@@ -90,6 +90,21 @@ int ipa9131_fuse_read_security_profile(u8 * p, u8 * d, u8 * s)
 }
 
 
+int ipa9131_fuses_are_write_protected(void)
+{
+	return (fuse_in_be32(SFP_OSPR_ADDRESS) & 0x01) ? 1 : 0;
+}
+
+
+int ipa9131_fuse_should_be_silent(void)
+{
+	if (!ipa9131_fuses_are_write_protected())
+		return 0;
+
+	return (fuse_in_be32(SFP_OUIDR_ADDRESS) & 0x01) ? 1 : 0;
+}
+
+
 int ipa9131_fuse_read_loader_revocation(u16 * r)
 {
 	u32 r0;
@@ -101,6 +116,25 @@ int ipa9131_fuse_read_loader_revocation(u16 * r)
 	r0 >>= 4;
 	*r = r0 & 0xfff;
 	return 0;
+}
+
+
+int ipa9131_is_unfused(void)
+{
+	if (fuse_in_be32(SFP_OUIDR_ADDRESS) ||
+	    fuse_in_be32(SFP_DCVR0_ADDRESS) ||
+	    fuse_in_be32(SFP_DCVR1_ADDRESS) ||
+	    fuse_in_be32(SFP_SRKHR0_ADDRESS) ||
+	    fuse_in_be32(SFP_SRKHR1_ADDRESS) ||
+	    fuse_in_be32(SFP_SRKHR2_ADDRESS) ||
+	    fuse_in_be32(SFP_SRKHR3_ADDRESS) ||
+	    fuse_in_be32(SFP_SRKHR4_ADDRESS) ||
+	    fuse_in_be32(SFP_SRKHR5_ADDRESS) ||
+	    fuse_in_be32(SFP_SRKHR6_ADDRESS) ||
+	    fuse_in_be32(SFP_SRKHR7_ADDRESS))
+		return 0;
+
+	return 1;
 }
 
 

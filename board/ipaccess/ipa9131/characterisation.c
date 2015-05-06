@@ -5,6 +5,7 @@
 
 #include "characterisation.h"
 #include "damm.h"
+#include "ipa9131_fuse.h"
 
 #if defined(CONFIG_CHARACTERISATION_IPA9131)
 
@@ -76,6 +77,12 @@ struct characterisation_data_t
     uint16_t pcbai;
     uint8_t oui[3];
     uint32_t serial;
+    uint8_t production_mode;
+    uint8_t test_mode;
+    uint8_t development_mode;
+    uint8_t specials_mode;
+    uint8_t loader_revocation;
+    uint8_t application_revocation;
 };
 
 struct characterisation_data_t cdo;
@@ -116,6 +123,29 @@ void serialise_characterisation_info(const struct characterisation_data_t * cd, 
         payload[21] = (((cd->serial & 0x00FF0000) >> 16) & 0xFF);
         payload[22] = (((cd->serial & 0x0000FF00) >>  8) & 0xFF);
         payload[23] = (((cd->serial & 0x000000FF) >>  0) & 0xFF);
+
+        if (cd->specials_mode)
+        {
+            payload[239] = 0x0;
+        }
+        else
+        {
+            if (cd->test_mode)
+            {
+                 payload[239] = 0x1;
+            }
+            else if (cd->development_mode)
+            {
+                 payload[239] = 0x2;
+            }
+        }
+    }
+    else
+    {
+        if (cd->test_mode)
+        {
+            payload[239] = 0x1;
+        }
     }
 }
 
@@ -124,6 +154,13 @@ void serialise_characterisation_info(const struct characterisation_data_t * cd, 
 void deserialise_characterisation_info(const uint8_t payload[CONFIG_CHARACTERISATION_IPA9131_SIZE], struct characterisation_data_t * cd)
 {
     cd->version = payload[0];
+
+    cd->production_mode = 0;
+    cd->test_mode = 0;
+    cd->development_mode = 0;
+    cd->specials_mode = 0;
+    cd->loader_revocation = 0;
+    cd->application_revocation = 0;
 
     cd->eth0addr[0] = payload[1];
     cd->eth0addr[1] = payload[2];
@@ -148,22 +185,135 @@ void deserialise_characterisation_info(const uint8_t payload[CONFIG_CHARACTERISA
     cd->pcbai <<= 8;
     cd->pcbai |= payload[16];
 
-    if (cd->version == 0x00)
+    if (ipa9131_is_unfused())
     {
-        cd->oui[0] = payload[17];
-        cd->oui[1] = payload[18];
-        cd->oui[2] = payload[19];
-        cd->serial = ((((uint32_t)(payload[20])) << 24) & 0xFF000000) |
-                     ((((uint32_t)(payload[21])) << 16) & 0x00FF0000) |
-                     ((((uint32_t)(payload[22])) <<  8) & 0x0000FF00) |
-                     ((((uint32_t)(payload[23])) <<  0) & 0x000000FF);
+        if (cd->version == 0x00)
+        {
+            cd->oui[0] = payload[17];
+            cd->oui[1] = payload[18];
+            cd->oui[2] = payload[19];
+            cd->serial = ((((uint32_t)(payload[20])) << 24) & 0xFF000000) |
+                         ((((uint32_t)(payload[21])) << 16) & 0x00FF0000) |
+                         ((((uint32_t)(payload[22])) <<  8) & 0x0000FF00) |
+                         ((((uint32_t)(payload[23])) <<  0) & 0x000000FF);
+        }
+
+        if ((payload[239] & 0x2) == 0x2)
+        {
+            if ((payload[239] & 0x1) == 0x1)
+            {
+                cd->test_mode = 1;
+            }
+            else
+            {
+                cd->development_mode = 1;
+            }
+        }
+        else
+        {
+            cd->specials_mode = 1;
+        }
+    }
+    else
+    {
+        if (0 == ipa9131_fuse_read_security_profile(&cd->production_mode, &cd->development_mode, &cd->specials_mode))
+        {
+            if (cd->specials_mode)
+            {
+                cd->production_mode = 0;
+                cd->test_mode = 0;
+                cd->development_mode = 0;
+            }
+            else
+            {
+                if (cd->production_mode)
+                {
+                    cd->test_mode = 0;
+                    cd->development_mode = 0;
+                }
+                else if (cd->development_mode)
+                {
+                    if ((payload[239] & 0x1) == 0x1)
+                    {
+                        cd->test_mode = 1;
+                        cd->development_mode = 0;
+                    }
+                    else
+                    {
+                        cd->test_mode = 0;
+                    }
+                }
+                else
+                {
+                    if (ipa9131_fuses_are_write_protected())
+                    {
+                        cd->production_mode = 1;
+                    }
+                    else
+                    {
+                        if ((payload[239] & 0x1) == 0x1)
+                        {
+                            cd->test_mode = 1;
+                            cd->development_mode = 0;
+                        }
+                        else
+                        {
+                            cd->development_mode = 1;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            cd->production_mode = 1;
+            cd->test_mode = 0;
+            cd->development_mode = 0;
+            cd->specials_mode = 0;
+        }
     }
 }
 
 
+int characterisation_is_production_mode(void)
+{
+    return cdo.production_mode != 0;
+}
+
+
+int characterisation_is_test_mode(void)
+{
+    return cdo.test_mode != 0;
+}
+
+
+int characterisation_is_development_mode(void)
+{
+    return cdo.development_mode != 0;
+}
+
+
+int characterisation_is_specials_mode(void)
+{
+    return cdo.specials_mode != 0;
+}
+
+
+u8 characterisation_loader_revocation(void)
+{
+    return cdo.loader_revocation;
+}
+
+
+u8 characterisation_application_revocation(void)
+{
+    return cdo.application_revocation;
+}
+
 
 static int do_hwchar_i2c_read(void)
 {
+    memset(serialised_characterisation_data, 0, CONFIG_CHARACTERISATION_IPA9131_SIZE);
     return i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,
                     CONFIG_CHARACTERISATION_IPA9131_OFFSET, 1,
                     serialised_characterisation_data,
@@ -253,6 +403,18 @@ void print_characterisation(void)
         printf("EID:   %02X%02X%02X-%010u\n", cdo.oui[0], cdo.oui[1], cdo.oui[2], cdo.serial);
         printf("eMAC0: %02X:%02X:%02X:%02X:%02X:%02X\n", cdo.eth0addr[0], cdo.eth0addr[1], cdo.eth0addr[2], cdo.eth0addr[3], cdo.eth0addr[4], cdo.eth0addr[5]);
         printf("eMAC1: %02X:%02X:%02X:%02X:%02X:%02X\n", cdo.eth1addr[0], cdo.eth1addr[1], cdo.eth1addr[2], cdo.eth1addr[3], cdo.eth1addr[4], cdo.eth1addr[5]);
+        printf("Mode:  ");
+
+        if (cdo.production_mode)
+            printf("Production\n");
+        else if (cdo.test_mode)
+            printf("Test\n");
+        else if (cdo.development_mode)
+            printf("Development\n");
+        else
+            printf("Specials\n");
+
+        printf("Fused: %s\n", (ipa9131_is_unfused() ? "No" : "Yes"));
     }
     else
     {
@@ -592,6 +754,7 @@ static int usage(const char * progname, int ret)
     fprintf((ret ? stderr : stdout), "                              The TYPE argument must correspond to a known board hardware type and oscillator value.\n");
     fprintf((ret ? stderr : stdout), "                              Unused bits must be set to 0.\n");
     fprintf((ret ? stderr : stdout), "       -p PCB_ASSEMBLY_ISSUE: Specify the PCB assembly issue as a 16 bit decimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "       -m MODE              : Specify the board mode (p, t, d, s) = (production, test, development, specials).\n");
     fprintf((ret ? stderr : stdout), "       -f                   : Force acceptance of a serial number that fails the DAMM algorithm check.\n");
     fprintf((ret ? stderr : stdout), "       -no-prompt           : Do not prompt user for input before blowing the fuses (must be used when fuse blowing is done via scripts).\n");
     fprintf((ret ? stderr : stdout), "\n");
@@ -609,6 +772,10 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     const char * eth1addr_text;
     const char * type_text;
     const char * pcb_assembly_issue_text;
+    int prod_mode;
+    int test_mode;
+    int dev_mode;
+    int specials_mode;
     int ignore_damm;
     int prompt_to_user;
     struct characterisation_data_t cd;
@@ -617,6 +784,7 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     ret = 1;
     i = 0;
     oui_text = serial_text = eth0addr_text = eth1addr_text = type_text = pcb_assembly_issue_text = NULL;
+    prod_mode = test_mode = dev_mode = specials_mode = 0;
     ignore_damm = 0;
     prompt_to_user = 1;
     memset(&cd, 0, sizeof(cd));
@@ -648,6 +816,43 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         {
             pcb_assembly_issue_text = argv[i+1];
         }
+        else if (0 == strcmp(argv[i],"-m"))
+        {
+            if (prod_mode || test_mode || dev_mode || specials_mode)
+            {
+                ret = usage(argv[0], 1);
+                goto cleanup;
+            }
+
+            switch (argv[i+1][0])
+            {
+                case 'p':
+                {
+                    prod_mode = 1;
+                    break;
+                }
+                case 't':
+                {
+                    test_mode = 1;
+                    break;
+                }
+                case 'd':
+                {
+                    dev_mode = 1;
+                    break;
+                }
+                case 's':
+                {
+                    specials_mode = 1;
+                    break;
+                }
+                default:
+                {
+                    ret = usage(argv[0], 1);
+                    goto cleanup;
+                }
+            }
+        }
         else if (0 == strcmp(argv[i],"-f"))
         {
             ignore_damm = 1;
@@ -658,6 +863,12 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         }
 
         ++i;
+    }
+
+    if (!prod_mode && !test_mode && !dev_mode && !specials_mode)
+    {
+        ret = usage(argv[0], 1);
+        goto cleanup;
     }
 
     if (!oui_text || !serial_text || !eth0addr_text || !eth1addr_text || !type_text || !pcb_assembly_issue_text)
@@ -677,6 +888,11 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         goto cleanup;
     }
 
+    cd.production_mode = prod_mode ? 1 : 0;
+    cd.test_mode = test_mode ? 1 : 0;
+    cd.development_mode = dev_mode ? 1 : 0;
+    cd.specials_mode = specials_mode ? 1 : 0;
+
     fprintf(stdout, "%s\n", "Hardware Characterisation");
     fprintf(stdout, "%s\n", "=========================");
     fprintf(stdout, "  Equipment Identifier: %02X%02X%02X-%010u\n", cd.oui[0], cd.oui[1], cd.oui[2], cd.serial);
@@ -685,7 +901,26 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     fprintf(stdout, "      Hardware Variant: %s\n", lookup_variant(cd.variant)->full);
     fprintf(stdout, "            Oscillator: %s\n", lookup_oscillator(cd.osc));
     fprintf(stdout, "    PCB Assembly Issue: %05u\n", cd.pcbai);
-    fprintf(stdout, "%s\n", "");
+    fprintf(stdout, "        Operating Mode: ");
+
+    if (cd.production_mode)
+    {
+        fprintf(stdout, "Production");
+    }
+    else if (cd.test_mode)
+    {
+        fprintf(stdout, "Test");
+    }
+    else if (cd.development_mode)
+    {
+        fprintf(stdout, "Development");
+    }
+    else
+    {
+        fprintf(stdout, "Specials");
+    }
+
+    fprintf(stdout, "%s\n", "\n");
 
     if (prompt_to_user)
     {
@@ -736,38 +971,16 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     serialise_characterisation_info(&cd, serialised);
 
     /* write the EEPROM in page mode (8 bytes at a time) */
-
-    if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPA9131_OFFSET + 0, 1, serialised + 0, 8)))
+    for (i = 0; i < CONFIG_CHARACTERISATION_IPA9131_SIZE; i += 8)
     {
-        printf("i2c_write returned %d\n", ret);
-        goto cleanup;
+        if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPA9131_OFFSET + i, 1, serialised + i, 8)))
+        {
+            printf("i2c_write returned %d for a white of 8 bytes at offset %d\n", ret, CONFIG_CHARACTERISATION_IPA9131_OFFSET + i);
+            goto cleanup;
+        }
+
+        udelay(5000);
     }
-
-    udelay(5000);
-
-    if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPA9131_OFFSET + 8, 1, serialised + 8, 8)))
-    {
-        printf("i2c_write returned %d\n", ret);
-        goto cleanup;
-    }
-
-    udelay(5000);
-
-    if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPA9131_OFFSET + 16, 1, serialised + 16, 8)))
-    {
-        printf("i2c_write returned %d\n", ret);
-        goto cleanup;
-    }
-
-    udelay(5000);
-
-    if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPA9131_OFFSET + 24, 1, serialised + 24, 7)))
-    {
-        printf("i2c_write returned %d\n", ret);
-        goto cleanup;
-    }
-
-    udelay(5000);
 
 cleanup:
     return ret;
@@ -776,7 +989,7 @@ cleanup:
 
 
 U_BOOT_CMD(
-        characterise_hw, 15, 0, do_characterise,
+        characterise_hw, 16, 0, do_characterise,
         "Hw characterisation command to blow specific fuses",
         "<characterise_hw> <args>"
         );
