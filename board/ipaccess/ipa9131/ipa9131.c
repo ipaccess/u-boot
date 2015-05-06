@@ -81,24 +81,26 @@ int checkboard(void)
 #if defined(CONFIG_MISC_INIT_R)
 int misc_init_r(void)
 {
-#if defined(CONFIG_CHARACTERISATION_IPA9131)
-	int ret;
-#endif
-
 #if defined(CONFIG_ML9131)
 	led_confidence();
 #endif
 #if defined(CONFIG_CHARACTERISATION_IPA9131)
-	ret = characterisation_init();
-
-	if (ret != 1)
+	if (1 != characterisation_init())
+		 return 1;
+#endif
+	if (0 != load_security_requirements())
 		return 1;
 
-#if !defined(CONFIG_ML9131)
+	if (silent_mode_enabled()) {
+		setenv("silent", "1");
+		setenv("bootdelay", "0");
+	} else {
+		setenv("silent", NULL);
+	}
+
+#if defined(CONFIG_CHARACTERISATION_IPA9131) && !defined(CONFIG_ML9131)
 	(void)print_characterisation();
 #endif
-#endif
-	load_security_requirements();
 	return 0;
 }
 #endif
