@@ -157,3 +157,14 @@ void ft_board_setup(void *blob, bd_t *bd)
 	fdt_fixup_mtdparts(blob, nodes, ARRAY_SIZE(nodes));
 }
 #endif
+
+#if defined(CONFIG_ML9131)
+int do_ml9131_versions(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	printf("%s\n", CURRENT_ML9131_VERSION);
+	printf("%s\n", CURRENT_ML9131_REVOCATION);
+	return CMD_RET_SUCCESS;
+}
+
+U_BOOT_CMD(ml9131ver, 1, 0, do_ml9131_versions, "Dump the ml9131 version information", "");
+#endif
