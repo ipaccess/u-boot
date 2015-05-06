@@ -30,7 +30,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #if defined(CONFIG_ML9131)
-#define ML9131_VERSION 201407001
+#define ML9131_VERSION 2014070000
 #define ML9131_REVOCATION_VALUE 0
 
 #define ml9131_macro_xstr(s) ml9131_macro_str(s)
