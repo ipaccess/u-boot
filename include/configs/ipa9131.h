@@ -152,6 +152,7 @@
 /* this board uses eth1 only - eth0 faces into the plastics */
 #define CONFIG_ETHPRIME "eTSEC2"
 
+#define LINUX_CONSOLEDEV "ttyS0"
 #define IPA_BASE_BOOTARGS							\
 	"rdinit=/init " 							\
 	"elevator=noop "							\
@@ -160,11 +161,11 @@
 	"hugepagesz=256m "							\
 	"hugepages=1 "								\
 	"max_num_ipc_channels=64 "						\
-	"max_channel_depth=16 "
+	"max_channel_depth=16 "							\
+	"console=" LINUX_CONSOLEDEV ","  __stringify(CONFIG_BAUDRATE) " "
 
-#define LINUX_CONSOLEDEV "ttyS0"
-#define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS "console=" LINUX_CONSOLEDEV ","  __stringify(CONFIG_BAUDRATE)
-#define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS "console="
+#define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS
+#define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS "quiet"
 
 #define SET_BOOTARGS								\
    "if silent_mode_enabled; then"						\
