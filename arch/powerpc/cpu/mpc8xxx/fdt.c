@@ -312,10 +312,22 @@ static u8 caam_get_era(void)
 
 static void fdt_fixup_crypto_era(void *blob, u32 era)
 {
+	int i;
 	int err;
 	int crypto_node;
 
-	crypto_node = fdt_path_offset(blob, "crypto");
+	static const char * crypto_paths[] = {
+		"/soc@ff700000/crypto@30000",
+		"/soc@ff600000/e500@ff700000/crypto@30000",
+	};
+
+	for (i = 0; i < ARRAY_SIZE(crypto_paths); ++i) {
+		crypto_node = fdt_path_offset(blob, crypto_paths[i]);
+		if (crypto_node >= 0) {
+			break;
+		}
+	}
+
 	if (crypto_node < 0) {
 		printf("WARNING: Missing crypto node\n");
 		return;
