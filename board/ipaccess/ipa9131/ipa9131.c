@@ -121,9 +121,12 @@ int misc_init_r(void)
 
 	if (silent_mode_enabled()) {
 		setenv("silent", "1");
+		setenv("silent_linux", "no"); /* broken on bsc9131 kernel */
 		setenv("bootdelay", "0");
 	} else {
 		setenv("silent", NULL);
+		setenv("silent_linux", NULL);
+		setenv("bootdelay", "3");
 	}
 
 #if defined(CONFIG_CHARACTERISATION_IPA9131) && !defined(CONFIG_ML9131)
@@ -134,6 +137,15 @@ int misc_init_r(void)
 #endif
 
 #if defined(CONFIG_OF_BOARD_SETUP)
+static void ipa9131_fixup_silent_chosen(void * blob)
+{
+	int nodeoffset = fdt_path_offset(blob, "/chosen");
+
+	if (nodeoffset >= 0) {
+		(void)fdt_delprop(blob, nodeoffset, "linux,stdout-path");
+	}
+}
+
 void ft_board_setup(void *blob, bd_t *bd)
 {
 	phys_addr_t base;
@@ -153,8 +165,10 @@ void ft_board_setup(void *blob, bd_t *bd)
 
 	fdt_fixup_dr_usb(blob, bd);
 
-	puts("Updating MTD partitions...\n");
 	fdt_fixup_mtdparts(blob, nodes, ARRAY_SIZE(nodes));
+
+	if (silent_mode_enabled())
+		ipa9131_fixup_silent_chosen(blob);
 }
 #endif
 
