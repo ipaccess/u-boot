@@ -1,6 +1,7 @@
 #include <common.h>
 #include <malloc.h>
 #include <linux/compiler.h>
+#include <errno.h>
 #include <i2c.h>
 
 #include "characterisation.h"
