@@ -48,8 +48,22 @@
 #define CONFIG_CHARACTERISATION_IPA9131_SIZE 256
 #define CONFIG_CHARACTERISATION_IPA9131_VERSION 0x0
 #define CONFIG_CMD_CHARACTERISE_HW
+
 #define CONFIG_MISC_INIT_R
 #define CONFIG_CMD_NAND_TRIMFFS
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_CMD_MTDPARTS
+#define MTD_PARTITION_DEFAULT   "nand0,0"
+#define MTDIDS_DEFAULT          "nand0=ff800000.flash"
+#define MTDPARTS_DEFAULT                \
+        "mtdparts=ff800000.flash:"      \
+        "1024k@0k(ML),"                 \
+        "1024k@1024k(UBOOT0),"          \
+        "1024k@2048k(UBOOT1),"          \
+        "128k@3328k(BLOB0),"            \
+        "127488k@3456k(FS),"            \
+        "128k@130944k(BLOB1)"
 
 /* Auto-boot options */
 #define CONFIG_BOOTDELAY 3
