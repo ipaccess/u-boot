@@ -33,16 +33,19 @@ typedef struct variant_record_s {
 
 
 static const variant_record variant_lookup[] = {
-    { "0000", "000", "0",   0, '0' }, /* Bands: N/A          - Notes: N/A                                   */
-    { "230A", "230", "A", 230, 'A' }, /* Bands: 1            - Notes: Rest of the World                     */
-    { "230B", "230", "B", 230, 'B' }, /* Bands: 2, 5         - Notes: United States                         */
-    { "267I", "267", "I", 267, 'I' }, /* Bands: N/A          - Notes: No Radio                              */
-    { "400D", "400", "D", 400, 'D' }, /* Bands: 1, 3, 8      - Notes: Rest of the World                     */
-    { "400E", "400", "E", 400, 'E' }, /* Bands: 2, 4, 5      - Notes: United States                         */
-    { "245F", "245", "F", 245, 'F' }, /* Bands: 7, 3         - Notes: LTE Demonstrator                      */
-    { "245H", "245", "H", 245, 'H' }, /* Bands: 1, 12        - Notes: LTE Demonstrator                      */
-    { "248G", "248", "G", 248, 'G' }, /* Bands: 2, 5, 10, 12 - Notes: Freescale bsc9131-based E-40, 1 Tile  */
-    { "248J", "248", "J", 248, 'J' }, /* Bands: 1, 3, 7, 20  - Notes: Freescale bsc9131-based E-40, 1 Tile  */
+    { "0000", "000", "0",   0, '0' }, /* Bands: N/A              - Notes: N/A                                           */
+    { "230A", "230", "A", 230, 'A' }, /* Bands: 1                - Notes: Rest of the World                             */
+    { "230B", "230", "B", 230, 'B' }, /* Bands: 2, 5             - Notes: United States                                 */
+    { "267I", "267", "I", 267, 'I' }, /* Bands: N/A              - Notes: No Radio                                      */
+    { "400D", "400", "D", 400, 'D' }, /* Bands: 1, 3, 8          - Notes: Rest of the World                             */
+    { "400E", "400", "E", 400, 'E' }, /* Bands: 2, 4, 5          - Notes: United States                                 */
+    { "245F", "245", "F", 245, 'F' }, /* Bands: 7, 13            - Notes: Insecure LTE Demonstrator                     */
+    { "245H", "245", "H", 245, 'H' }, /* Bands: 1, 12            - Notes: Insecure LTE Demonstrator                     */
+    { "248G", "248", "G", 248, 'G' }, /* Bands: 2, 5, 10, 12, 17 - Notes: Insecure Freescale bsc9131-based E-40, 1 Tile */
+    { "248J", "248", "J", 248, 'J' }, /* Bands: 1, 3, 7, 20      - Notes: Insecure Freescale bsc9131-based E-40, 1 Tile */
+    { "278G", "278", "G", 278, 'G' }, /* Bands: 2, 5, 10, 12, 17 - Notes: Freescale bsc9131-based E-40, 1 Tile          */
+    { "278J", "278", "J", 278, 'J' }, /* Bands: 1, 3, 7, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile          */
+    { "278L", "278", "L", 278, 'L' }, /* Bands: 3, 7, 8, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile          */
 };
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
 
