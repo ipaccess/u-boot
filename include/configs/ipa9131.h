@@ -257,7 +257,7 @@
  * This command block is responsible for selecting the correct FDT to pass to
  * Linux based on the characterised board type.  The "current" state of the art
  * is the default, and older FDTs are selected based on the board variant part
- * number (245, 248 etc.)
+ * number (245, 248, 278 etc.)
  *
  * This sets up the 'selected_config' environment variable, which is used by
  * the secure boot command to pass as a config selector to the bootm command.
