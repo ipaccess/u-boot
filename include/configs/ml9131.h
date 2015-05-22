@@ -31,6 +31,9 @@
 #undef TSEC2_PHY_ADDR
 #define TSEC2_PHY_ADDR		1
 
+/* The microloader uses the Freescale SEC engine */
+#define CONFIG_FSL_CAAM
+
 /* disable the thermal alert for now - this needs board mods */
 #define CONFIG_ML9131_NO_THERMAL_ALERT
 
