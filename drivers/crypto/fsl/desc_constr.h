@@ -11,6 +11,13 @@
 #include <linux/compat.h>
 #include "desc.h"
 
+#ifndef upper_32_bits
+#define upper_32_bits(n) ((u32)(((n) >> 16) >> 16))
+#endif
+#ifndef lower_32_bits
+#define lower_32_bits(n) ((u32)(n))
+#endif
+
 #define IMMEDIATE (1 << 23)
 #define CAAM_CMD_SZ sizeof(u32)
 #define CAAM_PTR_SZ sizeof(dma_addr_t)
