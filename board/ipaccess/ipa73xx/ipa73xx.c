@@ -137,10 +137,15 @@ DECLARE_GLOBAL_DATA_PTR;
  *   0x2001ffa0 - ecc_check_result copy 1
  */
 #define SRAM_PK_ECC_RESULT_ADDRESS 0x2001ffa0
+#define ECC_STATUS_NO_KEY          10000
+#define ECC_STATUS_INVALID_KEY     10001
+#define ECC_STATUS_INVALID_RESULT  10002
+#define MAX_ECC_CORRECTIONS        64
 
 static void load_pk_ecc_result(void)
 {
     ulong r0, r1, r2, r3;
+    ulong result = ECC_STATUS_INVALID_RESULT;
     volatile ulong* pk_ecc_result_addr = (volatile ulong*)(SRAM_PK_ECC_RESULT_ADDRESS);
     
     r3 = ~(pk_ecc_result_addr[3]);
@@ -150,14 +155,20 @@ static void load_pk_ecc_result(void)
     
     if ( (r0 == r1) && (r0 == r2) && (r0 == r3) )
     {
-        char result_str[11];
-        snprintf(result_str, sizeof(result_str), "%d", (int)r0);
-        setenv("pk_ecc_result", result_str);
+        if (r0 <= MAX_ECC_CORRECTIONS)
+        {
+            result = r0;
+        }
+        else if (r0 == 0xffffffff)
+        {
+            result = ECC_STATUS_INVALID_KEY;
+        }
+        else if (r0 == 0xfffffffe)
+        {
+            result = ECC_STATUS_NO_KEY;
+        }
     }
-    else
-    {
-        setenv("pk_ecc_result", "Invalid");
-    }
+    setenv_ulong("pk_ecc_result", result);
 }
 
 /*****************************************************************************
