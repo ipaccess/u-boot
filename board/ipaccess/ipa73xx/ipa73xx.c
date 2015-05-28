@@ -129,6 +129,37 @@ DECLARE_GLOBAL_DATA_PTR;
 
 /* Functions --------------------------------------------------------------- */
 
+
+/* Storage of ecc_check_result in SRAM:
+ *   0x2001ffac - ecc_check_result reversed copy 2
+ *   0x2001ffa8 - ecc_check_result copy 2
+ *   0x2001ffa4 - ecc_check_result reversed copy 1
+ *   0x2001ffa0 - ecc_check_result copy 1
+ */
+#define SRAM_PK_ECC_RESULT_ADDRESS 0x2001ffa0
+
+static void load_pk_ecc_result(void)
+{
+    ulong r0, r1, r2, r3;
+    volatile ulong* pk_ecc_result_addr = (volatile ulong*)(SRAM_PK_ECC_RESULT_ADDRESS);
+    
+    r3 = ~(pk_ecc_result_addr[3]);
+    r2 = pk_ecc_result_addr[2];
+    r1 = ~(pk_ecc_result_addr[1]);
+    r0 = pk_ecc_result_addr[0];
+    
+    if ( (r0 == r1) && (r0 == r2) && (r0 == r3) )
+    {
+        char result_str[11];
+        snprintf(result_str, sizeof(result_str), "%d", (int)r0);
+        setenv("pk_ecc_result", result_str);
+    }
+    else
+    {
+        setenv("pk_ecc_result", "Invalid");
+    }
+}
+
 /*****************************************************************************
  *
  * show_boot_progress()
@@ -220,6 +251,8 @@ int misc_init_r (void)
         setenv("silent", "1");
         setenv("bootdelay", "0");
     }
+    
+    load_pk_ecc_result();
     
     return 0;
 }
