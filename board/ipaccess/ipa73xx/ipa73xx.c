@@ -129,6 +129,48 @@ DECLARE_GLOBAL_DATA_PTR;
 
 /* Functions --------------------------------------------------------------- */
 
+
+/* Storage of ecc_check_result in SRAM:
+ *   0x2001ffac - ecc_check_result reversed copy 2
+ *   0x2001ffa8 - ecc_check_result copy 2
+ *   0x2001ffa4 - ecc_check_result reversed copy 1
+ *   0x2001ffa0 - ecc_check_result copy 1
+ */
+#define SRAM_PK_ECC_RESULT_ADDRESS 0x2001ffa0
+#define ECC_STATUS_NO_KEY          10000
+#define ECC_STATUS_INVALID_KEY     10001
+#define ECC_STATUS_INVALID_RESULT  10002
+#define MAX_ECC_CORRECTIONS        64
+
+static void load_pk_ecc_result(void)
+{
+    ulong r0, r1, r2, r3;
+    ulong result = ECC_STATUS_INVALID_RESULT;
+    volatile ulong* pk_ecc_result_addr = (volatile ulong*)(SRAM_PK_ECC_RESULT_ADDRESS);
+    
+    r3 = ~(pk_ecc_result_addr[3]);
+    r2 = pk_ecc_result_addr[2];
+    r1 = ~(pk_ecc_result_addr[1]);
+    r0 = pk_ecc_result_addr[0];
+    
+    if ( (r0 == r1) && (r0 == r2) && (r0 == r3) )
+    {
+        if (r0 <= MAX_ECC_CORRECTIONS)
+        {
+            result = r0;
+        }
+        else if (r0 == 0xffffffff)
+        {
+            result = ECC_STATUS_INVALID_KEY;
+        }
+        else if (r0 == 0xfffffffe)
+        {
+            result = ECC_STATUS_NO_KEY;
+        }
+    }
+    setenv_ulong("pk_ecc_result", result);
+}
+
 /*****************************************************************************
  *
  * show_boot_progress()
@@ -220,6 +262,8 @@ int misc_init_r (void)
         setenv("silent", "1");
         setenv("bootdelay", "0");
     }
+    
+    load_pk_ecc_result();
     
     return 0;
 }
