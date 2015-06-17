@@ -6,5 +6,5 @@
 # Version 2 as published by the Free Software Foundation.
 #
 
-obj-$(CONFIG_FSL_CAAM) += jr.o fsl_hash.o jobdesc.o error.o ipa_rng.o
+obj-$(CONFIG_FSL_CAAM) += jr.o fsl_hash.o jobdesc.o error.o rng.o
 obj-$(CONFIG_CMD_BLOB) += fsl_blob.o

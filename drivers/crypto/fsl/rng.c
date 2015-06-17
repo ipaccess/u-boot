@@ -1,9 +1,6 @@
 /*
- * Copyright 2014 Freescale Semiconductor, Inc.
- *
- * SPDX-License-Identifier:	GPL-2.0+
- *
- */
+ *  * Copyright (c) 2015, ip.access Ltd. All Rights Reserved.
+ *   */
 
 #include <common.h>
 #include <command.h>
@@ -58,8 +55,8 @@ int sec_generate_random_number(uint32_t len, uint8_t *dst_addr)
 }
 
 
-#if defined(CONFIG_CMD_IPA_RNG)
-int do_rng(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+#if defined(CONFIG_CMD_SEC_GEN_RN)
+int do_gen_random(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
     u8 *dst_addr;
     u32 len;
@@ -73,7 +70,7 @@ int do_rng(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     return sec_generate_random_number(len,dst_addr);
 }
 
-U_BOOT_CMD(ipa_rng,3,0,do_rng,
+U_BOOT_CMD(sec_gen_random,3,0,do_gen_random,
           "Excercise rng functions",
           "<dst_addr(hex_string)> <rand_num size in bytes(hex_string)>");
 #endif
