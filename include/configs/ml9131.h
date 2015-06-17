@@ -96,4 +96,7 @@
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
 
+/* temporary, to see Sec RNG genrates random number */
+#define CONFIG_CMD_IPA_RNG
+
 #endif

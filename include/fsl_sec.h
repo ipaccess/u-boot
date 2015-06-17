@@ -176,6 +176,8 @@ struct jr_regs {
 };
 
 int sec_init(void);
+int sec_generate_random_number( uint32_t len, uint8_t *dest );
+
 #endif
 
 #endif /* __FSL_SEC_H */
