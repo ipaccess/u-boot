@@ -134,7 +134,7 @@ void serialise_characterisation_info(const struct characterisation_data_t * cd, 
         {
             if (cd->test_mode)
             {
-                 payload[239] = 0x1;
+                 payload[239] = 0x3;/*Setting both development and test bit on*/
             }
             else if (cd->development_mode)
             {
