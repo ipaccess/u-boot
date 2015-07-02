@@ -13,6 +13,7 @@ obj-$(CONFIG_LZO) += lzo/
 obj-$(CONFIG_ZLIB) += zlib/
 obj-$(CONFIG_TIZEN) += tizen/
 obj-$(CONFIG_TFM) += tfm/
+obj-$(CONFIG_MBED_TLS) += mbedtls/
 
 obj-$(CONFIG_AES) += aes.o
 obj-$(CONFIG_BZIP2) += bzlib.o
