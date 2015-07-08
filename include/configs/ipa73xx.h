@@ -107,13 +107,17 @@
 
 #define MTDIDS_DEFAULT          "nand0=gpio-nand"
 
-#define MTDPARTS_DEFAULT	"mtdparts=gpio-nand:256K@0K(SPL0),"	\
-						   "256K@256K(SPL1),"	\
-						   "256K@512K(SPL2),"	\
-						   "256K@768K(SPL3),"	\
-						   "4M@1M(UBOOT0),"	\
-						   "4M@5M(UBOOT1),"	\
-						   "-@9M(FS)"
+#define MTDPARTS_DEFAULT "mtdparts=gpio-nand:256K@0K(SPL0),"       \
+                                            "256K@256K(SPL1),"     \
+                                            "256K@512K(SPL2),"     \
+                                            "256K@768K(SPL3),"     \
+                                            "4096K@1024K(UBOOT0)," \
+                                            "4096K@5120K(UBOOT1)," \
+                                            "128K@9216K(RAW0),"    \
+                                            "128K@9344K(RAW1),"    \
+                                            "128K@9472K(RAW2),"    \
+                                            "128K@9600K(RAW3),"    \
+                                            "-@9728K(FS)"
 
 #define PK_ECC_STATUS " ipa_pk_ecc_status=$pk_ecc_result"
                            
