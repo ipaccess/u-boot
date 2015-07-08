@@ -29,6 +29,7 @@ COBJS-y += key.o
 COBJS-y += ipa73xx_bootcount.o
 COBJS-y += ipa73xx_fuse.o
 COBJS-y += ipa73xx_characterise_hw.o
+COBJS-y += ipa73xx_hard_reset.o
 COBJS-y += damm.o
 
 SRCS    := $(SOBJS:.o=.S) $(COBJS-y:.o=.c)

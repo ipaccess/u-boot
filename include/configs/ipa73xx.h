@@ -465,6 +465,7 @@
 #define CONFIG_CMD_LIE
 #define CONFIG_CMD_KEY
 #define CONFIG_CMD_CHARACTERISE_HW
+#define CONFIG_CMD_HARD_RESET_FB
 
 /* Allow us to track boot progress */
 #define CONFIG_SHOW_BOOT_PROGRESS  1
