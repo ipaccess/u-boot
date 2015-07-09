@@ -46,6 +46,7 @@ static const variant_record variant_lookup[] = {
     { "278G", "278", "G", 278, 'G' }, /* Bands: 2, 5, 10, 12, 17 - Notes: Freescale bsc9131-based E-40, 1 Tile          */
     { "278J", "278", "J", 278, 'J' }, /* Bands: 1, 3, 7, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile          */
     { "278L", "278", "L", 278, 'L' }, /* Bands: 3, 7, 8, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile          */
+    { "248L", "248", "L", 248, 'L' }, /* Bands: 3, 7, 8, 20      - Notes: Insecure Freescale bsc9131-based E-40, 1 Tile */
 };
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
 
