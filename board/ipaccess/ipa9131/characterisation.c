@@ -310,6 +310,16 @@ u8 characterisation_application_revocation(void)
     return ipa9131_fuse_read_application_revocation();
 }
 
+int characterisation_read_eid(char *eid, size_t len)
+{
+    if(!eid || (len == 0))
+        return -EINVAL;
+
+    snprintf(eid,len,"%02X%02X%02X-%010u", cdo.oui[0], cdo.oui[1], cdo.oui[2], cdo.serial);
+    return 0;
+
+}
+
 
 static int do_hwchar_i2c_read(void)
 {

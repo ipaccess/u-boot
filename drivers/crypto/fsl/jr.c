@@ -272,7 +272,7 @@ int run_descriptor_jr(uint32_t *desc)
 		}
 	}
 
-	if (!op.status) {
+	if (op.status != 0) {
 		debug("Error %x\n", op.status);
 		ret = op.status;
 	}
@@ -438,12 +438,18 @@ int sec_init(void)
 {
 	int ret = 0;
 
-#ifdef CONFIG_PHYS_64BIT
 	ccsr_sec_t *sec = (void *)CONFIG_SYS_FSL_SEC_ADDR;
+#ifdef CONFIG_PHYS_64BIT
+	//ccsr_sec_t *sec = (void *)CONFIG_SYS_FSL_SEC_ADDR;
 	uint32_t mcr = sec_in32(&sec->mcfgr);
 
 	sec_out32(&sec->mcfgr, mcr | 1 << MCFGR_PS_SHIFT);
 #endif
+	sec_out32(&sec->jrliodnr[0].ms, 0x00010000);
+	sec_out32(&sec->jrliodnr[1].ms, 0x00010000);
+	sec_out32(&sec->jrliodnr[2].ms, 0x00010000);
+	sec_out32(&sec->jrliodnr[3].ms, 0x00010000);
+
 	ret = jr_init();
 	if (ret < 0) {
 		printf("SEC initialization failed\n");

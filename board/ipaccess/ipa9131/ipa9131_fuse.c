@@ -194,6 +194,13 @@ int ipa9131_is_unfused(void)
 	return 1;
 }
 
+u32 ipa9131_fuse_read_fsl_uid(void)
+{
+
+    return fuse_in_be32(SFP_FUIDR_ADDRESS);
+
+}    
+
 
 
 #if defined(CONFIG_CMD_IPA9131_FUSE)

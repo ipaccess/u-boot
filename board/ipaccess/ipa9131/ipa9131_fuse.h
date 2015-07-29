@@ -11,5 +11,5 @@ extern int ipa9131_fuse_read_loader_revocation_value(u16 * r);
 extern int ipa9131_fuse_read_application_revocation_value(u32 * r);
 extern u16 ipa9131_fuse_read_loader_revocation(void);
 extern u32 ipa9131_fuse_read_application_revocation(void);
-
+extern u32 ipa9131_fuse_read_fsl_uid(void);
 #endif

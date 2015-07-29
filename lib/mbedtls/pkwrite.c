@@ -438,7 +438,7 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
 
 #if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
 	            defined(POLARSSL_DES_C)
-int pk_write_key_pem_cipher_des3( pk_context *key, unsigned char *buf, size_t size,const char *pwd,unsigned char *iv, size_t iv_len )
+int pk_write_key_pem_cipher_des3( pk_context *key, unsigned char *buf, size_t size,const unsigned char *pwd,unsigned char *iv, size_t iv_len )
 {
     int ret;
     unsigned char output_buf[PRV_DER_MAX_BYTES];

@@ -1095,6 +1095,17 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
         memcpy( p, hash, hashlen );
     }
 
+    if ((mode == RSA_PRIVATE) && ctx->ext_rsa_private && ctx->rsa_priv_ext_f)
+    {
+	    uint8_t pub_mod[512];
+	    int ret;
+
+	    if ( 0 != mpi_write_binary( &ctx->N, (unsigned char *) pub_mod,ctx->len) )
+		    return POLARSSL_ERR_RSA_BAD_INPUT_DATA;
+	    
+	    return ctx->rsa_priv_ext_f(pub_mod,sig,ctx->len,sig);
+    }
+
     return( ( mode == RSA_PUBLIC )
             ? rsa_public(  ctx, sig, sig )
             : rsa_private( ctx, f_rng, p_rng, sig, sig ) );
@@ -1677,4 +1688,10 @@ cleanup:
 
 #endif /* POLARSSL_SELF_TEST */
 
+
+void rsa_set_ext_private_func( rsa_context *ctx,int (*rsa_ext_func)(const uint8_t *,const uint8_t *,uint32_t , uint8_t *) )
+{
+	    ctx->ext_rsa_private = 1;
+	    ctx->rsa_priv_ext_f = rsa_ext_func;
+}
 #endif /* POLARSSL_RSA_C */

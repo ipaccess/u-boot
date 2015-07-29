@@ -170,6 +170,7 @@ static inline void append_##cmd(u32 *desc, u32 options) \
 	append_cmd(desc, CMD_##op | options); \
 }
 APPEND_CMD(operation, OPERATION)
+APPEND_CMD(signature, SIGNATURE)
 
 #define APPEND_CMD_LEN(cmd, op) \
 static inline void append_##cmd(u32 *desc, unsigned int len, u32 options) \

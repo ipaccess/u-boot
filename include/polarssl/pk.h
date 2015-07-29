@@ -646,7 +646,7 @@ int pk_load_file( const char *path, unsigned char **buf, size_t *n );
 
 #if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
 	                    defined(POLARSSL_DES_C)
-int pk_write_key_pem_cipher_des3( pk_context *key, unsigned char *buf, size_t size,const char *pwd,unsigned char *iv, size_t iv_len );
+int pk_write_key_pem_cipher_des3( pk_context *key, unsigned char *buf, size_t size,const unsigned char *pwd,unsigned char *iv, size_t iv_len );
 
 #endif
 

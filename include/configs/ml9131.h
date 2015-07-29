@@ -89,10 +89,15 @@
 	"netdev=eth1\0"			\
 	"ethrotate=no\0"
 
-#define STANDARD_BOOT_COMMAND		\
-	"ledc all yellow off 1 300; "	\
-	"ml9131; "			\
-	"ledc nwk green red 3 1000; "	\
+#define STANDARD_BOOT_COMMAND			\
+	"ledc all yellow off 1 300; "	 	\
+	"restore_raw_container -m 3 -m 5; "	\
+	"if test $? -eq 1; then "		\
+ 	 "ledc all green red 3 1000; "		\
+	 "reset; "				\
+	"fi; "					\
+	"ml9131; "				\
+	"ledc nwk green red 3 1000; "		\
 	"reset"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND

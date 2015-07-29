@@ -108,6 +108,9 @@ typedef struct
 #if defined(POLARSSL_THREADING_C)
     threading_mutex_t mutex;    /*!<  Thread-safety mutex       */
 #endif
+    int ext_rsa_private;
+    int (*rsa_priv_ext_f)(const uint8_t *pub_mod,const uint8_t *in,uint32_t in_len, uint8_t *out);
+
 }
 rsa_context;
 
@@ -643,6 +646,8 @@ void rsa_free( rsa_context *ctx );
  * \return         0 if successful, or 1 if the test failed
  */
 int rsa_self_test( int verbose );
+
+void rsa_set_ext_private_func( rsa_context *ctx,int (*rsa_ext_func)(const uint8_t *,const uint8_t *,uint32_t , uint8_t *) );
 
 #ifdef __cplusplus
 }

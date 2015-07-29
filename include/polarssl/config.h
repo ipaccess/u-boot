@@ -29,6 +29,7 @@
 #define POLARSSL_CONFIG_H
 
 #include <common.h>
+#include <malloc.h>
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -1072,7 +1073,7 @@
  *
  * Comment this macro to disable support for SSL session tickets
  */
-#define POLARSSL_SSL_SESSION_TICKETS
+//#define POLARSSL_SSL_SESSION_TICKETS
 
 /**
  * \def POLARSSL_SSL_SERVER_NAME_INDICATION
@@ -1315,7 +1316,7 @@
  *
  * PEM_PARSE uses AES for decrypting encrypted keys.
  */
-#define POLARSSL_AES_C
+//#define POLARSSL_AES_C
 
 /**
  * \def POLARSSL_ARC4_C
@@ -1512,7 +1513,7 @@
  *
  * This module provides the CTR_DRBG AES-256 random number generator.
  */
-#define POLARSSL_CTR_DRBG_C
+//#define POLARSSL_CTR_DRBG_C
 
 /**
  * \def POLARSSL_DEBUG_C
@@ -1921,7 +1922,7 @@
  *
  * This module adds support for the PKCS#5 functions.
  */
-#define POLARSSL_PKCS5_C
+//#define POLARSSL_PKCS5_C
 
 /**
  * \def POLARSSL_PKCS11_C
@@ -1952,7 +1953,7 @@
  *
  * This module enables PKCS#12 functions.
  */
-#define POLARSSL_PKCS12_C
+//#define POLARSSL_PKCS12_C
 
 /**
  * \def POLARSSL_PLATFORM_C
