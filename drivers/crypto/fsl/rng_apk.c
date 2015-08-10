@@ -24,13 +24,23 @@
 #define FIFOST_TYPE_PKHA_E       (0x13 << FIFOST_TYPE_SHIFT)
 /*Siganture fields construct*/
 #define SIGNATURE_HASH_4_BYTE 0x000C0000
-
+#define SIGNATURE_HASH_2_BYTE 0x000A0000
+#define SIGNATURE_HASH_3_BYTE 0x000B0000
 static struct apk_ctx_t
 {
     uint8_t black_key[268];
     uint8_t pub_modulus[256];
     uint8_t initialised;
 } apk_ctx={{0}};
+
+/*The same strucure will be used in kernel sec_jr module to recover back the
+ * stored descriptors from memory, Any changes made here has to be propagated in sec_jr
+ * module as well*/
+static struct desc_store_t
+{
+	uint32_t desc_key_init[30];
+	uint32_t desc_mod_xp[30];
+};
 
 static uint8_t key_mod[]= {0x01,0x12,0x23,0x34,0x45,0x56,0x67,0x78,0x89,0x9a,0xab,0xbc,0xcd,0xde,0xef,0x10};
 
@@ -187,14 +197,14 @@ static void inline_cnstr_jobdesc_priv_expo(uint32_t *desc,const uint8_t *pub_mod
     /*SIGNATURE command */
     append_signature(desc,SIGNATURE_HASH_4_BYTE);
 
-    append_key(desc,black_key_dma,in_len,KEY_DEST_PKHA_E|CLASS_1|KEY_ENC|KEY_NWB);
+    append_key(desc,black_key_dma,in_len,KEY_DEST_PKHA_E|CLASS_1|KEY_ENC|KEY_NWB|KEY_EKT|KEY_TK);
 
     append_signature(desc,SIGNATURE_HASH_4_BYTE);
 
     append_fifo_load(desc,pub_mod_dma,in_len, FIFOST_TYPE_PKHA_N|CLASS_1);
 
-    append_signature(desc,SIGNATURE_HASH_4_BYTE);
-
+    append_signature(desc,SIGNATURE_HASH_2_BYTE);
+    /*input data lenght can vary in our case so exclude it from signing*/
     append_fifo_load(desc,dma_addr_in,in_len, FIFOST_TYPE_PKHA_A|CLASS_1);
 
     append_operation(desc,OP_TYPE_PK|OP_ALG_TYPE_CLASS1|OP_ALG_PKMODE_MOD_EXPO|0x00800000);
@@ -306,6 +316,8 @@ int sec_init_apk_ctx_from_blob(const uint8_t *pub_modulus,const uint8_t *privkey
     u32 *desc;
     uint8_t black_key[268];
 
+    memset(black_key,0,sizeof(black_key));
+
     if ( !pub_modulus || !privkey_blob || !blob_length )
     {
         debug("sec_init_apk_ctx_from_blob: Invalid Input\n");
@@ -343,6 +355,58 @@ end:
     return ret;
 
 }
+
+int gen_desc(uint32_t *dst_addr)
+{
+    int ret = 0, desc_len = 0;
+    struct desc_store_t desc_store = {{0}};
+    u8 key_size = 256;
+    
+    inline_cnstr_jobdesc_priv_expo(desc_store.desc_mod_xp,0x0,0x0,0x0,0x0);
+
+    if ( 0 != (ret = run_descriptor_jr(desc_store.desc_mod_xp)) )
+    {
+        debug("Signing trusted desc (desc_mod_xp) failed %8X\n",ret);
+        goto end;
+    }
+
+    inline_cnstr_jobdesc_decrypt_key_blob(desc_store.desc_key_init,0x0, (key_size+ BLOB_EXTRA_LEN), 0x0);
+
+    if ( 0 != (ret = run_descriptor_jr(desc_store.desc_key_init)) )
+    {
+	    debug("Signing trusted desc desc_key_init failed %8X\n",ret);
+	    goto end;
+    }
+
+    memcpy(dst_addr,&desc_store,sizeof(desc_store));
+
+end:
+    return ret;
+
+
+}
+
+#if defined(CONFIG_CMD_SEC_GEN_TRUSTED_DESC)
+int do_gen_trusted_desc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+    u32 *dst_addr;
+    u32 len;
+
+    if (argc != 2)
+        return CMD_RET_USAGE;
+
+    dst_addr = (u32 *)simple_strtoul(argv[1], NULL, 16);
+
+    if (0 != gen_desc(dst_addr))
+        return CMD_RET_FAILURE;
+    else
+        return CMD_RET_SUCCESS;
+}
+
+U_BOOT_CMD(gen_trusted_desc,2,0,do_gen_trusted_desc,
+        "Excercise gen_trusted_desc",
+        "<dst_addr(hex_string)> ");
+#endif
 
 
 #if defined(CONFIG_CMD_SEC_GEN_RN)

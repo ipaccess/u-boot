@@ -96,6 +96,7 @@
  	 "ledc all green red 3 1000; "		\
 	 "reset; "				\
 	"fi; "					\
+	"gen_trusted_desc 0x36F00000; "		\
 	"ml9131; "				\
 	"ledc nwk green red 3 1000; "		\
 	"reset"

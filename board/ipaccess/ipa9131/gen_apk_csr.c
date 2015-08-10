@@ -104,14 +104,14 @@ static int gen_csr_pem( pk_context *key,crypt_buf_t *csr_out_buf )
     }
     else if (characterisation_is_specials_mode())
     {
-        mode = "Special";
+        mode = "TestSpecial";
     }
 
     x509write_csr_init( &req );
     x509write_csr_set_md_alg( &req, POLARSSL_MD_SHA256 );
 
    
-    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME, eid,mode);
+    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME, mode,eid);
 
     if( ( ret = x509write_csr_set_subject_name( &req, subject_name ) ) != 0 )
     {
