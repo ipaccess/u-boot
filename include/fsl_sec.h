@@ -177,10 +177,9 @@ struct jr_regs {
 
 int sec_init(void);
 int sec_generate_random_number( uint32_t len, uint8_t *dest );
-int sec_gen_priv_key_blob(const uint8_t *priv_key,uint32_t key_size, uint8_t *black_blob_out,uint8_t *black_key_out);
+int sec_gen_priv_key_blob(const uint8_t *priv_key,uint32_t key_size, uint8_t *black_blob_out);
 int sec_do_rsa_private(const uint8_t *pub_mod,const uint8_t *in,uint32_t in_len, uint8_t *out);
-void sec_init_apk_ctx( const uint8_t* pub_mod, const uint8_t* black_key );
-int sec_init_apk_ctx_from_blob(const uint8_t *pub_modulus,const uint8_t *privkey_blob,uint32_t blob_length);
+int sec_init_apk_from_blob(const uint8_t *privkey_blob,uint32_t blob_length);
 #endif
 
 #endif /* __FSL_SEC_H */

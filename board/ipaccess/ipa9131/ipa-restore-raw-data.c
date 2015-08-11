@@ -5,6 +5,7 @@
 #include <common.h>
 #include <malloc.h>
 #include <errno.h>
+#include <fsl_sec.h>
 
 #define IPA9131_BLOB0_START_BLOCK 26
 #define IPA9131_BLOB1_START_BLOCK 1023
@@ -279,7 +280,7 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
 
         }
 
-	if ( 0 != init_apk_black_key( privkey_data->value, privkey_data->length,pubkey_data->value,pubkey_data->length) )
+	if ( 0 != sec_init_apk_from_blob(privkey_data->value, privkey_data->length) )
 	{
                 fprintf(stderr,"Black key intialisation failed for sec engine");
 		ret = -EFAULT;

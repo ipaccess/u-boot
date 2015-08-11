@@ -103,6 +103,7 @@
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
 
+#define CONFIG_CMD_SEC_GEN_TRUSTED_DESC
 /* temporary, to see Sec RNG generates random number */
 #define CONFIG_CMD_SEC_GEN_RN
 

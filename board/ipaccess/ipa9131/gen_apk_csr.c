@@ -175,12 +175,10 @@ int get_priv_key_blob( pk_context *key, crypt_buf_t *priv_key_blob )
 {
 
     uint8_t *blob=NULL;
-    uint8_t priv_key_exp[KEY_SIZE_BYTES], black_key[268],pub_modulus[KEY_SIZE_BYTES];
+    uint8_t priv_key_exp[KEY_SIZE_BYTES];
     int ret = 0;
     const rsa_context *rsa = pk_rsa( *key );
     memset( priv_key_exp,0,sizeof(priv_key_exp) );
-    memset( black_key,0,sizeof(black_key) );
-    memset(pub_modulus,0,sizeof(pub_modulus));
 
     if ( 0 != mpi_write_binary( &rsa->D, (unsigned char *) priv_key_exp,KEY_SIZE_BYTES) )
     {
@@ -196,19 +194,11 @@ int get_priv_key_blob( pk_context *key, crypt_buf_t *priv_key_blob )
     }
 
 
-    if ( 0 != (ret = sec_gen_priv_key_blob(priv_key_exp,sizeof(priv_key_exp), blob,black_key) ) )
+    if ( 0 != (ret = sec_gen_priv_key_blob(priv_key_exp,sizeof(priv_key_exp), blob) ) )
     {
         goto end;
     }
-
-    if ( 0 != mpi_write_binary( (const *) &rsa->N, (unsigned char *) pub_modulus,KEY_SIZE_BYTES) )
-    {
-        ret = -EFAULT;
-        goto end;
-    }
-
-    sec_init_apk_ctx(pub_modulus,black_key);
-
+    
     priv_key_blob->buf = blob;
     priv_key_blob->len = MAX_BLOB_SIZE;
     blob = NULL;
@@ -288,51 +278,6 @@ end:
     pk_free(&key);
     return ret;
 
-
-}
-
-int init_apk_black_key( const uint8_t *privkey_blob, uint32_t blob_length,const uint8_t *pubkey_data, uint32_t pub_key_len)
-{
-    int ret = 0;
-    pk_context key;
-    uint8_t pub_modulus[KEY_SIZE_BYTES];
-    rsa_context *rsa;
-    
-    if ( !privkey_blob || !pubkey_data )
-    {
-        return -EINVAL;
-
-    }
-
-    memset(pub_modulus,0,sizeof(pub_modulus));
-    pk_init( &key );
-
-
-    if( 0 != (ret = pk_parse_public_key( &key ,(const unsigned char *) pubkey_data, (size_t) pub_key_len )) )
-    {
-        fprintf( stderr,"failed pk_parse_public_key returned 0x%08X\n", ret );
-        goto end;
-    }
-
-    rsa = pk_rsa(key);
-
-    if ( 0 != mpi_write_binary( &rsa->N, (unsigned char *) pub_modulus,KEY_SIZE_BYTES ) )
-    {
-	    ret = -EFAULT;
-	    goto end;
-    }
-
-    if (0 != (ret = sec_init_apk_ctx_from_blob(pub_modulus,privkey_blob,blob_length)) )
-    {
-        fprintf( stderr,"failed sec_init_apk_ctx_from_blob returned 0x%08X\n", ret );
-        goto end;
-
-    }
-
-end:
-    pk_free(&key);
-    return ret;
-    
 
 }
 

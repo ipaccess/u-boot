@@ -26,36 +26,18 @@
 #define SIGNATURE_HASH_4_BYTE 0x000C0000
 #define SIGNATURE_HASH_2_BYTE 0x000A0000
 #define SIGNATURE_HASH_3_BYTE 0x000B0000
-static struct apk_ctx_t
-{
-    uint8_t black_key[268];
-    uint8_t pub_modulus[256];
-    uint8_t initialised;
-} apk_ctx={{0}};
+#define BLACK_KEY_ADDR 0xFED00000
 
 /*The same strucure will be used in kernel sec_jr module to recover back the
  * stored descriptors from memory, Any changes made here has to be propagated in sec_jr
  * module as well*/
 static struct desc_store_t
 {
-	uint32_t desc_key_init[30];
 	uint32_t desc_mod_xp[30];
 };
 
 static uint8_t key_mod[]= {0x01,0x12,0x23,0x34,0x45,0x56,0x67,0x78,0x89,0x9a,0xab,0xbc,0xcd,0xde,0xef,0x10};
 
-
-void sec_init_apk_ctx( const uint8_t* pub_mod, const uint8_t* black_key )
-{
-    if (!apk_ctx.initialised)
-    {
-        /*Initialise this only once*/
-        memcpy(apk_ctx.pub_modulus,pub_mod,256);
-        memcpy(apk_ctx.black_key,black_key,268);
-        apk_ctx.initialised = 1;
-    }
-
-}
 
 static void inline_cnstr_jobdesc_rng_gen(uint32_t *desc,uint32_t rn_size, uint8_t *rn)
 {
@@ -100,7 +82,7 @@ int sec_generate_random_number(uint32_t len, uint8_t *dst_addr)
 }
 
 
-static void inline_cnstr_jobdesc_priv_key_blob(uint32_t *desc,const uint8_t *priv_key,uint32_t key_size,uint8_t *priv_key_blob,uint8_t *black_key)
+static void inline_cnstr_jobdesc_priv_key_blob(uint32_t *desc,const uint8_t *priv_key,uint32_t key_size,uint8_t *priv_key_blob)
 {
     dma_addr_t dma_addr_out;
     dma_addr_t dma_addr_in, dma_key_mod;
@@ -111,7 +93,7 @@ static void inline_cnstr_jobdesc_priv_key_blob(uint32_t *desc,const uint8_t *pri
 
     dma_addr_out = virt_to_phys((void *)priv_key_blob);
     dma_addr_in = virt_to_phys((void *)priv_key);
-    black_key_out =  virt_to_phys((void *)black_key);
+    black_key_out = BLACK_KEY_ADDR;
     dma_key_mod =  virt_to_phys((void *)key_mod);
 
     init_job_desc(desc,HDR_MAKE_TRUSTED|HDR_TRUSTED);
@@ -144,12 +126,12 @@ static void inline_cnstr_jobdesc_priv_key_blob(uint32_t *desc,const uint8_t *pri
 
 }
 
-int sec_gen_priv_key_blob(const uint8_t *priv_key,uint32_t key_size, uint8_t *black_blob_out,uint8_t *black_key_out)
+int sec_gen_priv_key_blob(const uint8_t *priv_key,uint32_t key_size, uint8_t *black_blob_out)
 {
     int ret = 0;
     u32 *desc;
 
-    if ( !priv_key || !black_blob_out || !black_key_out)
+    if ( !priv_key || !black_blob_out)
     {
         debug("sec_gen_priv_key_blob Inavlid Input\n");
         return -ENOMEM;
@@ -163,7 +145,7 @@ int sec_gen_priv_key_blob(const uint8_t *priv_key,uint32_t key_size, uint8_t *bl
     } 
 
 
-    inline_cnstr_jobdesc_priv_key_blob(desc,priv_key,key_size,black_blob_out,black_key_out);
+    inline_cnstr_jobdesc_priv_key_blob(desc,priv_key,key_size,black_blob_out);
 
     if (0 != (ret = run_descriptor_jr(desc)) )
     {
@@ -189,7 +171,7 @@ static void inline_cnstr_jobdesc_priv_expo(uint32_t *desc,const uint8_t *pub_mod
 
     dma_addr_out = virt_to_phys((void *)out);
     dma_addr_in = virt_to_phys((void *)in);
-    black_key_dma = virt_to_phys((void *)(apk_ctx.black_key));
+    black_key_dma = BLACK_KEY_ADDR;
     pub_mod_dma = virt_to_phys((void *)(pub_mod));
 
     init_job_desc(desc,HDR_MAKE_TRUSTED|HDR_TRUSTED);
@@ -226,24 +208,13 @@ int sec_do_rsa_private(const uint8_t *pub_mod,const uint8_t *in,uint32_t in_len,
     u32 *desc = NULL;
     const uint8_t *pub_mod_ptr = pub_mod;
 
-    if( !in || !out || !in_len)
+    if( !pub_mod || !in || !out || !in_len)
     {
         debug("sec_do_rsa_private: Invalid Input\n");
         ret = -EINVAL;
         goto end;
     }
 
-    if( !apk_ctx.initialised)
-    {
-        debug("sec_do_rsa_private: apk_ctx not initialised\n");
-        ret = -EFAULT;
-        goto end;
-    }
-    else if ( !pub_mod_ptr )
-    {
-        pub_mod_ptr = (const uint8_t *) apk_ctx.pub_modulus;
-
-    }
 
     desc = calloc(MAX_CAAM_DESCSIZE,sizeof(int));
 
@@ -277,13 +248,13 @@ end:
 }
 
 
-static void inline_cnstr_jobdesc_decrypt_key_blob(uint32_t *desc,const uint8_t *privkey_blob,uint32_t blob_length,uint8_t *black_key_out)
+static void inline_cnstr_jobdesc_decrypt_key_blob(uint32_t *desc,const uint8_t *privkey_blob,uint32_t blob_length)
 {
     dma_addr_t dma_addr_out;
     dma_addr_t dma_addr_in, dma_key_mod;
     u32 out_size = blob_length - BLOB_EXTRA_LEN; 
 
-    dma_addr_out = virt_to_phys((void *)black_key_out);
+    dma_addr_out = BLACK_KEY_ADDR;
     dma_addr_in = virt_to_phys((void *)privkey_blob);
     dma_key_mod =  virt_to_phys((void *)key_mod);
 
@@ -309,45 +280,42 @@ static void inline_cnstr_jobdesc_decrypt_key_blob(uint32_t *desc,const uint8_t *
     desc[0] += 8;
 }
 
-int sec_init_apk_ctx_from_blob(const uint8_t *pub_modulus,const uint8_t *privkey_blob,uint32_t blob_length)
+int sec_init_apk_from_blob(const uint8_t *privkey_blob,uint32_t blob_length)
 {
 
     int ret = 0;
     u32 *desc;
-    uint8_t black_key[268];
 
-    memset(black_key,0,sizeof(black_key));
 
-    if ( !pub_modulus || !privkey_blob || !blob_length )
+    if ( !privkey_blob || !blob_length )
     {
-        debug("sec_init_apk_ctx_from_blob: Invalid Input\n");
+        debug("sec_init_apk_from_blob: Invalid Input\n");
         return -EINVAL;
     }
 
     desc = calloc(MAX_CAAM_DESCSIZE,sizeof(int));
 
     if (!desc) {
-        debug("sec_init_apk_ctx_from_blob: No mem\n");
+        debug("sec_init_apk_from_blob: No mem\n");
         return -ENOMEM;
     }
 
 
-    inline_cnstr_jobdesc_decrypt_key_blob(desc,privkey_blob,blob_length,black_key); 
+    inline_cnstr_jobdesc_decrypt_key_blob(desc,privkey_blob,blob_length); 
 
 
     if ( 0 != (ret = run_descriptor_jr(desc)) )
     {
-        debug("sec_init_apk_ctx_from_blob: Signing desc failed %8X\n",ret);
+        debug("sec_init_apk_from_blob: Signing desc failed %8X\n",ret);
         goto end; 
     }
 
     if ( 0 != (ret = run_descriptor_jr(desc)) )
     {
-        debug("sec_init_apk_ctx_from_blob: Run desc failed %8X\n",ret);
+        debug("sec_init_apk_from_blob: Run desc failed %8X\n",ret);
         goto end;
     }
 
-    sec_init_apk_ctx(pub_modulus,black_key);
     ret = 0;
 
 end:
@@ -362,7 +330,7 @@ int gen_desc(uint32_t *dst_addr)
     struct desc_store_t desc_store = {{0}};
     u8 key_size = 256;
     
-    inline_cnstr_jobdesc_priv_expo(desc_store.desc_mod_xp,0x0,0x0,0x0,0x0);
+    inline_cnstr_jobdesc_priv_expo(desc_store.desc_mod_xp,0x0,0x0,256,0x0);
 
     if ( 0 != (ret = run_descriptor_jr(desc_store.desc_mod_xp)) )
     {
@@ -370,13 +338,6 @@ int gen_desc(uint32_t *dst_addr)
         goto end;
     }
 
-    inline_cnstr_jobdesc_decrypt_key_blob(desc_store.desc_key_init,0x0, (key_size+ BLOB_EXTRA_LEN), 0x0);
-
-    if ( 0 != (ret = run_descriptor_jr(desc_store.desc_key_init)) )
-    {
-	    debug("Signing trusted desc desc_key_init failed %8X\n",ret);
-	    goto end;
-    }
 
     memcpy(dst_addr,&desc_store,sizeof(desc_store));
 
