@@ -182,16 +182,13 @@ void debug_container_field(struct container_field_t * head)
 
     if (!head)
     {
-        printf("Empty Container \n");
         return;
     }
 
     tmp = head;
 
-    printf("tmp->length %d\n",tmp->length);
     while (tmp->next)
     {
-        printf("tmp->length %d\n",tmp->length);
         tmp = tmp->next;
     }
 
