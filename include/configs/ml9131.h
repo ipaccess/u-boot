@@ -97,6 +97,7 @@
 	 "reset; "				\
 	"fi; "					\
 	"gen_trusted_desc 0x36F00000; "		\
+	"change_sec_state; "			\
 	"ml9131; "				\
 	"ledc nwk green red 3 1000; "		\
 	"reset"
