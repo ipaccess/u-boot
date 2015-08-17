@@ -31,7 +31,7 @@
 /*The same strucure will be used in kernel sec_jr module to recover back the
  * stored descriptors from memory, Any changes made here has to be propagated in sec_jr
  * module as well*/
-static struct desc_store_t
+static struct desc_store_s
 {
 	uint32_t desc_mod_xp[30];
 };
@@ -206,7 +206,6 @@ int sec_do_rsa_private(const uint8_t *pub_mod,const uint8_t *in,uint32_t in_len,
 {
     int ret = 0;
     u32 *desc = NULL;
-    const uint8_t *pub_mod_ptr = pub_mod;
 
     if( !pub_mod || !in || !out || !in_len)
     {
@@ -326,9 +325,8 @@ end:
 
 int gen_desc(uint32_t *dst_addr)
 {
-    int ret = 0, desc_len = 0;
-    struct desc_store_t desc_store = {{0}};
-    u8 key_size = 256;
+    int ret = 0;
+    struct desc_store_s desc_store = {{0}};
     
     inline_cnstr_jobdesc_priv_expo(desc_store.desc_mod_xp,0x0,0x0,256,0x0);
 
@@ -351,7 +349,6 @@ end:
 int do_gen_trusted_desc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
     u32 *dst_addr;
-    u32 len;
 
     if (argc != 2)
         return CMD_RET_USAGE;
