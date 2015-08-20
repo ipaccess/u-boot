@@ -1038,7 +1038,7 @@ static int characterise_eeprom(struct characterisation_input_s *input,const char
         goto cleanup;
     }
 
-    cd.version = CONFIG_CHARACTERISATION_IPA9131_VERSION_1;
+    cd.version = CONFIG_CHARACTERISATION_IPA9131_VERSION;
 
     fprintf(stdout, "%s\n", "Hardware Characterisation EEPROM");
     fprintf(stdout, "%s\n", "================================");
