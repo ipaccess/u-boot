@@ -146,6 +146,12 @@ void flush_l3_cache(void);
 
 #define nop() __asm__ __volatile__("mov\tr0,r0\t@ nop\n\t");
 
+#define asm_abort()             \
+    ({asm volatile(             \
+    "ldr r0, =0xffffffff\n\t"   \
+    "str r2, [r0]\n\r" : : );   \
+     })
+
 #ifdef __ARM_ARCH_7A__
 #define wfi() __asm__ __volatile__ ("wfi" : : : "memory")
 #else

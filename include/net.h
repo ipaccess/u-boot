@@ -36,7 +36,7 @@
 # define PKTBUFSRX	4
 #endif
 
-#define PKTALIGN	ARCH_DMA_MINALIGN
+#define PKTALIGN	ARCH_DMA_MINALIGN //TODO This has been hacked in the BSP, do we need to ?
 
 /* IPv4 addresses are always 32 bits in size */
 typedef __be32		IPaddr_t;
@@ -186,7 +186,7 @@ struct ethernet_hdr {
 	uchar		et_dest[6];	/* Destination node		*/
 	uchar		et_src[6];	/* Source node			*/
 	ushort		et_protlen;	/* Protocol or length		*/
-};
+}__attribute__ ((packed));      //Without this the "sizeof" later on gets the wrong value, why doesn't this effect others?
 
 /* Ethernet header size */
 #define ETHER_HDR_SIZE	(sizeof(struct ethernet_hdr))

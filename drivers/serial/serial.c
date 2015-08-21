@@ -376,6 +376,7 @@ static struct serial_device *get_current(void)
  */
 int serial_init(void)
 {
+    //asm_abort(); //got here
 	return get_current()->start();
 }
 

@@ -150,66 +150,68 @@ static void cache_disable(uint32_t cache_bit)
 }
 #endif
 
-#ifdef CONFIG_SYS_ICACHE_OFF
-void icache_enable (void)
-{
-	return;
-}
+//TODO something about this horrible hack!
 
-void icache_disable (void)
-{
-	return;
-}
+//#ifdef CONFIG_SYS_ICACHE_OFF
+//void icache_enable (void)
+//{
+//	return;
+//}
+//
+//void icache_disable (void)
+//{
+//	return;
+//}
+//
+//int icache_status (void)
+//{
+//	return 0;					/* always off */
+//}
+//#else
+//void icache_enable(void)
+//{
+//	cache_enable(CR_I);
+//}
+//
+//void icache_disable(void)
+//{
+//	cache_disable(CR_I);
+//}
+//
+//int icache_status(void)
+//{
+//	return (get_cr() & CR_I) != 0;
+//}
+//#endif
 
-int icache_status (void)
-{
-	return 0;					/* always off */
-}
-#else
-void icache_enable(void)
-{
-	cache_enable(CR_I);
-}
-
-void icache_disable(void)
-{
-	cache_disable(CR_I);
-}
-
-int icache_status(void)
-{
-	return (get_cr() & CR_I) != 0;
-}
-#endif
-
-#ifdef CONFIG_SYS_DCACHE_OFF
-void dcache_enable (void)
-{
-	return;
-}
-
-void dcache_disable (void)
-{
-	return;
-}
-
-int dcache_status (void)
-{
-	return 0;					/* always off */
-}
-#else
-void dcache_enable(void)
-{
-	cache_enable(CR_C);
-}
-
-void dcache_disable(void)
-{
-	cache_disable(CR_C);
-}
-
-int dcache_status(void)
-{
-	return (get_cr() & CR_C) != 0;
-}
-#endif
+//#ifdef CONFIG_SYS_DCACHE_OFF
+//void dcache_enable (void)
+//{
+//	return;
+//}
+//
+//void dcache_disable (void)
+//{
+//	return;
+//}
+//
+//int dcache_status (void)
+//{
+//	return 0;					/* always off */
+//}
+//#else
+//void dcache_enable(void)
+//{
+//	cache_enable(CR_C);
+//}
+//
+//void dcache_disable(void)
+//{
+//	cache_disable(CR_C);
+//}
+//
+//int dcache_status(void)
+//{
+//	return (get_cr() & CR_C) != 0;
+//}
+//#endif

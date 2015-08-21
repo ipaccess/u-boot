@@ -84,6 +84,9 @@ _not_used:		.word not_used
 _irq:			.word irq
 _fiq:			.word fiq
 
+.global _vectors_end
+_vectors_end:
+
 	.balignl 16,0xdeadbeef
 
 /*
