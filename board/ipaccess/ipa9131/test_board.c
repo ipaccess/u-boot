@@ -1,6 +1,7 @@
 #include <common.h>
 #include <linux/compiler.h>
 #include <i2c.h>
+#include "characterisation.h"
 
 #if defined CONFIG_CMD_IPA9131_TEST_BOARD
 
@@ -22,7 +23,6 @@ static int is_test_board(void)
 static int set_test_board(void)
 {
     uint8_t buf = 1;
-    int ret = 0;
 
     if ( 0 != i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR,
                 CONFIG_IPA9131_MISC_FLAGS_OFFSET,
@@ -39,7 +39,6 @@ static int set_test_board(void)
 static int clear_test_board(void)
 {
     uint8_t buf = 0;
-    int ret = 0;
 
     if ( 0 != i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR,
                 CONFIG_IPA9131_MISC_FLAGS_OFFSET,

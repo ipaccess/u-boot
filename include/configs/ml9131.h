@@ -92,6 +92,10 @@
 
 #define STANDARD_BOOT_COMMAND			\
 	"ledc all yellow off 1 300; "	 	\
+	"ipa9131_provisioning -m 3 -m 5"	\
+	"if test $? -eq 1; then "           	\
+	 "reset; "                          	\
+	"fi; "                              	\
 	"restore_raw_container -m 3 -m 5; "	\
 	"if test $? -eq 1; then "		\
  	 "ledc all green red 3 1000; "		\

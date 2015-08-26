@@ -2,6 +2,9 @@
 #include "hash.h"
 #include "gen_apk_csr.h"
 #include "flash.h"
+#include "ipa9131_fuse.h"
+#include "characterisation.h"
+#include "sec.h"
 #include <common.h>
 #include <malloc.h>
 #include <errno.h>
@@ -187,7 +190,7 @@ static int create_container(struct container_field_t **fields)
 
     if (0 != (ret = get_key_pair_csr(&pub_key_buf,&csr_buf, &priv_key_blob)) )
     {
-        fprintf(stderr,"gen_key_pair_csr returned error 0x%08X",ret);
+        fprintf(stderr,"gen_key_pair_csr returned error 0x%08X\n",ret);
 	ret = -EFAULT;
         goto cleanup;
 
@@ -257,7 +260,11 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
 
     if (!in_data )
     {
-	ret = create_container(new_data);
+	/*Allow a dev/test ap to regenarate keys if raw nand partition is empty*/
+	if (characterisation_is_development_mode() || characterisation_is_test_mode())
+		ret = create_container(new_data);
+	else
+		ret = -EFAULT;
     }
     else
     {
@@ -265,7 +272,7 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
 	if  ( NULL == ( privkey_data = find_container_field(RAW_CONTAINER_TAG_PRIVATE_KEY_BLOB, in_data)) )
         {
             /*No private key, return*/
-            fprintf(stderr,"Private key blob not present in raw nand");	
+            fprintf(stderr,"Private key blob not present in raw nand\n");	
             ret = -EFAULT;
 	    goto cleanup;
         }
@@ -274,7 +281,7 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
 	if ( NULL == (pubkey_data = find_container_field(RAW_CONTAINER_TAG_PUBLIC_KEY, in_data)) )
         {
 	    /*No pub key, return*/
-            fprintf(stderr,"Private key blob not present in raw nand");
+            fprintf(stderr,"Private key blob not present in raw nand\n");
             ret = -EFAULT;
             goto cleanup;
 
@@ -282,7 +289,7 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
 
 	if ( 0 != sec_init_apk_from_blob(privkey_data->value, privkey_data->length) )
 	{
-                fprintf(stderr,"Black key intialisation failed for sec engine");
+                fprintf(stderr,"Black key intialisation failed for sec engine\n");
 		ret = -EFAULT;
 		goto cleanup;
 	}
@@ -293,7 +300,7 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
             /*No csr, generate from keys*/
             if (0 != (ret = create_csr_container(pubkey_data,new_data)) )
             {
-                fprintf(stderr,"Csr generation failed with existing key pair");
+                fprintf(stderr,"Csr generation failed with existing key pair\n");
                 goto cleanup;
             }
 
@@ -345,7 +352,7 @@ static int update_nand_part(const struct container_field_t * fields, uint32_t pa
     if (0 != (ret = serialise_container(data, &len, hashfunc, fields)))
     {
         errno = -ret;
-        fprintf(stderr,"serialise_container");
+        fprintf(stderr,"serialise_container\n");
         goto cleanup;
     }
 
@@ -472,12 +479,11 @@ int do_restore_container(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv
         ++i;
     }
 
-
     if (0 != (ret = read_raw_containers(raw_containers, num_raw_containers)))
     {
         errno = -ret;
         ret = 1;
-        fprintf(stderr,"read_raw_containers");
+        fprintf(stderr,"read_raw_containers\n");
         goto cleanup;
     }
 
@@ -509,8 +515,6 @@ int do_restore_container(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv
                 if (0 != (ret = update_nand(consolidated_data,raw_containers, num_raw_containers)))
                 {
                     fprintf(stderr, "Failed to update any NAND partitions\n");
-                    /*Earse these nand partitions, so that on next reboot Key pair can be generated again*/
-                    erase_nand(raw_containers, num_raw_containers);
                 }
             }
             break;
@@ -520,17 +524,9 @@ int do_restore_container(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv
         {
             fprintf(stderr,"validation and restoration of container failed mtd_part %d\n",raw_containers[i].partnum);
             if ( i == (num_raw_containers -1))
-            {
-
-                /*Failed validating all of the raw nand containers,
-                * Earse these nand partitions, so that on next reboot Key pair can be generated again*/
-                erase_nand(raw_containers, num_raw_containers);
                 break;
-            }
             else
-            {
                 continue;
-            }
         }
 
     }
@@ -556,13 +552,361 @@ cleanup:
     else
         return CMD_RET_FAILURE;
 
-
 }
 
 
+static int toughen_otpmk(struct raw_container_t *raw_containers,uint32_t num_raw_containers)
+{
+    struct container_field_t * otpmk_data = NULL;
+    crypt_buf_t otpmk_buf = {0};
+    uint32_t otpmk[8];
+    uint32_t otpmk_fused = 0x01;
+    int ret = 1,i = 0;
+    uint32_t secmon_hpsr = 0;
+
+    memset(otpmk,0,sizeof(otpmk));
+
+    if (0 != read_raw_containers(raw_containers, num_raw_containers))
+    {
+        fprintf(stderr,"read_raw_containers\n");
+        goto cleanup;
+    }
+
+    if ( 0 != get_otpmk(otpmk,&otpmk_buf) )
+    {
+        fprintf(stderr,"toughen_otpmk:get_otpmk failed\n");
+        goto cleanup;
+    }
+
+
+    if ( 0 != create_field_in_container(&otpmk_data,RAW_CONTAINER_TAG_OTPMK,otpmk_buf.buf,otpmk_buf.len) ) 
+        goto cleanup;
+
+    otpmk_buf.buf = NULL;
+
+    ipa9131_fuse_init();
+
+    if (0 != ipa9131_fuse_write_in_range(SFP_OTPMKR0_ADDRESS,8,otpmk)) 
+    {
+        fprintf(stderr,"toughen_otpmk:setting otpmk fuses failed\n");
+        goto cleanup;
+
+    }
+
+    secmon_hpsr = sec_in_be32(SECMON_HPSR);
+    udelay(50);
+
+    /*Sec mon hpsr almost immediately reflects error if OTPMK is not hamming protected*/
+    if (secmon_hpsr & 0x01FF0000)
+    {
+        fprintf(stderr,"toughen_otpmk:Wrong value in OTPMK registers, can't blow fuses\n");
+        goto cleanup;
+    }
+
+    if (0 != ipa9131_fuse_write_in_range(SFP_OSCR_ADDRESS,1,&otpmk_fused))
+    {
+        fprintf(stderr,"toughen_otpmk:setting otpmk oscr bit failed\n");
+        goto cleanup;
+
+    }
+
+
+    if (0 != update_nand(otpmk_data,raw_containers, num_raw_containers))
+    {
+        fprintf(stderr, "toughen_otpmk:Failed to update any NAND partitions\n");
+        goto cleanup;
+    }
+
+    /*Finally write the fuses for otpmk*/
+    ipa9131_blow_fuse(); 
+    ret = 0;
+
+cleanup:
+    for (i = 0; i < num_raw_containers; ++i)
+    {
+        free_container_fields(raw_containers[i].fields);
+        raw_containers[i].fields = NULL;
+
+        if (raw_containers[i].data)
+        {
+            free(raw_containers[i].data);
+            raw_containers[i].data = NULL;
+        }
+    }
+
+    free_container_fields_and_values(otpmk_data);
+    if (otpmk_buf.buf)
+        free(otpmk_buf.buf);
+
+    return ret;
+
+
+}
+
+static int toughen_dbg_rsp(struct raw_container_t *raw_containers,uint32_t num_raw_containers)
+{
+    struct container_field_t * dbg_rsp_data = NULL, * nand_data = NULL, *consolidated_data = NULL;
+    crypt_buf_t dbg_rsp_buf = {0};
+    uint32_t dbg_rsp[2];
+    uint32_t dbg_rsp_val = 0x02;
+    int ret = 1, i = 0;
+
+    memset(dbg_rsp,0,sizeof(dbg_rsp));
+
+    if (0 != read_raw_containers(raw_containers, num_raw_containers))
+    {
+        fprintf(stderr,"toughen_dbg_rsp:read_raw_containers\n");
+        goto cleanup;
+    }
+
+    for (i = 0; i < num_raw_containers; ++i)
+    {
+
+        if (raw_containers[i].fields)
+        {
+            nand_data = raw_containers[i].fields;
+        }
+    }
+
+    if ( 0 != get_dbg_rsp(dbg_rsp,&dbg_rsp_buf) )
+    {
+        fprintf(stderr,"toughen_dbg_rsp:get_dbg_rsp failed\n");
+        goto cleanup;
+    }
+
+    if ( 0 != create_field_in_container(&dbg_rsp_data,RAW_CONTAINER_TAG_JTAG_DBG_RSP,dbg_rsp_buf.buf,dbg_rsp_buf.len) ) 
+        goto cleanup;
+
+    dbg_rsp_buf.buf = NULL;
+
+    if (nand_data)
+        container_union(dbg_rsp_data,nand_data,&consolidated_data);
+    else
+        consolidated_data = dbg_rsp_data;
+
+
+    ipa9131_fuse_init();
+
+    if (0 != ipa9131_fuse_write_in_range(SFP_DRVR0_ADDRESS,2,dbg_rsp) )
+    {
+        fprintf(stderr,"toughen_dbg_rsp:setting dbg_rsp fuses failed\n");
+        goto cleanup;
+
+    }
+
+
+    if (0 != ipa9131_fuse_write_in_range(SFP_OSCR_ADDRESS,1,&dbg_rsp_val) )
+    {
+        fprintf(stderr,"toughen_otpmk:setting otpmk oscr bit failed\n");
+        goto cleanup;
+
+    }
+
+
+    if (0 != update_nand(consolidated_data,raw_containers, num_raw_containers))
+    {
+        fprintf(stderr, "Failed to update any NAND partitions\n");
+        goto cleanup;
+    }
+
+    /*Finally write the fuses for dbg_rsp*/
+    ipa9131_blow_fuse();
+
+    ret = 0;
+cleanup:
+    for (i = 0; i < num_raw_containers; ++i)
+    {
+        free_container_fields(raw_containers[i].fields);
+        raw_containers[i].fields = NULL;
+
+        if (raw_containers[i].data)
+        {
+            free(raw_containers[i].data);
+            raw_containers[i].data = NULL;
+        }
+    }
+
+    if (consolidated_data != dbg_rsp_data) 
+        free_container_fields(consolidated_data);
+
+    free_container_fields_and_values(dbg_rsp_data);
+    if (dbg_rsp_buf.buf)
+        free(dbg_rsp_buf.buf);
+    return ret;
+
+}
+
+static int gen_apk_container(struct raw_container_t *raw_containers,uint32_t num_raw_containers)
+{
+    struct container_field_t * apk_data = NULL, *nand_data = NULL, *consolidated_data = NULL;
+    uint32_t apk_created_val = 0x04,write_protect = 0x01;
+    int ret = 1, i = 0;
+
+    if (0 != read_raw_containers(raw_containers, num_raw_containers))
+    {
+        fprintf(stderr,"gen_apk_container:read_raw_containers failed\n");
+        goto cleanup;
+    }
+
+    for (i = 0; i < num_raw_containers; ++i)
+    {
+
+        if (raw_containers[i].fields)
+        {
+            nand_data = raw_containers[i].fields;
+        }
+    }
+
+    if (0 != create_container(&apk_data))
+    {
+        fprintf(stderr,"gen_apk_container:failed creating apk_container\n");
+        goto cleanup;
+    }
+
+    if (nand_data)
+        container_union(apk_data,nand_data,&consolidated_data);
+    else
+        consolidated_data = apk_data;
+
+    ipa9131_fuse_init();
+
+    if (0 != ipa9131_fuse_write_in_range(SFP_OSCR_ADDRESS,1,&apk_created_val) )
+    {
+        fprintf(stderr,"gen_apk_container:setting apk oscr bit failed\n");
+        goto cleanup;
+
+    }
+
+    if (0 != ipa9131_fuse_write_in_range(SFP_OSPR_ADDRESS,1,&write_protect) )
+    {
+        fprintf(stderr,"gen_apk_container:setting write_protect bit in fuses failed\n");
+        goto cleanup;
+
+    }
+
+
+    if (0 != update_nand(consolidated_data,raw_containers, num_raw_containers))
+    {
+        fprintf(stderr, "gen_apk_container:Failed to update any NAND partitions\n");
+        goto cleanup;
+    }
+
+    /*Everything went as expected, Last provisioning bit comming to end, No More fuse blowing
+     * possible after this*/
+    ipa9131_blow_fuse();
+
+    ret = 0;
+
+cleanup:
+    for (i = 0; i < num_raw_containers; ++i)
+    {
+        free_container_fields(raw_containers[i].fields);
+        raw_containers[i].fields = NULL;
+
+        if (raw_containers[i].data)
+        {
+            free(raw_containers[i].data);
+            raw_containers[i].data = NULL;
+        }
+    }
+
+    if (consolidated_data != apk_data)
+        free_container_fields(consolidated_data);
+
+    free_container_fields_and_values(apk_data);
+    return ret;
+
+
+}
+
+int do_provisioning(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+
+    int ret = 0;
+    struct raw_container_t raw_containers[10];
+    uint32_t num_raw_containers;
+    uint32_t i = 0;
+    unsigned long ulval;
+    char * ep;
+    u8 otpmk_set = 0, dbg_resp_set = 0, apk_created = 0;
+
+    memset(raw_containers, 0, sizeof(raw_containers));
+    num_raw_containers = 0;
+
+    ipa9131_fuse_init();
+    /*always re-read the fuses in order to read the actual fused values, not what might be set in shadow registers*/
+    ipa9131_read_provisioning_status(&otpmk_set,&dbg_resp_set,&apk_created);
+
+
+    if ( (otpmk_set && dbg_resp_set && apk_created) )
+        return CMD_RET_SUCCESS;
+
+    /*safeguard for bootstrap microloader, Make sure the board was characterised first
+     *if not then provisioning will not run*/
+    if ( ipa9131_is_unfused() )
+    {
+        fprintf(stderr,"Board not characterised!!, Failed to run provisioning\n");
+        return CMD_RET_FAILURE;
+    }
+
+
+
+    while(i < argc)
+    {
+        if (0 == strcmp(argv[i],"-m"))
+        {
+            ulval = simple_strtoul(argv[i+1], &ep, 10);
+
+            if (ep == argv[i+1] || *ep != '\0')
+            {
+                fprintf(stderr, "Invalid mtd part num, not a decimal value\n");
+
+                return CMD_RET_FAILURE;
+            }
+
+            raw_containers[num_raw_containers].partnum = (uint32_t)(ulval & 0xFFFFFFFF);
+            ++num_raw_containers;
+        }
+        ++i;
+    }
+
+    ipa9131_read_provisioning_status(&otpmk_set,&dbg_resp_set,&apk_created);
+
+    if (!otpmk_set)
+    {
+        /*Should happen only once in Ap lifetime*/
+        toughen_otpmk(raw_containers,num_raw_containers);
+        return CMD_RET_FAILURE;
+        /*irrespective of whether toughen_otpmk returned true or false
+         *This will always return false, as the AP must reboot after this 
+         */
+    }
+
+    if (!dbg_resp_set)
+    {	/*Should happen only once in Ap lifetime*/
+        if ( 0 != toughen_dbg_rsp(raw_containers,num_raw_containers) )
+            return CMD_RET_FAILURE;
+    }
+
+    if (!apk_created)
+    {
+        /*Should happen only once in Ap lifetime*/
+        if (0 != gen_apk_container(raw_containers,num_raw_containers) )
+            return CMD_RET_FAILURE;
+    }
+
+    return CMD_RET_SUCCESS;
+
+}
 
 U_BOOT_CMD(restore_raw_container, 9, 0, do_restore_container,
 		"Excercise restore_raw_container",
 		"-m <mtd-part-num>"
 		"up to 4 mtd part num can be provided"
 	  );
+
+U_BOOT_CMD(ipa9131_provisioning, 9, 0, do_provisioning,
+        "Excercise initial_provisioning",
+        "ipa9131_provisioning -m <mtd-part-num>"
+        "up to 4 mtd part num can be provided"
+        );

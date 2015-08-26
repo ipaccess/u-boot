@@ -266,32 +266,47 @@ void deserialise_characterisation_info(const uint8_t payload[CONFIG_CHARACTERISA
 
     if (ipa9131_is_unfused())
     {
-        if (cd->version == 0x00)
-        {
-            cd->oui[0] = payload[17];
-            cd->oui[1] = payload[18];
-            cd->oui[2] = payload[19];
-            cd->serial = ((((uint32_t)(payload[20])) << 24) & 0xFF000000) |
-                         ((((uint32_t)(payload[21])) << 16) & 0x00FF0000) |
-                         ((((uint32_t)(payload[22])) <<  8) & 0x0000FF00) |
-                         ((((uint32_t)(payload[23])) <<  0) & 0x000000FF);
-        }
+	    if (cd->version == 0x00)
+	    {
+		    cd->oui[0] = payload[17];
+		    cd->oui[1] = payload[18];
+		    cd->oui[2] = payload[19];
+		    cd->serial = ((((uint32_t)(payload[20])) << 24) & 0xFF000000) |
+			    ((((uint32_t)(payload[21])) << 16) & 0x00FF0000) |
+			    ((((uint32_t)(payload[22])) <<  8) & 0x0000FF00) |
+			    ((((uint32_t)(payload[23])) <<  0) & 0x000000FF);
 
-        if ((payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] & 0x2) == 0x2)
-        {
-            if ((payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] & 0x1) == 0x1)
-            {
-                cd->test_mode = 1;
-            }
-            else
-            {
-                cd->development_mode = 1;
-            }
-        }
-        else
-        {
-            cd->specials_mode = 1;
-        }
+
+		    if ((payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] & 0x2) == 0x2)
+		    {
+			    if ((payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] & 0x1) == 0x1)
+			    {
+				    cd->test_mode = 1;
+			    }
+			    else
+			    {
+				    cd->development_mode = 1;
+			    }
+		    }
+		    else
+		    {
+			    cd->specials_mode = 1;
+		    }
+
+	    }
+	    else
+	    {
+		    /*Unfused this can be treated as dev board by default, need to check if test bit is set in eeprom*/
+		    if ((payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] & 0x1) == 0x1)
+		    {
+			    cd->test_mode = 1;
+		    }
+		    else
+		    {
+			    cd->development_mode = 1;
+		    }
+
+	    }
     }
     else
     {

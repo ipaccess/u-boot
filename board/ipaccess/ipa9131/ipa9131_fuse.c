@@ -170,9 +170,9 @@ int ipa9131_fuse_write_in_range(u32 start_addr, u8 num_words, const u32* val)
 
 	for ( i = 0; i < num_words; i++ )
 	{
-		if ( ((start_addr >= SFP_DPR_ADDRESS ) && (start_addr <= SFP_OUIDR_ADDRESS)) || 
-				                            (start_addr == SFP_OSPR_ADDRESS) || 
-				                            (start_addr == SFP_ONSEC_ADDRESS))
+		if ( ((start_addr >= SFP_DPR_ADDRESS ) && (start_addr <= SFP_OSCR_ADDRESS) ) ||
+							  (start_addr == SFP_OSPR_ADDRESS)
+		   )
 		{	
 			curr_val = fuse_in_be32(start_addr);
 			curr_val |= *(val+i);
@@ -182,7 +182,7 @@ int ipa9131_fuse_write_in_range(u32 start_addr, u8 num_words, const u32* val)
 		}
 		else
 		{
-			fprintf(stderr, "Invalid Address %8X: out of OEM SFP register range.",start_addr);
+			fprintf(stderr, "Invalid Address %8X: out of OEM SFP register range.\n",start_addr);
 			return -EINVAL;
 		}
 	}
@@ -206,7 +206,25 @@ void ipa9131_fuse_read_in_range(u32 start_addr, u8 num_words, u32* val)
 
 void ipa9131_blow_fuse(void)
 {
+
 	fuse_out_be32(SFP_INGR_ADDRESS,0x2);
+}
+
+int ipa9131_read_provisioning_status(u8 *otpmk_set,u8 *dbg_resp_set, u8 *apk_created )
+{
+	u32 r;
+
+	if (!otpmk_set || !dbg_resp_set || !apk_created)
+		return -EINVAL;
+
+	r = fuse_in_be32(SFP_OSCR_ADDRESS);
+
+	*otpmk_set = (r & 0x01) ? 1 : 0;
+	*dbg_resp_set = (r & 0x02) ? 1 : 0;
+	*apk_created = (r & 0x04) ? 1 : 0;
+	return 0;
+
+
 }
 
 #if defined(CONFIG_CMD_IPA9131_FUSE)

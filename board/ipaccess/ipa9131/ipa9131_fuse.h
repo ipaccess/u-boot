@@ -58,4 +58,5 @@ extern u32 ipa9131_fuse_read_fsl_uid(void);
 extern void ipa9131_blow_fuse(void);
 extern int ipa9131_fuse_write_in_range(u32 start_addr, u8 num_words, const u32* val);
 extern void ipa9131_fuse_read_in_range(u32 start_addr, u8 num_words, u32* val);
+extern int ipa9131_read_provisioning_status(u8 *otpmk_set,u8 *dbg_resp_set, u8 *apk_created );
 #endif
