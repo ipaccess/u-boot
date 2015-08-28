@@ -870,7 +870,6 @@ int do_provisioning(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         ++i;
     }
 
-    ipa9131_read_provisioning_status(&otpmk_set,&dbg_resp_set,&apk_created);
 
     if (!otpmk_set)
     {
