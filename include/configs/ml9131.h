@@ -50,7 +50,8 @@
 #define CONFIG_CHARACTERISATION_EEPROM_ADDR SPD_EEPROM_ADDRESS
 #define CONFIG_CHARACTERISATION_IPA9131_OFFSET 0
 #define CONFIG_CHARACTERISATION_IPA9131_SIZE 256
-#define CONFIG_CHARACTERISATION_IPA9131_VERSION 0x0
+#define CONFIG_CHARACTERISATION_IPA9131_VERSION 0x1
+#define CONFIG_IPA9131_MISC_FLAGS_OFFSET 239
 #define CONFIG_CMD_CHARACTERISE_HW
 
 #define CONFIG_MISC_INIT_R
@@ -91,6 +92,10 @@
 
 #define STANDARD_BOOT_COMMAND			\
 	"ledc all yellow off 1 300; "	 	\
+	"ipa9131_provisioning -m 3 -m 5;"	\
+	"if test $? -eq 1; then "           	\
+	 "reset; "                          	\
+	"fi; "                              	\
 	"restore_raw_container -m 3 -m 5; "	\
 	"if test $? -eq 1; then "		\
  	 "ledc all green red 3 1000; "		\
@@ -107,5 +112,8 @@
 #define CONFIG_CMD_SEC_GEN_TRUSTED_DESC
 /* temporary, to see Sec RNG generates random number */
 #define CONFIG_CMD_SEC_GEN_RN
-
+#define CONFIG_CMD_SEC_STATE_CHANGE
+#define CONFIG_CMD_IPA9131_TEST_BOARD
+#define CONFIG_CMD_IPA9131_GO_SECURE
+#define CONFIG_CMD_IPA9131_VERIFY_SEC_BOOT_CHIP
 #endif

@@ -4,57 +4,19 @@
 #include <asm/errno.h>
 #include <asm/io.h>
 #include <asm/immap_85xx.h>
-
-#define IPA9131_LOADER_REVOCATION_MAX 12
-#define IPA9131_APPLICATION_REVOCATION_MAX 28
-
-#define SFP_INGR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7020)
-#define SFP_DESSR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7024)
-#define SFP_SFPCR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7028)
-#define SFP_OSPR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7040)
-#define SFP_FSWPR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7044)
-#define SFP_DPR_ADDRESS		(CONFIG_SYS_IMMR + 0x000e7048)
-#define SFP_DCVR0_ADDRESS	(CONFIG_SYS_IMMR + 0x000e704c)
-#define SFP_DCVR1_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7050)
-#define SFP_DRVR0_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7054)
-#define SFP_DRVR1_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7058)
-#define SFP_OTPMKR0_ADDRESS	(CONFIG_SYS_IMMR + 0x000e705c)
-#define SFP_OTPMKR1_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7060)
-#define SFP_OTPMKR2_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7064)
-#define SFP_OTPMKR3_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7068)
-#define SFP_OTPMKR4_ADDRESS	(CONFIG_SYS_IMMR + 0x000e706c)
-#define SFP_OTPMKR5_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7070)
-#define SFP_OTPMKR6_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7074)
-#define SFP_OTPMKR7_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7078)
-#define SFP_SRKHR0_ADDRESS	(CONFIG_SYS_IMMR + 0x000e707c)
-#define SFP_SRKHR1_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7080)
-#define SFP_SRKHR2_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7084)
-#define SFP_SRKHR3_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7088)
-#define SFP_SRKHR4_ADDRESS	(CONFIG_SYS_IMMR + 0x000e708c)
-#define SFP_SRKHR5_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7090)
-#define SFP_SRKHR6_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7094)
-#define SFP_SRKHR7_ADDRESS	(CONFIG_SYS_IMMR + 0x000e7098)
-#define SFP_OUIDR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e709c)
-#define SFP_OVPR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e70a4)
-#define SFP_OSCR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e70a8)
-#define SFP_ONSEC_ADDRESS	(CONFIG_SYS_IMMR + 0x000e70ac)
-#define SFP_FUIDR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e70b0)
-#define SFP_FSCR_ADDRESS	(CONFIG_SYS_IMMR + 0x000e70b8)
-#define SFP_IBRConfig_ADDRESS	(CONFIG_SYS_IMMR + 0x000e70bc)
-
-#define SFP_LOWEST_ADDRESS	SFP_DESSR_ADDRESS
-#define SFP_HIGHEST_ADDRESS	SFP_IBRConfig_ADDRESS
-
+#include "ipa9131_fuse.h"
+#include "sec.h"
 
 #define fuse_in_be32(x)	in_be32((const volatile unsigned __iomem *)(x))
 #define fuse_out_be32(x,y) out_be32((volatile unsigned __iomem *)(x),(y))
 
 
-
-
 int ipa9131_fuse_init(void)
 {
+	fuse_out_be32(SFP_INGR_ADDRESS, 0x0);
 	fuse_out_be32(SFP_INGR_ADDRESS, 0x1);
+	/*Let sfp initialize the shadow register*/
+	udelay(100);
 	return 0;
 }
 
@@ -201,7 +163,69 @@ u32 ipa9131_fuse_read_fsl_uid(void)
 
 }    
 
+int ipa9131_fuse_write_in_range(u32 start_addr, u8 num_words, const u32* val)
+{
+	u16 i;
+	u32 curr_val = 0;
 
+	for ( i = 0; i < num_words; i++ )
+	{
+		if ( ((start_addr >= SFP_DPR_ADDRESS ) && (start_addr <= SFP_OSCR_ADDRESS) ) ||
+							  (start_addr == SFP_OSPR_ADDRESS)
+		   )
+		{	
+			curr_val = fuse_in_be32(start_addr);
+			curr_val |= *(val+i);
+
+			fuse_out_be32(start_addr,curr_val);
+			start_addr += 4;
+		}
+		else
+		{
+			fprintf(stderr, "Invalid Address %8X: out of OEM SFP register range.\n",start_addr);
+			return -EINVAL;
+		}
+	}
+	return 0;
+
+}
+
+void ipa9131_fuse_read_in_range(u32 start_addr, u8 num_words, u32* val)
+{
+	int i;
+
+	for (i = 0; i < num_words;i++)
+	{
+		val[i] = fuse_in_be32(start_addr);
+		printf("0x%08X:",val[i]);
+		start_addr += 4;
+	}
+	printf("\n");
+
+}
+
+void ipa9131_blow_fuse(void)
+{
+
+	fuse_out_be32(SFP_INGR_ADDRESS,0x2);
+}
+
+int ipa9131_read_provisioning_status(u8 *otpmk_set,u8 *dbg_resp_set, u8 *apk_created )
+{
+	u32 r;
+
+	if (!otpmk_set || !dbg_resp_set || !apk_created)
+		return -EINVAL;
+
+	r = fuse_in_be32(SFP_OSCR_ADDRESS);
+
+	*otpmk_set = (r & 0x01) ? 1 : 0;
+	*dbg_resp_set = (r & 0x02) ? 1 : 0;
+	*apk_created = (r & 0x04) ? 1 : 0;
+	return 0;
+
+
+}
 
 #if defined(CONFIG_CMD_IPA9131_FUSE)
 int do_ipa9131_fuse(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
@@ -268,4 +292,157 @@ U_BOOT_CMD(ipa9131_fuse, 2, 0, do_ipa9131_fuse,
 	"Excercise ipa9131 fuse functions",
 	" init|eid|security|ldr_revo|app_revo"
 );
+#endif
+
+#if defined(CONFIG_CMD_IPA9131_GO_SECURE)
+
+static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+
+        u32 secmon_hpsr,sfp_dessr;
+        u32 optmk_minimal = IPA9131_MINIMAL_OTPMK_VALUE;
+        u32 debug_resp_minimal = IPA9131_MINIMAL_JTAG_RESP_VALUE;
+        u32 its_value = 0x04;
+        int prompt_to_user = 1;
+
+        if ( (argc > 1) && (0 == strcmp(argv[1],"no-prompt")) )
+        {
+            prompt_to_user = 0;
+        }
+
+
+        ipa9131_fuse_init();
+
+        if ( (0 != ipa9131_fuse_write_in_range(SFP_OTPMKR0_ADDRESS,1,&optmk_minimal)) || 
+                (0 != ipa9131_fuse_write_in_range(SFP_DRVR0_ADDRESS,1,&debug_resp_minimal)) )
+        {
+            fprintf(stderr,"Error in setting fuse values\n");
+            goto error;
+        }
+
+        secmon_hpsr = sec_in_be32(SECMON_HPSR);
+
+
+        udelay(100);
+
+        /*Sec mon hpsr almost immediately reflects error if OTPMK is not hamming protected*/
+        if (secmon_hpsr & 0x01FF0000)
+        {
+            fprintf(stderr,"Wrong value in OTPMK0, can't blow fuses\n");
+            goto error;
+        }
+
+        if ( prompt_to_user )
+        {
+            fprintf(stdout,"Do you wish to go ahead and make this as secure boot board? this will permanently blow fuses\n");
+            fprintf(stdout, "Type 'Y' to proceed: ");
+
+
+            if ('Y' != getc())
+            {
+                fprintf(stdout, "\nUser cancelled operation\n");
+                goto error;
+
+            }
+
+            fprintf(stdout,"\nYou're sure? ");
+            fprintf(stdout, "Type 'Y' to proceed: ");
+
+            if ('Y' != getc())
+            {
+                fprintf(stdout,"\nUser cancelled operation\n");
+                goto error;
+            }
+
+            fprintf(stdout,"\nAttempting to write the fuses\n");
+        }
+
+        ipa9131_blow_fuse();
+        /*give some time to sfp to blow fuse and let sec mon know in case fuses are not blown properly*/
+        udelay(100);
+
+        secmon_hpsr = sec_in_be32(SECMON_HPSR);
+        sfp_dessr = fuse_in_be32(SFP_DESSR_ADDRESS);
+
+        if ( (secmon_hpsr & 0x01FF0000) || (sfp_dessr & 0x0000007E))
+        {
+            fprintf(stderr,"OTPMK0/DRV0 fuses not blown properly, can't blow ITS fuse \n");        
+            goto error;
+        }
+
+        ipa9131_fuse_init();/*reinit this clears PROGFB bit of SFP_INGR, so that fuses can be blown again*/
+
+        if (0 != ipa9131_fuse_write_in_range(SFP_OSPR_ADDRESS,1,&its_value))
+        {
+            fprintf(stderr,"Error setting ITS fuse\n");
+            goto error;
+        }
+
+        ipa9131_blow_fuse();
+
+        fprintf(stdout,"fuses blown successfully, Board is now a Secure Boot Board\n");
+
+        return CMD_RET_SUCCESS;
+
+error:
+        return CMD_RET_FAILURE;
+
+}
+
+U_BOOT_CMD(ipa9131_go_secure, 2, 0, do_ipa9131_secure,
+        "Prepare Board for secure boot",
+        "ipa9131_go_secure <prompt|no-prompt> "
+        );
+
+#endif
+
+#if defined CONFIG_CMD_IPA9131_VERIFY_SEC_BOOT_CHIP
+static int do_ipa9131_sec_boot_verify(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+        u32 val = 0;
+
+        ipa9131_fuse_init();
+        val = fuse_in_be32(SFP_OSPR_ADDRESS);
+        if (val & 0x00000008)
+        {
+            fprintf(stderr,"Sec_disabled: Secure boot not possible on this chip\n");
+            goto error;
+        }
+
+        val = fuse_in_be32(SFP_FSWPR_ADDRESS);
+        if (0x01 != (val & 0x00000003) )
+        {
+            fprintf(stderr,"SFP_FSWPR invalid: Secure boot not possible on this chip\n");
+            goto error;
+
+        }
+
+        val = fuse_in_be32(SFP_ONSEC_ADDRESS);
+        if (val & 0x00000001)
+        {
+            fprintf(stderr,"SFP_ONSEC Sec_disabled: Secure boot not possible on this chip\n");
+            goto error;
+
+        }
+
+        val = sec_in_be32(SECMON_HPSVSR);
+        if (val)
+        {
+            fprintf(stderr,"SECMON_HPSVSR Sec_violations: Secure boot not possible on this chip\n");
+            goto error;
+
+        }
+
+        fprintf(stdout,"Secure Boot compatible chip\n");
+        return CMD_RET_SUCCESS;
+
+error:
+        return CMD_RET_FAILURE;
+
+}
+
+U_BOOT_CMD(ipa9131_verify_sec_boot_chip, 1, 0, do_ipa9131_sec_boot_verify,
+        "Verify board is meant for secure boot",
+        "ipa9131_verify_sec_boot_chip"
+        );
 #endif
