@@ -208,6 +208,8 @@ void ipa9131_blow_fuse(void)
 {
 
 	fuse_out_be32(SFP_INGR_ADDRESS,0x2);
+	/*Give some time to sfp to blow fuses*/
+	udelay(100);
 }
 
 int ipa9131_read_provisioning_status(u8 *otpmk_set,u8 *dbg_resp_set, u8 *apk_created )
@@ -302,16 +304,30 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
         u32 secmon_hpsr,sfp_dessr;
         u32 optmk_minimal = IPA9131_MINIMAL_OTPMK_VALUE;
         u32 debug_resp_minimal = IPA9131_MINIMAL_JTAG_RESP_VALUE;
-        u32 its_value = 0x04;
-        int prompt_to_user = 1;
+        u32 its_value = 0x04, debug_prmsn_val = 0x4;
+        int prompt_to_user = 1, i = 0;
+        int debug_permission = 0;
+        u8 prod = 0, dev = 0 , specials = 0;
 
-        if ( (argc > 1) && (0 == strcmp(argv[1],"no-prompt")) )
+        while( i < argc )
         {
-            prompt_to_user = 0;
+            if ( 0 == strcmp(argv[i],"no-prompt") )
+                prompt_to_user = 0;
+            else if ( 0 == strcmp(argv[i],"dbg-permission") )
+                debug_permission = 1;
+            i++;
+
         }
 
+        }
 
         ipa9131_fuse_init();
+
+	if ( ipa9131_is_unfused() )
+	{
+            fprintf(stderr,"Board not characterised, fuse characterisation data first\n");
+            goto error;
+	}
 
         if ( (0 != ipa9131_fuse_write_in_range(SFP_OTPMKR0_ADDRESS,1,&optmk_minimal)) || 
                 (0 != ipa9131_fuse_write_in_range(SFP_DRVR0_ADDRESS,1,&debug_resp_minimal)) )
@@ -320,10 +336,9 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
             goto error;
         }
 
+        udelay(50);
+
         secmon_hpsr = sec_in_be32(SECMON_HPSR);
-
-
-        udelay(100);
 
         /*Sec mon hpsr almost immediately reflects error if OTPMK is not hamming protected*/
         if (secmon_hpsr & 0x01FF0000)
@@ -358,25 +373,44 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
         }
 
         ipa9131_blow_fuse();
-        /*give some time to sfp to blow fuse and let sec mon know in case fuses are not blown properly*/
-        udelay(100);
+
+        ipa9131_fuse_init();/*reinit this clears PROGFB bit of SFP_INGR, so that fuses can be blown again*/
 
         secmon_hpsr = sec_in_be32(SECMON_HPSR);
         sfp_dessr = fuse_in_be32(SFP_DESSR_ADDRESS);
 
         if ( (secmon_hpsr & 0x01FF0000) || (sfp_dessr & 0x0000007E))
         {
-            fprintf(stderr,"OTPMK0/DRV0 fuses not blown properly, can't blow ITS fuse \n");        
+            fprintf(stderr,"OTPMK0/DRV0 fuses not blown properly, can't blow ITS and DBG permission fuses\n");        
             goto error;
         }
-
-        ipa9131_fuse_init();/*reinit this clears PROGFB bit of SFP_INGR, so that fuses can be blown again*/
-
+       
         if (0 != ipa9131_fuse_write_in_range(SFP_OSPR_ADDRESS,1,&its_value))
         {
             fprintf(stderr,"Error setting ITS fuse\n");
             goto error;
         }
+
+        if (debug_permission)
+        {
+
+            if (0 != ipa9131_fuse_read_security_profile(&prod, &dev, &specials))
+            { 
+                goto error;
+            }
+
+            if ( dev || specials )
+                debug_prmsn_val = 0x1;
+
+            if (0 != ipa9131_fuse_write_in_range(SFP_DPR_ADDRESS,1,&debug_prmsn_val))
+            {
+                fprintf(stderr,"Error setting jtag dbg permission fuse values\n");
+                goto error;
+            }
+
+
+        }
+
 
         ipa9131_blow_fuse();
 
@@ -389,9 +423,9 @@ error:
 
 }
 
-U_BOOT_CMD(ipa9131_go_secure, 2, 0, do_ipa9131_secure,
+U_BOOT_CMD(ipa9131_go_secure, 3, 0, do_ipa9131_secure,
         "Prepare Board for secure boot",
-        "ipa9131_go_secure <prompt|no-prompt> "
+        "ipa9131_go_secure <no-prompt|dbg-permission> "
         );
 
 #endif
