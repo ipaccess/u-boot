@@ -62,7 +62,7 @@ static int read_raw_storage(uint32_t partnum, uint8_t ** buffer, uint32_t * buff
     int i;
     uint32_t start_addr;
     uint32_t read_size = nand_info[0].erasesize;
-    unsigned char * buf;
+    unsigned char * buf = NULL;
 
     for (i = 0; i < (sizeof(part_num_to_block_off)/sizeof(struct part_block_off_t));i++)
     {
@@ -277,22 +277,22 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
 	    goto cleanup;
         }
 
-        
-	if ( NULL == (pubkey_data = find_container_field(RAW_CONTAINER_TAG_PUBLIC_KEY, in_data)) )
+
+        if ( NULL == (pubkey_data = find_container_field(RAW_CONTAINER_TAG_PUBLIC_KEY, in_data)) )
         {
-	    /*No pub key, return*/
+            /*No pub key, return*/
             fprintf(stderr,"Private key blob not present in raw nand\n");
             ret = -EFAULT;
             goto cleanup;
 
         }
 
-	if ( 0 != sec_init_apk_from_blob(privkey_data->value, privkey_data->length) )
-	{
-                fprintf(stderr,"Black key intialisation failed for sec engine\n");
-		ret = -EFAULT;
-		goto cleanup;
-	}
+        if ( 0 != sec_init_apk_from_blob(privkey_data->value, privkey_data->length) )
+        {
+            fprintf(stderr,"Black key intialisation failed for sec engine\n");
+            ret = -EFAULT;
+            goto cleanup;
+        }
 
 
         if ( NULL == find_container_field(RAW_CONTAINER_TAG_CSR,in_data) )
@@ -311,6 +311,11 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
     }
 
 cleanup:
+    /*for Specials do not bother if validation failed or passed
+     * as Specials do not use security collaterals, and can be deleted */
+    if ( characterisation_is_specials_mode() )
+        ret = 0;
+
     return ret;
 
 
@@ -325,6 +330,7 @@ static int update_nand_part(const struct container_field_t * fields, uint32_t pa
 
     ret = 0;
     len = eraseblock_size;
+    data = NULL;
 
 
     for (i = 0; i < (sizeof(part_num_to_block_off)/sizeof(struct part_block_off_t));i++)
@@ -572,6 +578,19 @@ static int toughen_otpmk(struct raw_container_t *raw_containers,uint32_t num_raw
         goto cleanup;
     }
 
+    /*For the case where previous provisioning failed to set the SFP_OSCR bit to indicate that otpmk is fused
+     *in such a case Abort the provisioning in order not to write the otpmk fuses again which might brick the board*/
+    for (i = 0; i < num_raw_containers ; i++)
+    {
+        if(raw_containers[i].fields && find_container_field(RAW_CONTAINER_TAG_OTPMK,raw_containers[i].fields))
+        {
+
+            fprintf(stderr,"toughen_otpmk:otpmk already exist in nand, Abort\n");
+            goto cleanup;           
+
+        }
+    }
+
     if ( 0 != get_otpmk(otpmk,&otpmk_buf) )
     {
         fprintf(stderr,"toughen_otpmk:get_otpmk failed\n");
@@ -659,12 +678,26 @@ static int toughen_dbg_rsp(struct raw_container_t *raw_containers,uint32_t num_r
         goto cleanup;
     }
 
+    /*For the case where previous provisioning failed to set the SFP_OSCR bit to indicate that dbg rsp is fused
+     * in such a case Abort the provisioning in order not to write the dbg rsp fuses again which might brick the board*/
+    for (i= 0; i < num_raw_containers ; i++)
+    {
+        if (raw_containers[i].fields && find_container_field(RAW_CONTAINER_TAG_JTAG_DBG_RSP,raw_containers[i].fields))
+        {
+
+            fprintf(stderr,"toughen_dbg_rsp: dbg rsp already exist in nand, Abort\n");
+            goto cleanup;
+
+        }
+    }
+
     for (i = 0; i < num_raw_containers; ++i)
     {
 
         if (raw_containers[i].fields)
         {
             nand_data = raw_containers[i].fields;
+            break;
         }
     }
 
@@ -738,7 +771,8 @@ cleanup:
 
 static int gen_apk_container(struct raw_container_t *raw_containers,uint32_t num_raw_containers)
 {
-    struct container_field_t * apk_data = NULL, *nand_data = NULL, *consolidated_data = NULL;
+    struct container_field_t * apk_data = NULL, **nand_data = NULL, *consolidated_data = NULL, *field = NULL;
+    uint16_t tag_list[] = {RAW_CONTAINER_TAG_PRIVATE_KEY_BLOB,RAW_CONTAINER_TAG_PUBLIC_KEY,RAW_CONTAINER_TAG_CSR,0};
     uint32_t apk_created_val = 0x04,write_protect = 0x01;
     int ret = 1, i = 0;
 
@@ -753,8 +787,27 @@ static int gen_apk_container(struct raw_container_t *raw_containers,uint32_t num
 
         if (raw_containers[i].fields)
         {
-            nand_data = raw_containers[i].fields;
+            nand_data = &raw_containers[i].fields;
+            break;
         }
+    }
+
+    /*Remove private key blob,public key,csr if already present, they might be present if previous provisioning attempt failed
+     * to set the SFP_OSCR apk fuse bit, discard the older data generate afresh*/
+    if (*nand_data)
+    {
+        for (i = 0; 0 != tag_list[i]; ++i)
+        {
+            field = find_container_field(tag_list[i], *nand_data);
+
+            if (field)
+            {
+                take_container_field(nand_data, field);
+                free_container_fields(field);
+                field = NULL;
+            }
+        }
+
     }
 
     if (0 != create_container(&apk_data))
@@ -763,8 +816,8 @@ static int gen_apk_container(struct raw_container_t *raw_containers,uint32_t num
         goto cleanup;
     }
 
-    if (nand_data)
-        container_union(apk_data,nand_data,&consolidated_data);
+    if (*nand_data)
+        container_union(apk_data,*nand_data,&consolidated_data);
     else
         consolidated_data = apk_data;
 
