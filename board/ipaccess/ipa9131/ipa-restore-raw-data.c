@@ -697,7 +697,7 @@ static int toughen_dbg_rsp(struct raw_container_t *raw_containers,uint32_t num_r
         if (raw_containers[i].fields)
         {
             nand_data = raw_containers[i].fields;
-	    break;
+            break;
         }
     }
 
@@ -788,7 +788,7 @@ static int gen_apk_container(struct raw_container_t *raw_containers,uint32_t num
         if (raw_containers[i].fields)
         {
             nand_data = &raw_containers[i].fields;
-	    break;
+            break;
         }
     }
 
