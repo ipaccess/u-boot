@@ -554,9 +554,16 @@ cleanup:
 
     free_container_fields_and_values(new_data);
     if ( 0 == ret )
+    {
         return CMD_RET_SUCCESS;
+    }
     else
+    {
+        cli_simple_run_command("ledc nwk yellow", 0);
+        udelay(10000000);
+        cli_simple_run_command("ledc nwk off yellow 3 500", 0);
         return CMD_RET_FAILURE;
+    }
 
 }
 
@@ -927,7 +934,13 @@ int do_provisioning(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     if (!otpmk_set)
     {
         /*Should happen only once in Ap lifetime*/
-        toughen_otpmk(raw_containers,num_raw_containers);
+        if (0 != toughen_otpmk(raw_containers,num_raw_containers))
+        {
+            cli_simple_run_command("ledc nwk yellow", 0);
+            udelay(10000000);
+            cli_simple_run_command("ledc nwk off yellow 1 500", 0);
+        }
+
         return CMD_RET_FAILURE;
         /*irrespective of whether toughen_otpmk returned true or false
          *This will always return false, as the AP must reboot after this 
@@ -937,14 +950,24 @@ int do_provisioning(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     if (!dbg_resp_set)
     {	/*Should happen only once in Ap lifetime*/
         if ( 0 != toughen_dbg_rsp(raw_containers,num_raw_containers) )
+        {
+            cli_simple_run_command("ledc nwk yellow", 0);
+            udelay(10000000);
+            cli_simple_run_command("ledc nwk off yellow 2 500", 0);
             return CMD_RET_FAILURE;
+        }
     }
 
     if (!apk_created)
     {
         /*Should happen only once in Ap lifetime*/
         if (0 != gen_apk_container(raw_containers,num_raw_containers) )
+        {
+            cli_simple_run_command("ledc nwk yellow", 0);
+            udelay(10000000);
+            cli_simple_run_command("ledc nwk off yellow 3 500", 0);
             return CMD_RET_FAILURE;
+        }
     }
 
     return CMD_RET_SUCCESS;

@@ -14,6 +14,10 @@ struct law_entry law_table[] = {
 		LAW_TRGT_IF_DSP_CCSR),
 	SET_LAW(CONFIG_SYS_FSL_DSP_M2_RAM_ADDR, LAW_SIZE_16M,
 		LAW_TRGT_IF_OCN_DSP),
+#if !(defined(CONFIG_SPL_BUILD))
+	/*Secure Memory Mapping to e500 address map*/
+	SET_LAW(0xFED00000,LAW_SIZE_16K, 0x07),
+#endif
 };
 
 int num_law_entries = ARRAY_SIZE(law_table);

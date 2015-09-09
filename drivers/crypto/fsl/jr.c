@@ -15,6 +15,8 @@
 #define CIRC_CNT(head, tail, size)	(((head) - (tail)) & (size - 1))
 #define CIRC_SPACE(head, tail, size)	CIRC_CNT((tail), (head) + 1, (size))
 
+extern void sec_mem_init();
+
 struct jobring jr;
 
 static inline void start_jr0(void)
@@ -445,6 +447,8 @@ int sec_init(void)
 
 	sec_out32(&sec->mcfgr, mcr | 1 << MCFGR_PS_SHIFT);
 #endif
+	sec_mem_init();
+
 	sec_out32(&sec->jrliodnr[0].ms, 0x00010000);
 	sec_out32(&sec->jrliodnr[1].ms, 0x00010000);
 	sec_out32(&sec->jrliodnr[2].ms, 0x00010000);

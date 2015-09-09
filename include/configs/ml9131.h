@@ -98,10 +98,9 @@
 	"fi; "                              	\
 	"restore_raw_container -m 3 -m 5; "	\
 	"if test $? -eq 1; then "		\
- 	 "ledc all green red 3 1000; "		\
 	 "reset; "				\
 	"fi; "					\
-	"gen_trusted_desc 0x36F00000; "		\
+	"gen_trusted_desc 0xFED01000; "		\
 	"change_sec_state; "			\
 	"ml9131; "				\
 	"ledc nwk green red 3 1000; "		\
