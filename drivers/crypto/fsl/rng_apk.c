@@ -28,6 +28,19 @@
 #define SIGNATURE_HASH_3_BYTE 0x000B0000
 #define BLACK_KEY_ADDR 0xFED00000
 
+/*Sec memory registers*/
+#define SMCJR0_ADDR         (CONFIG_SYS_IMMR + 0x310F4)
+#define SMAPJR0_0_ADDR      (CONFIG_SYS_IMMR + 0x31104)
+#define SMAG2JR0_0_ADDR     (CONFIG_SYS_IMMR + 0x31108)
+#define SMAG1JR0_0_ADDR     (CONFIG_SYS_IMMR + 0x3110C)
+#define SMAPJR0_1_ADDR      (CONFIG_SYS_IMMR + 0x31114)
+#define SMAG2JR0_1_ADDR     (CONFIG_SYS_IMMR + 0x31118)
+#define SMAG1JR0_1_ADDR     (CONFIG_SYS_IMMR + 0x3111C)
+
+#define reg_in_be32(x) in_be32((const volatile unsigned __iomem *)(x))
+#define reg_out_be32(x,y) out_be32((volatile unsigned __iomem *)(x),(y))
+
+
 /*The same strucure will be used in kernel sec_jr module to recover back the
  * stored descriptors from memory, Any changes made here has to be propagated in sec_jr
  * module as well*/
@@ -341,6 +354,36 @@ int gen_desc(uint32_t *dst_addr)
 
 end:
     return ret;
+
+
+}
+
+void sec_mem_init()
+{
+
+    /*Deallocate default partition*/
+    reg_out_be32(SMCJR0_ADDR,0x03);
+
+    /*Allocate partition 0*/
+    reg_out_be32(SMAPJR0_0_ADDR,0xFFFFE000);
+    /*Allocate page 0 to partition 0*/
+    reg_out_be32(SMCJR0_ADDR,0x01);
+
+    /*Allocate partition 1*/
+    reg_out_be32(SMAPJR0_1_ADDR,0XFFFFE0FF);
+
+    /*Allocate page 1,2,3 to partition 1*/
+    reg_out_be32(SMCJR0_ADDR,0x00010101);
+    reg_out_be32(SMCJR0_ADDR,0x00020101);
+    reg_out_be32(SMCJR0_ADDR,0x00030101);
+    /*Let sec engine and e500 core access these partitions*/
+    reg_out_be32(SMAG2JR0_0_ADDR,0x00020001);
+    reg_out_be32(SMAG1JR0_0_ADDR,0x00020001);
+    reg_out_be32(SMAG2JR0_1_ADDR,0x00020001);
+    reg_out_be32(SMAG1JR0_1_ADDR,0x00020001);
+    /*Lock out everything*/
+    reg_out_be32(SMAPJR0_0_ADDR,0xFFFFF000);
+    reg_out_be32(SMAPJR0_1_ADDR,0XFFFFF0FF);
 
 
 }

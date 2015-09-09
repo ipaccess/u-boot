@@ -338,7 +338,7 @@
 	"altbootcmd=" FALLBACK_BOOT_COMMAND "\0"				\
 	"bootlimit=" __stringify(CONFIG_BOOTCOUNT_LIMIT_COUNT) "\0"		\
 	"secureboot=" SECURE_BOOT_COMMAND "\0"                                  \
-	"bootm_size=0x36F00000\0"
+	"bootm_size=0x37000000\0"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
 #endif

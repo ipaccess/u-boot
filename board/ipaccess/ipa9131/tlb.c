@@ -55,7 +55,12 @@ struct fsl_e_tlb_entry tlb_table[] = {
 
 	SET_TLB_ENTRY(1, CONFIG_SYS_NAND_BASE, CONFIG_SYS_NAND_BASE_PHYS,
 			MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,
-			0, 3, BOOKE_PAGESZ_1M, 1)
+			0, 3, BOOKE_PAGESZ_1M, 1),
+#if !(defined(CONFIG_SPL_BUILD))
+	/*Secure Memory Mapping to e500 address map*/
+        SET_TLB_ENTRY(1, 0xFED00000,  0xFED00000,
+        MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,0, 4, BOOKE_PAGESZ_16K, 1)
+#endif
 
 };
 
