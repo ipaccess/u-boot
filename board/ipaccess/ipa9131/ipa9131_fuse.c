@@ -304,10 +304,9 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
         u32 secmon_hpsr,sfp_dessr;
         u32 optmk_minimal = IPA9131_MINIMAL_OTPMK_VALUE;
         u32 debug_resp_minimal = IPA9131_MINIMAL_JTAG_RESP_VALUE;
-        u32 its_value = 0x04, debug_prmsn_val = 0x4;
+        u32 its_value = 0x04, debug_prmsn_val = 0x2;
         int prompt_to_user = 1, i = 0;
         int debug_permission = 0;
-        u8 prod = 0, dev = 0 , specials = 0;
 
         while( i < argc )
         {
@@ -319,7 +318,6 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
 
         }
 
-        }
 
         ipa9131_fuse_init();
 
@@ -393,14 +391,6 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
 
         if (debug_permission)
         {
-
-            if (0 != ipa9131_fuse_read_security_profile(&prod, &dev, &specials))
-            { 
-                goto error;
-            }
-
-            if ( dev || specials )
-                debug_prmsn_val = 0x1;
 
             if (0 != ipa9131_fuse_write_in_range(SFP_DPR_ADDRESS,1,&debug_prmsn_val))
             {
