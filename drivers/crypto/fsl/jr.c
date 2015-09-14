@@ -431,7 +431,8 @@ static int rng_init(void)
 	}
 
 	 /* Enable RDB bit so that RNG works faster */
-	sec_setbits32(&sec->scfgr, SEC_SCFGR_RDBENABLE);
+	sec_setbits32(&sec->scfgr, SEC_SCFGR_RDBENABLE|0x00000300);
+	/*set RNGSH0 and RANDDPAR as well so that rng is locked in non-deterministic mode*/
 
 	return ret;
 }
