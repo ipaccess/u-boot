@@ -281,7 +281,7 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
         if ( NULL == (pubkey_data = find_container_field(RAW_CONTAINER_TAG_PUBLIC_KEY, in_data)) )
         {
             /*No pub key, return*/
-            fprintf(stderr,"Private key blob not present in raw nand\n");
+            fprintf(stderr,"Public key not present in raw nand\n");
             ret = -EFAULT;
             goto cleanup;
 
@@ -311,6 +311,10 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
     }
 
 cleanup:
+
+    if (0 != ret)
+        set_sec_state_to_fail();
+
     /*for Specials do not bother if validation failed or passed
      * as Specials do not use security collaterals, and can be deleted */
     if ( characterisation_is_specials_mode() )
@@ -466,7 +470,7 @@ int do_restore_container(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv
     num_raw_containers = 0;
     need_consolidation = 0;
 
-    while(i < argc)
+    while(i < (argc - 1))
     {
         if (0 == strcmp(argv[i],"-m"))
         {
@@ -581,7 +585,7 @@ static int toughen_otpmk(struct raw_container_t *raw_containers,uint32_t num_raw
 
     if (0 != read_raw_containers(raw_containers, num_raw_containers))
     {
-        fprintf(stderr,"read_raw_containers\n");
+        fprintf(stderr,"toughen_otpmk:read_raw_containers\n");
         goto cleanup;
     }
 
@@ -619,11 +623,11 @@ static int toughen_otpmk(struct raw_container_t *raw_containers,uint32_t num_raw
 
     }
 
-    secmon_hpsr = sec_in_be32(SECMON_HPSR);
     udelay(50);
+    secmon_hpsr = sec_in_be32(SECMON_HPSR);
 
     /*Sec mon hpsr almost immediately reflects error if OTPMK is not hamming protected*/
-    if (secmon_hpsr & 0x01FF0000)
+    if (secmon_hpsr & 0x09FF0000)
     {
         fprintf(stderr,"toughen_otpmk:Wrong value in OTPMK registers, can't blow fuses\n");
         goto cleanup;
@@ -648,6 +652,9 @@ static int toughen_otpmk(struct raw_container_t *raw_containers,uint32_t num_raw
     ret = 0;
 
 cleanup:
+    if (0 != ret)
+        set_sec_state_to_fail();
+
     for (i = 0; i < num_raw_containers; ++i)
     {
         free_container_fields(raw_containers[i].fields);
@@ -754,6 +761,8 @@ static int toughen_dbg_rsp(struct raw_container_t *raw_containers,uint32_t num_r
 
     ret = 0;
 cleanup:
+    if (0 != ret)
+	    set_sec_state_to_fail();
     for (i = 0; i < num_raw_containers; ++i)
     {
         free_container_fields(raw_containers[i].fields);
@@ -858,6 +867,10 @@ static int gen_apk_container(struct raw_container_t *raw_containers,uint32_t num
     ret = 0;
 
 cleanup:
+
+    if (0 != ret)
+	    set_sec_state_to_fail();
+
     for (i = 0; i < num_raw_containers; ++i)
     {
         free_container_fields(raw_containers[i].fields);
@@ -901,14 +914,12 @@ int do_provisioning(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     if ( (otpmk_set && dbg_resp_set && apk_created) )
         return CMD_RET_SUCCESS;
 
-    /*safeguard for bootstrap microloader, Make sure the board was characterised first
-     *if not then provisioning will not run*/
-    if ( ipa9131_is_unfused() )
+    /*safeguard, provisioning to be run only in case of secure boot*/
+    if ( !ipa9131_fuse_its_blown() )
     {
-        fprintf(stderr,"Board not characterised!!, Failed to run provisioning\n");
+        fprintf(stderr,"Secure boot not enabled!! Failed to run provisioning\n");
         return CMD_RET_FAILURE;
     }
-
 
 
     while(i < argc)
@@ -929,7 +940,6 @@ int do_provisioning(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         }
         ++i;
     }
-
 
     if (!otpmk_set)
     {
@@ -974,14 +984,17 @@ int do_provisioning(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 }
 
+
+#if defined ML9131_PROVISIONING_COMMANDS
 U_BOOT_CMD(restore_raw_container, 9, 0, do_restore_container,
-		"Excercise restore_raw_container",
+		"Exercise restore_raw_container",
 		"-m <mtd-part-num>"
 		"up to 4 mtd part num can be provided"
 	  );
 
 U_BOOT_CMD(ipa9131_provisioning, 9, 0, do_provisioning,
-        "Excercise initial_provisioning",
+        "Exercise initial_provisioning",
         "ipa9131_provisioning -m <mtd-part-num>"
         "up to 4 mtd part num can be provided"
         );
+#endif

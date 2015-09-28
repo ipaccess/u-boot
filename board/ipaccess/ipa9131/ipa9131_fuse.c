@@ -6,6 +6,7 @@
 #include <asm/immap_85xx.h>
 #include "ipa9131_fuse.h"
 #include "sec.h"
+#include "image.h"
 
 #define fuse_in_be32(x)	in_be32((const volatile unsigned __iomem *)(x))
 #define fuse_out_be32(x,y) out_be32((volatile unsigned __iomem *)(x),(y))
@@ -21,19 +22,21 @@ int ipa9131_fuse_init(void)
 }
 
 
-int ipa9131_fuse_read_eid(u64 * eid)
+int ipa9131_fuse_read_eid(u8 oui_arr[3],u32 *serial)
 {
-	u64 r0;
-	u64 r1;
+	u32 r0;
+	u32 r1;
 
-	if (!eid)
+	if (!oui_arr || !serial)
 		return -EINVAL;
 
 	r0 = fuse_in_be32(SFP_DCVR0_ADDRESS);
 	r1 = fuse_in_be32(SFP_DCVR1_ADDRESS);
 
-	*eid = ((r0 << 32) & 0xffffffff00000000) |
-		(r1 & 0x00000000ffffffff);
+	oui_arr[0] = (r0 >> 28) & 0xff;
+	oui_arr[1] = (r0 >> 24) & 0xff;
+	oui_arr[2] = (r0 >> 20) & 0xff;
+	*serial = r1 & 0x0fffffff;
 	return 0;
 }
 
@@ -66,6 +69,11 @@ int ipa9131_fuse_should_be_silent(void)
 		return 0;
 
 	return (fuse_in_be32(SFP_OUIDR_ADDRESS) & 0x01) ? 1 : 0;
+}
+
+int ipa9131_fuse_its_blown(void)
+{
+	return (fuse_in_be32(SFP_OSPR_ADDRESS) & 0x04) ? 1 : 0;
 }
 
 
@@ -245,22 +253,14 @@ int do_ipa9131_fuse(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 
 	if (0 == strcmp(argv[1], "eid")) {
-		u64 eid;
-		u8 oui0;
-		u8 oui1;
-		u8 oui2;
+		u8 oui[3];
 		u32 serial;
 
-		if (0 != ipa9131_fuse_read_eid(&eid)) {
+		if (0 != ipa9131_fuse_read_eid(oui,&serial)) {
 			return CMD_RET_FAILURE;
 		}
 
-		oui0 = (eid >> 56) & 0xff;
-		oui1 = (eid >> 48) & 0xff;
-		oui2 = (eid >> 40) & 0xff;
-		serial = eid & 0x00000000ffffffff;
-
-		printf("EID: %02X%02X%02X-%010u\n", oui0, oui1, oui2, serial);
+		printf("EID: %02X%02X%02X-%010u\n", oui[0], oui[1], oui[2], serial);
 		return CMD_RET_SUCCESS;
 	}
 
@@ -291,7 +291,7 @@ int do_ipa9131_fuse(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 U_BOOT_CMD(ipa9131_fuse, 2, 0, do_ipa9131_fuse,
-	"Excercise ipa9131 fuse functions",
+	"Exercise ipa9131 fuse functions",
 	" init|eid|security|ldr_revo|app_revo"
 );
 #endif
@@ -301,127 +301,137 @@ U_BOOT_CMD(ipa9131_fuse, 2, 0, do_ipa9131_fuse,
 static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 
-        u32 secmon_hpsr,sfp_dessr;
-        u32 optmk_minimal = IPA9131_MINIMAL_OTPMK_VALUE;
-        u32 debug_resp_minimal = IPA9131_MINIMAL_JTAG_RESP_VALUE;
-        u32 its_value = 0x04, debug_prmsn_val = 0x2;
-        int prompt_to_user = 1, i = 0;
-        int debug_permission = 0;
+    u32 secmon_hpsr,sfp_dessr;
+    u32 optmk_minimal = IPA9131_MINIMAL_OTPMK_VALUE;
+    u32 debug_resp_minimal = IPA9131_MINIMAL_JTAG_RESP_VALUE;
+    u32 its_csff_value = 0x06, debug_prmsn_val = 0x2;
+    int prompt_to_user = 1, i = 0;
+    int debug_permission = 1;
 
-        while( i < argc )
+    while( i < argc )
+    {
+        if ( 0 == strcmp(argv[i],"no-prompt") )
+            prompt_to_user = 0;
+        else if ( 0 == strcmp(argv[i],"no-dbg-permission") )
+            debug_permission = 0;
+        i++;
+
+    }
+
+
+    ipa9131_fuse_init();
+
+    if (0 != do_ipa9131_sec_boot_verify(NULL,0,0,NULL))
+        goto error;
+
+    if ( ipa9131_is_unfused() )
+    {
+        fprintf(stderr,"Board not characterised, fuse characterisation data first\n");
+        goto error;
+    }
+
+    if (0 != verify_secboot_images_present())
+    {
+        fprintf(stderr,"Valid secure boot images not present on flash\n");
+        goto error;
+    }
+
+
+
+    if ( (0 != ipa9131_fuse_write_in_range(SFP_OTPMKR0_ADDRESS,1,&optmk_minimal)) || 
+            (0 != ipa9131_fuse_write_in_range(SFP_DRVR0_ADDRESS,1,&debug_resp_minimal)) )
+    {
+        fprintf(stderr,"Error in setting fuse values\n");
+        goto error;
+    }
+
+    udelay(50);
+
+    secmon_hpsr = sec_in_be32(SECMON_HPSR);
+
+    /*Sec mon hpsr almost immediately reflects error if OTPMK is not hamming protected*/
+    if (secmon_hpsr & 0x09FF0000)
+    {
+        fprintf(stderr,"Wrong value in OTPMK0, can't blow fuses\n");
+        goto error;
+    }
+
+    if ( prompt_to_user )
+    {
+        fprintf(stdout,"Do you wish to go ahead and make this as secure boot board? this will permanently blow fuses\n");
+        fprintf(stdout, "Type 'Y' to proceed: ");
+
+
+        if ('Y' != getc())
         {
-            if ( 0 == strcmp(argv[i],"no-prompt") )
-                prompt_to_user = 0;
-            else if ( 0 == strcmp(argv[i],"dbg-permission") )
-                debug_permission = 1;
-            i++;
-
-        }
-
-
-        ipa9131_fuse_init();
-
-	if ( ipa9131_is_unfused() )
-	{
-            fprintf(stderr,"Board not characterised, fuse characterisation data first\n");
-            goto error;
-	}
-
-        if ( (0 != ipa9131_fuse_write_in_range(SFP_OTPMKR0_ADDRESS,1,&optmk_minimal)) || 
-                (0 != ipa9131_fuse_write_in_range(SFP_DRVR0_ADDRESS,1,&debug_resp_minimal)) )
-        {
-            fprintf(stderr,"Error in setting fuse values\n");
-            goto error;
-        }
-
-        udelay(50);
-
-        secmon_hpsr = sec_in_be32(SECMON_HPSR);
-
-        /*Sec mon hpsr almost immediately reflects error if OTPMK is not hamming protected*/
-        if (secmon_hpsr & 0x01FF0000)
-        {
-            fprintf(stderr,"Wrong value in OTPMK0, can't blow fuses\n");
-            goto error;
-        }
-
-        if ( prompt_to_user )
-        {
-            fprintf(stdout,"Do you wish to go ahead and make this as secure boot board? this will permanently blow fuses\n");
-            fprintf(stdout, "Type 'Y' to proceed: ");
-
-
-            if ('Y' != getc())
-            {
-                fprintf(stdout, "\nUser cancelled operation\n");
-                goto error;
-
-            }
-
-            fprintf(stdout,"\nYou're sure? ");
-            fprintf(stdout, "Type 'Y' to proceed: ");
-
-            if ('Y' != getc())
-            {
-                fprintf(stdout,"\nUser cancelled operation\n");
-                goto error;
-            }
-
-            fprintf(stdout,"\nAttempting to write the fuses\n");
-        }
-
-        ipa9131_blow_fuse();
-
-        ipa9131_fuse_init();/*reinit this clears PROGFB bit of SFP_INGR, so that fuses can be blown again*/
-
-        secmon_hpsr = sec_in_be32(SECMON_HPSR);
-        sfp_dessr = fuse_in_be32(SFP_DESSR_ADDRESS);
-
-        if ( (secmon_hpsr & 0x01FF0000) || (sfp_dessr & 0x0000007E))
-        {
-            fprintf(stderr,"OTPMK0/DRV0 fuses not blown properly, can't blow ITS and DBG permission fuses\n");        
-            goto error;
-        }
-       
-        if (0 != ipa9131_fuse_write_in_range(SFP_OSPR_ADDRESS,1,&its_value))
-        {
-            fprintf(stderr,"Error setting ITS fuse\n");
+            fprintf(stdout, "\nUser cancelled operation\n");
             goto error;
         }
 
-        if (debug_permission)
+        fprintf(stdout,"\nYou're sure? ");
+        fprintf(stdout, "Type 'Y' to proceed: ");
+
+        if ('Y' != getc())
         {
+            fprintf(stdout,"\nUser cancelled operation\n");
+            goto error;
+        }
 
-            if (0 != ipa9131_fuse_write_in_range(SFP_DPR_ADDRESS,1,&debug_prmsn_val))
-            {
-                fprintf(stderr,"Error setting jtag dbg permission fuse values\n");
-                goto error;
-            }
+        fprintf(stdout,"\nAttempting to write the fuses\n");
+    }
 
+    ipa9131_blow_fuse();
 
+    ipa9131_fuse_init();/*reinit this clears PROGFB bit of SFP_INGR, so that fuses can be blown again*/
+
+    secmon_hpsr = sec_in_be32(SECMON_HPSR);
+    sfp_dessr = fuse_in_be32(SFP_DESSR_ADDRESS);
+
+    if ( (secmon_hpsr & 0x09FF0000) || (sfp_dessr & 0x0000007E))
+    {
+        fprintf(stderr,"OTPMK0/DRV0 fuses not blown properly, can't blow ITS and DBG permission fuses\n");        
+        goto error;
+    }
+
+    if (0 != ipa9131_fuse_write_in_range(SFP_OSPR_ADDRESS,1,&its_csff_value))
+    {
+        fprintf(stderr,"Error setting ITS fuse\n");
+        goto error;
+    }
+
+    if (debug_permission)
+    {
+
+        if (0 != ipa9131_fuse_write_in_range(SFP_DPR_ADDRESS,1,&debug_prmsn_val))
+        {
+            fprintf(stderr,"Error setting jtag dbg permission fuse values\n");
+            goto error;
         }
 
 
-        ipa9131_blow_fuse();
+    }
 
-        fprintf(stdout,"fuses blown successfully, Board is now a Secure Boot Board\n");
 
-        return CMD_RET_SUCCESS;
+    ipa9131_blow_fuse();
+
+    fprintf(stdout,"fuses blown successfully, Board is now a Secure Boot Board\n");
+
+    return CMD_RET_SUCCESS;
 
 error:
-        return CMD_RET_FAILURE;
+    return CMD_RET_FAILURE;
 
 }
 
 U_BOOT_CMD(ipa9131_go_secure, 3, 0, do_ipa9131_secure,
         "Prepare Board for secure boot",
-        "ipa9131_go_secure <no-prompt|dbg-permission> "
+        "ipa9131_go_secure <no-prompt|no-dbg-permission> "
         );
 
 #endif
 
 #if defined CONFIG_CMD_IPA9131_VERIFY_SEC_BOOT_CHIP
-static int do_ipa9131_sec_boot_verify(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_ipa9131_sec_boot_verify(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
         u32 val = 0;
 
@@ -450,7 +460,7 @@ static int do_ipa9131_sec_boot_verify(cmd_tbl_t *cmdtp, int flag, int argc, char
         }
 
         val = sec_in_be32(SECMON_HPSVSR);
-        if (val)
+        if ( val & 0x09FF001E)
         {
             fprintf(stderr,"SECMON_HPSVSR Sec_violations: Secure boot not possible on this chip\n");
             goto error;

@@ -8,4 +8,6 @@
 #define SECMON_HPSR          (CONFIG_SYS_IMMR + 0x000e6014)
 #define SECMON_HPSVSR        (CONFIG_SYS_IMMR + 0x000e6018)
 
+extern void set_final_sec_state(void);
+extern void set_sec_state_to_fail(void);
 #endif

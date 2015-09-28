@@ -26,6 +26,8 @@
 #include "ipa9131_fuse.h"
 #include "secboot.h"
 #include "led.h"
+#include "sec.h"
+#include "raw_container.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -116,6 +118,31 @@ int misc_init_r(void)
 	if (1 != characterisation_init())
 		 return 1;
 #endif
+
+#if defined (CONFIG_ML9131)
+
+        char * const args[] = {"-m","3","-m","5"};
+        /*Check for its bit to find out if this is bootstrap loader or secure boot loader
+         * do following, only in case of when booting up in secure boot*/
+        if ( ipa9131_fuse_its_blown() )
+        {
+            if ( do_provisioning(NULL,0,4,args) || do_restore_container(NULL,0,4,args) || gen_desc(0xFED01000) )
+            {
+                do_reset(NULL,0,0,NULL);
+                udelay(10000000);
+            }
+
+
+        }
+        else
+        {
+            set_sec_state_to_fail();
+        }
+
+        set_final_sec_state();        
+
+#endif
+
 	if (0 != load_security_requirements())
 		return 1;
 

@@ -21,6 +21,7 @@
 #define CSR_MAX_BUFF_SIZE 4096
 
 #define SUBJECT_NAME "C=GB,L=%s,O=ip.access Ltd,OU=3GAP,CN=%s"
+#define SUBJECT_NAME_PROD "C=GB,O=ip.access Ltd,OU=3GAP,CN=%s"
 #define MAX_SUBJECT_NAME_SIZE 80
 
 #define MAX_BLOB_SIZE 304
@@ -104,27 +105,23 @@ static int gen_csr_pem( pk_context *key,crypt_buf_t *csr_out_buf )
     int ret = 0;
     x509write_csr req;
     char subject_name[MAX_SUBJECT_NAME_SIZE];
-    char *mode = NULL;
     char eid[CHARACTERISATION_EID_LENGTH + 1];
     memset(subject_name,0,sizeof(subject_name));
     memset(eid,0,sizeof(eid));
 
     characterisation_read_eid(eid,sizeof(eid));
 
-    if (characterisation_is_test_mode()||characterisation_is_development_mode())
-    {
-        mode = "Test";
-    }
-    else if (characterisation_is_specials_mode())
-    {
-        mode = "TestSpecial";
-    }
 
     x509write_csr_init( &req );
     x509write_csr_set_md_alg( &req, POLARSSL_MD_SHA256 );
 
    
-    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME, mode,eid);
+    if (characterisation_is_test_mode()||characterisation_is_development_mode())
+	    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME,"Test",eid);
+    else if (characterisation_is_specials_mode())
+	    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME,"TestSpecial",eid);
+    else
+	    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME_PROD,eid);
 
     if( ( ret = x509write_csr_set_subject_name( &req, subject_name ) ) != 0 )
     {
@@ -569,8 +566,8 @@ static int do_gen_apk_csr(cmd_tbl_t *cmdtp, int flag, int argc, char * const arg
 }
 
 U_BOOT_CMD(gen_apk_csr, 2, 0, do_gen_apk_csr,
-	"Excercise gen_csr to test key pair gen,priv key blob gen,csr generation",
-	"gen_csr"
+	"Test Key pair and Csr generation ",
+	"gen_apk_csr"
 	);
 #endif
 

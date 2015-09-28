@@ -92,27 +92,14 @@
 
 #define STANDARD_BOOT_COMMAND			\
 	"ledc all yellow off 1 300; "	 	\
-	"ipa9131_provisioning -m 3 -m 5;"	\
-	"if test $? -eq 1; then "           	\
-	 "reset; "                          	\
-	"fi; "                              	\
-	"restore_raw_container -m 3 -m 5; "	\
-	"if test $? -eq 1; then "		\
-	 "reset; "				\
-	"fi; "					\
-	"gen_trusted_desc 0xFED01000; "		\
-	"change_sec_state; "			\
 	"ml9131; "				\
 	"ledc nwk green red 3 1000; "		\
 	"reset"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
 
-#define CONFIG_CMD_SEC_GEN_TRUSTED_DESC
-/* temporary, to see Sec RNG generates random number */
-#define CONFIG_CMD_SEC_GEN_RN
-#define CONFIG_CMD_SEC_STATE_CHANGE
-#define CONFIG_CMD_IPA9131_TEST_BOARD
+
+#define CONFIG_CMD_IPA9131_TEST_MODE
 #define CONFIG_CMD_IPA9131_GO_SECURE
 #define CONFIG_CMD_IPA9131_VERIFY_SEC_BOOT_CHIP
 #endif
