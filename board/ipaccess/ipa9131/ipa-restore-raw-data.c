@@ -10,8 +10,9 @@
 #include <errno.h>
 #include <fsl_sec.h>
 
-#define IPA9131_BLOB0_START_BLOCK 26
-#define IPA9131_BLOB1_START_BLOCK 1023
+#define IPA9131_BLOB0_START_BLOCK 25
+#define IPA9131_BLOB1_START_BLOCK 26
+#define IPA9131_BLOB2_START_BLOCK 1023
 
 struct part_block_off_t
 {
@@ -21,7 +22,8 @@ struct part_block_off_t
 
 static const struct part_block_off_t part_num_to_block_off[]={ 
 								{.partnum=3, .nand_block_off=IPA9131_BLOB0_START_BLOCK,},
-								{.partnum=5, .nand_block_off=IPA9131_BLOB1_START_BLOCK,},
+								{.partnum=4, .nand_block_off=IPA9131_BLOB1_START_BLOCK,},
+								{.partnum=6, .nand_block_off=IPA9131_BLOB2_START_BLOCK,},
 							     };
 
 static int hashfunc(const uint8_t * data, uint32_t data_len, uint8_t * hash_out, uint32_t hash_len)

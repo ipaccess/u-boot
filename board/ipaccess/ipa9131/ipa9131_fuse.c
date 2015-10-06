@@ -33,9 +33,9 @@ int ipa9131_fuse_read_eid(u8 oui_arr[3],u32 *serial)
 	r0 = fuse_in_be32(SFP_DCVR0_ADDRESS);
 	r1 = fuse_in_be32(SFP_DCVR1_ADDRESS);
 
-	oui_arr[0] = (r0 >> 28) & 0xff;
-	oui_arr[1] = (r0 >> 24) & 0xff;
-	oui_arr[2] = (r0 >> 20) & 0xff;
+	oui_arr[0] = (r0 >> 24) & 0xff;
+	oui_arr[1] = (r0 >> 16) & 0xff;
+	oui_arr[2] = (r0 >> 8) & 0xff;
 	*serial = r1 & 0x0fffffff;
 	return 0;
 }
@@ -306,14 +306,14 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
     u32 debug_resp_minimal = IPA9131_MINIMAL_JTAG_RESP_VALUE;
     u32 its_csff_value = 0x06, debug_prmsn_val = 0x2;
     int prompt_to_user = 1, i = 0;
-    int debug_permission = 1;
+    int fuse_dpr = 1;
 
     while( i < argc )
     {
         if ( 0 == strcmp(argv[i],"no-prompt") )
             prompt_to_user = 0;
-        else if ( 0 == strcmp(argv[i],"no-dbg-permission") )
-            debug_permission = 0;
+        else if ( 0 == strcmp(argv[i],"full-dbg-permission") )
+            fuse_dpr = 0;
         i++;
 
     }
@@ -339,7 +339,7 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
 
 
     if ( (0 != ipa9131_fuse_write_in_range(SFP_OTPMKR0_ADDRESS,1,&optmk_minimal)) || 
-            (0 != ipa9131_fuse_write_in_range(SFP_DRVR0_ADDRESS,1,&debug_resp_minimal)) )
+            (0 != ipa9131_fuse_write_in_range(SFP_DRVR1_ADDRESS,1,&debug_resp_minimal)) )
     {
         fprintf(stderr,"Error in setting fuse values\n");
         goto error;
@@ -389,7 +389,7 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
 
     if ( (secmon_hpsr & 0x09FF0000) || (sfp_dessr & 0x0000007E))
     {
-        fprintf(stderr,"OTPMK0/DRV0 fuses not blown properly, can't blow ITS and DBG permission fuses\n");        
+        fprintf(stderr,"OTPMK0/DRV1 fuses not blown properly, can't blow ITS and DBG permission fuses\n");        
         goto error;
     }
 
@@ -399,7 +399,7 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
         goto error;
     }
 
-    if (debug_permission)
+    if (fuse_dpr)
     {
 
         if (0 != ipa9131_fuse_write_in_range(SFP_DPR_ADDRESS,1,&debug_prmsn_val))
@@ -425,7 +425,7 @@ error:
 
 U_BOOT_CMD(ipa9131_go_secure, 3, 0, do_ipa9131_secure,
         "Prepare Board for secure boot",
-        "ipa9131_go_secure <no-prompt|no-dbg-permission> "
+        "ipa9131_go_secure <no-prompt|full-dbg-permission> "
         );
 
 #endif

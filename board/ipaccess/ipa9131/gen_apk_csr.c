@@ -357,6 +357,80 @@ static int generate_hamming_code(const u8 *in_buf,u32 len_bits,u8 *ham_code)
 
 }
 
+static int generate_hamming_code_B(const u8 *in_buf,u32 len_bits,u8 *ham_code)
+{
+
+    u32 len_bytes,i = 0,j = 0;
+    u8 *num;
+    u8 parity = 0,l = 0;
+    u8 temp[8];
+    memset(temp,0,8);
+
+    len_bytes = len_bits/8;
+
+    if ( !(num = (u8 *)calloc(len_bits,sizeof(u8))) )
+    {
+        return -ENOMEM;
+
+    }
+
+    /*populate bit array with reversed bytes from input buffer
+     * weird but that's what freescale does, not sure why*/
+    for (i = 0; i < len_bytes; i++) 
+    {
+
+        l = 0x80;
+        for (j = 0; j < len_bytes; j++) {
+            num[len_bytes * 8 - i * 8 - 1 - j] = !!(in_buf[i] & l);
+            l = l >> 1;
+        }
+    }
+
+    /* response must be masked out the hamming coding bits first */
+    for (i = 0; i < len_bits; i = (2*(i+1) - 1))
+        num[i] = 0;
+
+    /* Calculate each code bit in turn */
+    for (i = 0; i < (len_bits/2); i = (2*(i+1) - 1)) 
+    {
+        parity = num[i];
+
+        for (j = i+1; j < len_bits; j++) 
+        {
+            if (((i+1) & (j+1)) != 0)
+                parity ^= num[j];
+
+            num[i] = (num[i] & 0) | parity;
+        }
+    }
+
+    /* Calculate the overall parity */
+    parity = 0;
+    for (j = 0; j < len_bits; j++)
+        parity ^= num[j];
+
+    num[63] = num[63] | parity;
+
+    memset(ham_code,0,len_bytes);
+
+    /*Populate back the hammming code, again reading from the end first*/
+    for (i = 0; i < len_bytes; i++) 
+    {
+        l = 7;
+        for (j = 0; j < 8; j++) {
+            ham_code[i] |= num[(len_bytes - i) * 8 - (j + 1)] << l;
+            --l;
+        }
+    }
+
+
+    free(num);
+    return 0;
+}
+
+
+
+
 static int oem_rsa_encrypt(uint8_t *in_buf,uint32_t in_len,uint8_t *out_buf,uint32_t *out_len )
 {
 	int ret = 0;
@@ -488,9 +562,11 @@ int get_dbg_rsp(u32 *dbg_rsp,crypt_buf_t *dbg_rsp_buf)
     }
 
 
-    rand_buf[7] = rand_buf[7] | IPA9131_MINIMAL_JTAG_RESP_VALUE;
+    rand_buf[0] |= (IPA9131_MINIMAL_JTAG_RESP_VALUE >> 24) & 0xFF;
+    
+    
 
-    if (0 != (ret = generate_hamming_code(rand_buf,len_bits,ham_code)) )
+    if (0 != (ret = generate_hamming_code_B(rand_buf,len_bits,ham_code)) )
         goto cleanup;
 
 

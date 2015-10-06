@@ -18,6 +18,7 @@
 #include <netdev.h>
 #include <mtd_node.h>
 #include <jffs2/load_kernel.h> /* sadly needed for the MTD FDT update */
+#include <fsl_sec.h>
 
 #if defined(CONFIG_CHARACTERISATION_IPA9131)
 #include "characterisation.h"
@@ -67,6 +68,7 @@ int board_early_init_f(void)
 
 #if defined(CONFIG_ML9131)
 	if (ML9131_REVOCATION_VALUE < ipa9131_fuse_read_loader_revocation()) {
+		set_sec_state_to_fail();
 		puts("Revoked\n");
 		while (1) {
 			setLED(LED_NWK, LED_RED);
@@ -121,16 +123,18 @@ int misc_init_r(void)
 
 #if defined (CONFIG_ML9131)
 
-        char * const args[] = {"-m","3","-m","5"};
+        char * const args[] = {"-m","3","-m","4","-m","6"};
         /*Check for its bit to find out if this is bootstrap loader or secure boot loader
          * do following, only in case of when booting up in secure boot*/
         if ( ipa9131_fuse_its_blown() )
         {
-            if ( do_provisioning(NULL,0,4,args) || do_restore_container(NULL,0,4,args) || gen_desc(0xFED01000) )
+            if ( do_provisioning(NULL,0,6,args) || do_restore_container(NULL,0,6,args)  )
             {
                 do_reset(NULL,0,0,NULL);
                 udelay(10000000);
             }
+
+            gen_desc(0xFED01000);
 
 
         }

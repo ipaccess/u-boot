@@ -3,6 +3,7 @@
 #include <asm/errno.h>
 #include <asm/io.h>
 #include <asm/immap_85xx.h>
+#include <fsl_sec.h>
 #include "characterisation.h"
 #include "sec.h"
 
@@ -14,6 +15,8 @@ void set_sec_state_to_fail(void)
 
 void set_final_sec_state(void)
 {
+        lock_out_registers();
+
         if ( characterisation_is_specials_mode() )
         {
                 /*Transition to soft fail state*/

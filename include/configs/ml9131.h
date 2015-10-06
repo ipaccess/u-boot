@@ -66,9 +66,10 @@
         "1024k@0k(ML),"                 \
         "1024k@1024k(UBOOT0),"          \
         "1024k@2048k(UBOOT1),"          \
-        "128k@3328k(BLOB0),"            \
+        "128k@3200k(BLOB0),"            \
+        "128k@3328k(BLOB1),"            \
         "127488k@3456k(FS),"            \
-        "128k@130944k(BLOB1)"
+        "128k@130944k(BLOB2)"
 
 /* Auto-boot options */
 #define CONFIG_BOOTDELAY 3
@@ -97,6 +98,7 @@
 	"reset"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
+#define CONFIG_SILENT_CONSOLE
 
 
 #define CONFIG_CMD_IPA9131_TEST_MODE

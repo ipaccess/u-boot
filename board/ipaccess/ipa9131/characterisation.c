@@ -108,6 +108,7 @@ struct characterisation_input_s
     int specials_mode;
     int prompt_to_user;
     int ignore_damm;
+    int test_mode_flag;
 };
 
 
@@ -140,6 +141,9 @@ void serialise_characterisation_info(const struct characterisation_data_t * cd, 
 
     payload[15] = (((cd->pcbai & 0xFF00) >> 8) & 0xFF);
     payload[16] = (cd->pcbai & 0xFF);
+
+    if (cd->test_mode)
+        payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] = 0x1;
 
     /*Calc md5sum*/
     p = md5_data;
@@ -971,10 +975,11 @@ static int usage(const char * progname, int ret)
     fprintf((ret ? stderr : stdout), "                                    Octets are left padded to two digits with zeroes.\n");
     fprintf((ret ? stderr : stdout), "                                    For example: CA:FE:BA:BE:B0:0C.\n");
     fprintf((ret ? stderr : stdout), "            -1 ETH1ADDR           : Specify the second Ethernet MAC address.\n");
-    fprintf((ret ? stderr : stdout), "            -t TYPE               : Specify the board type as a 16 bit decimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "            -t TYPE               : Specify the board type as a 16 bit hexadecimal value (0x0000-0xFFFF).\n");
     fprintf((ret ? stderr : stdout), "                                    The TYPE argument must correspond to a known board hardware type and oscillator value.\n");
     fprintf((ret ? stderr : stdout), "                                    Unused bits must be set to 0.\n");
-    fprintf((ret ? stderr : stdout), "            -p PCB_ASSEMBLY_ISSUE : Specify the PCB assembly issue as a 16 bit decimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "            -p PCB_ASSEMBLY_ISSUE : Specify the PCB assembly issue as a 16 bit hexadecimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "            -test                 : Set test mode flag\n");
     fprintf((ret ? stderr : stdout), "        FUSE                : Specify to save characterisation data in FUSE.should be provided as first argument\n");
     fprintf((ret ? stderr : stdout), "                              Following options are supported for Fuses\n");
     fprintf((ret ? stderr : stdout), "            -o OUI                : Specify the OUI (part of the EID) of this board.\n");
@@ -982,8 +987,8 @@ static int usage(const char * progname, int ret)
     fprintf((ret ? stderr : stdout), "            -s SERIAL_NUMBER      : Specify the serial number (part of the EID, with DAMM digit) of this board.\n");
     fprintf((ret ? stderr : stdout), "                                    This is specified as a 10 digit decimal number made up of the 9\n");
     fprintf((ret ? stderr : stdout), "                                    serial number digits and 1 DAMM check digit.\n");
-    fprintf((ret ? stderr : stdout), "            -a APP_REV_COUNT      : Specify application revocation count as 28bit decimal value(0x0000000-0xFFFFFFF)\n");
-    fprintf((ret ? stderr : stdout), "            -l LOADER_REV_COUNT   : Specify loader revocation count as 12bit decimal value(0x000-0xFFF)\n");
+    fprintf((ret ? stderr : stdout), "            -a APP_REV_COUNT      : Specify application revocation count as 28bit hexadecimal value(0x0000000-0xFFFFFFF)\n");
+    fprintf((ret ? stderr : stdout), "            -l LOADER_REV_COUNT   : Specify loader revocation count as 12bit hexadecimal value(0x000-0xFFF)\n");
     fprintf((ret ? stderr : stdout), "            -m MODE               : Specify the board mode (p, d, s) = (production, development, specials).\n");
     fprintf((ret ? stderr : stdout), "            -f                    : Force acceptance of a serial number that fails the DAMM algorithm check.\n");
     fprintf((ret ? stderr : stdout), "        -no-prompt           : Do not prompt user for input before blowing the fuses (must be used when fuse blowing is done via scripts).\n");
@@ -1019,6 +1024,9 @@ static int characterise_eeprom(struct characterisation_input_s *input,const char
         goto cleanup;
     }
 
+
+    cd.test_mode = input->test_mode_flag;
+
     cd.version = CONFIG_CHARACTERISATION_IPA9131_VERSION;
 
     fprintf(stdout, "%s\n", "Hardware Characterisation EEPROM");
@@ -1028,6 +1036,7 @@ static int characterise_eeprom(struct characterisation_input_s *input,const char
     fprintf(stdout, "      Hardware Variant: %s\n", lookup_variant(cd.variant)->full);
     fprintf(stdout, "            Oscillator: %s\n", lookup_oscillator(cd.osc));
     fprintf(stdout, "    PCB Assembly Issue: %05u\n", cd.pcbai);
+    fprintf(stdout, "    Test Mode Flag: %s\n", cd.test_mode?"Set":"Clear");
 
 
     if ( 0 == (ret = user_input(input->prompt_to_user, "EEPROM")) )
@@ -1135,7 +1144,7 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
     while(i < argc)
     {
-        if (strcmp(argv[i],"-f") && strcmp(argv[i],"-no-prompt") )
+        if (strcmp(argv[i],"-f") && strcmp(argv[i],"-no-prompt") && strcmp(argv[i],"-test") )
         {
             if ( argc < (i+1) )
             {
@@ -1217,6 +1226,10 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         else if (0 == strcmp(argv[i],"-no-prompt"))
         {
             input.prompt_to_user = 0;
+        }
+        else if (0 == strcmp(argv[i],"-test"))
+        {
+            input.test_mode_flag = 1;
         }
 
         ++i;

@@ -58,11 +58,6 @@ int do_test_mode_flag(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     if (argc != 2)
         return CMD_RET_USAGE;
 
-    if ( !(characterisation_is_development_mode() || characterisation_is_test_mode()) )
-    {
-        fprintf(stderr,"Not a development board, command meant for dev boards only\n");
-        return CMD_RET_FAILURE;
-    }
 
     if (0 == strcmp(argv[1], "status"))
     {

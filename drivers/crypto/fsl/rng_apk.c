@@ -389,8 +389,8 @@ void sec_mem_init()
     reg_out_be32(SMCJR0_ADDR,0x00020101);
     reg_out_be32(SMCJR0_ADDR,0x00030101);
     /*Let sec engine and e500 core access these partitions*/
-    reg_out_be32(SMAG2JR0_0_ADDR,0x00020001);
-    reg_out_be32(SMAG1JR0_0_ADDR,0x00020001);
+    reg_out_be32(SMAG2JR0_0_ADDR,0x00000001);
+    reg_out_be32(SMAG1JR0_0_ADDR,0x00000001);
     reg_out_be32(SMAG2JR0_1_ADDR,0x00020001);
     reg_out_be32(SMAG1JR0_1_ADDR,0x00020001);
     /*Lock out everything*/
@@ -398,6 +398,20 @@ void sec_mem_init()
     reg_out_be32(SMAPJR0_1_ADDR,0XFFFFF0FF);
 
 
+}
+
+void lock_out_registers()
+{
+    ccsr_sec_t *sec = (void *)CONFIG_SYS_FSL_SEC_ADDR;
+    int i;
+    for (i=0;i<4;i++)
+    {
+        sec_out32(&sec->jrliodnr[i].ms, 0x10000000);
+        sec_out32(&sec->rticliodnr[i].ms, 0x10000000);
+        sec_out32(&sec->decoliodnr[2*i].ms,0x10000000);
+        sec_out32(&sec->decoliodnr[2*i + 1].ms,0x10000000);
+
+    }
 }
 
 #if defined(CONFIG_CMD_SEC_GEN_TRUSTED_DESC)
