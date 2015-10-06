@@ -363,8 +363,6 @@ static int generate_hamming_code_B(const u8 *in_buf,u32 len_bits,u8 *ham_code)
     u32 len_bytes,i = 0,j = 0;
     u8 *num;
     u8 parity = 0,l = 0;
-    u8 temp[8];
-    memset(temp,0,8);
 
     len_bytes = len_bits/8;
 
