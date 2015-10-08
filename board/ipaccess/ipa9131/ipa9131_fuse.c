@@ -17,7 +17,7 @@ int ipa9131_fuse_init(void)
 	fuse_out_be32(SFP_INGR_ADDRESS, 0x0);
 	fuse_out_be32(SFP_INGR_ADDRESS, 0x1);
 	/*Let sfp initialize the shadow register*/
-	udelay(100);
+	udelay(1000);
 	return 0;
 }
 
@@ -217,7 +217,7 @@ void ipa9131_blow_fuse(void)
 
 	fuse_out_be32(SFP_INGR_ADDRESS,0x2);
 	/*Give some time to sfp to blow fuses*/
-	udelay(100);
+	udelay(100000);
 }
 
 int ipa9131_read_provisioning_status(u8 *otpmk_set,u8 *dbg_resp_set, u8 *apk_created )
