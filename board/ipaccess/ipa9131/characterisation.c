@@ -89,7 +89,6 @@ struct characterisation_data_t
     uint8_t specials_mode;
     uint32_t apprevcount;
     uint16_t ldrrevcount;
-    uint32_t srkhash[8];
 };
 
 struct characterisation_data_t cdo;
@@ -102,7 +101,6 @@ struct characterisation_input_s
     const char *pcb_assembly_issue_text;
     const char *oui_text;
     const char *serial_text;
-    const char *srk_hash_text;
     const char *app_revocation_count_text;
     const char *loader_revocation_count_text;
     int prod_mode;
@@ -110,6 +108,7 @@ struct characterisation_input_s
     int specials_mode;
     int prompt_to_user;
     int ignore_damm;
+    int test_mode_flag;
 };
 
 
@@ -143,6 +142,9 @@ void serialise_characterisation_info(const struct characterisation_data_t * cd, 
     payload[15] = (((cd->pcbai & 0xFF00) >> 8) & 0xFF);
     payload[16] = (cd->pcbai & 0xFF);
 
+    if (cd->test_mode)
+        payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] = 0x1;
+
     /*Calc md5sum*/
     p = md5_data;
     *(p++) = 0xBADAF27A;
@@ -166,6 +168,7 @@ int write_to_fuses(const struct characterisation_data_t * cd)
 
     uint32_t val = 0;
     int      ret = 0;
+    uint32_t srkhash[] = {0x6d479a9b,0x325aa157,0x5ebedd8c,0x2de1cb97,0xf3fc34a5,0xad3989d2,0x7d6695ff,0x2b9437f9};
 
     ipa9131_fuse_init();
 
@@ -194,15 +197,15 @@ int write_to_fuses(const struct characterisation_data_t * cd)
         }
 
 
-        /*Mark this board as dev/production/special board*/
-	if (cd->production_mode)
-		val = 1; 
-	else if (cd->development_mode)
-		val = 2;
-	else if (cd->specials_mode)
-		val = 4;
+        /*Mark this board as dev/production/special board. Default should be production*/
+        if (cd->development_mode)
+            val = 2;
+        else if (cd->specials_mode)
+            val = 4;
+        else
+            val = 1;
 
-	if ( 0 != (ret = ipa9131_fuse_write_in_range(SFP_OUIDR_ADDRESS,1,&val)) )
+        if ( 0 != (ret = ipa9131_fuse_write_in_range(SFP_OUIDR_ADDRESS,1,&val)) )
             goto cleanup;
 
 
@@ -212,10 +215,11 @@ int write_to_fuses(const struct characterisation_data_t * cd)
             goto cleanup;
 
         /*Write serial in to sfp registers*/
-        if ( 0 != (ret = ipa9131_fuse_write_in_range(SFP_DCVR1_ADDRESS,1,&cd->serial)) )
+        val = cd->serial & 0x0FFFFFFF;
+        if ( 0 != (ret = ipa9131_fuse_write_in_range(SFP_DCVR1_ADDRESS,1,&val)) )
             goto cleanup;
 
-        if ( 0 != (ret = ipa9131_fuse_write_in_range(SFP_SRKHR0_ADDRESS,8,cd->srkhash)) ) 
+        if ( 0 != (ret = ipa9131_fuse_write_in_range(SFP_SRKHR0_ADDRESS,8,srkhash)) ) 
             goto cleanup;
 
         ipa9131_blow_fuse();
@@ -312,51 +316,47 @@ void deserialise_characterisation_info(const uint8_t payload[CONFIG_CHARACTERISA
     {
         if (0 == ipa9131_fuse_read_security_profile(&cd->production_mode, &cd->development_mode, &cd->specials_mode))
         {
-            if (cd->specials_mode)
+            if (cd->production_mode)
+            {
+                cd->test_mode = 0;
+                cd->development_mode = 0;
+                cd->specials_mode = 0;
+            }
+            else if (cd->specials_mode && cd->development_mode)
+            {
+                /*Fallback to production*/
+                cd->production_mode = 1;
+                cd->test_mode = 0;
+                cd->development_mode = 0;
+                cd->specials_mode = 0;
+            }
+            else if (cd->specials_mode)
             {
                 cd->production_mode = 0;
                 cd->test_mode = 0;
                 cd->development_mode = 0;
             }
-            else
+            else if (cd->development_mode)
             {
-                if (cd->production_mode)
+                if ((payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] & 0x1) == 0x1)
                 {
-                    cd->test_mode = 0;
+                    cd->test_mode = 1;
                     cd->development_mode = 0;
-                }
-                else if (cd->development_mode)
-                {
-                    if ((payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] & 0x1) == 0x1)
-                    {
-                        cd->test_mode = 1;
-                        cd->development_mode = 0;
-                    }
-                    else
-                    {
-                        cd->test_mode = 0;
-                    }
                 }
                 else
                 {
-                    if (ipa9131_fuses_are_write_protected())
-                    {
-                        cd->production_mode = 1;
-                    }
-                    else
-                    {
-                        if ((payload[CONFIG_IPA9131_MISC_FLAGS_OFFSET] & 0x1) == 0x1)
-                        {
-                            cd->test_mode = 1;
-                            cd->development_mode = 0;
-                        }
-                        else
-                        {
-                            cd->development_mode = 1;
-                        }
-                    }
+                    cd->test_mode = 0;
                 }
             }
+            else
+            {
+                cd->production_mode = 1;
+                cd->test_mode = 0;
+                cd->development_mode = 0;
+                cd->specials_mode = 0;
+
+            }
+
         }
         else
         {
@@ -364,6 +364,11 @@ void deserialise_characterisation_info(const uint8_t payload[CONFIG_CHARACTERISA
             cd->test_mode = 0;
             cd->development_mode = 0;
             cd->specials_mode = 0;
+        }
+
+        if ( 0 != ipa9131_fuse_read_eid(cd->oui,&cd->serial) )
+        {
+            fprintf(stderr,"Error reading eid from fuses \n");
         }
     }
 }
@@ -438,7 +443,7 @@ int characterisation_init(void)
                 udelay(250);
                 if (0 != (ret = do_hwchar_i2c_read())) {
                     udelay(250);
-                    do_hwchar_i2c_read();
+                    ret = do_hwchar_i2c_read();
                 }
             }
         }
@@ -458,7 +463,7 @@ int characterisation_init(void)
         return 0;
     }
 
-    if (memcmp(cdo.eth0addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth0addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
+    if (memcmp(cdo.eth1addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth1addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
     {
         setenv("board_variant_full", hw_variant->full);
         setenv("board_variant_part", hw_variant->part);
@@ -479,7 +484,7 @@ void print_characterisation(void)
     unsigned char pcbai0;
     unsigned char pcbai1;
 
-    if (memcmp(cdo.eth0addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth0addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
+    if (memcmp(cdo.eth1addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth1addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
     {
         pcbai0 = (cdo.pcbai & 0xFF00) >> 8;
         pcbai1 = cdo.pcbai & 0xFF;
@@ -846,39 +851,6 @@ static int parse_pcb_assembly_issue(const char * pcb_assembly_issue_text, uint16
     return 0;
 }
 
-static int parse_srk_hash(const char * srk_hash_text, uint32_t * srk_hash)
-{
-    char str[9];
-    uint8_t i = 0;
-    memset(str,'\0',sizeof(str));
-
-    if (!srk_hash_text || !srk_hash)
-    {
-        fprintf(stderr, "%s\n", "Invalid srk hash: NULL argument to conversion function.");
-        return -1;
-    }
-
-    if (strlen(srk_hash_text) != 64)
-    {
-        fprintf(stderr, "%s\n", "Invalid srk_hash_text: not 64 digits in length.");
-        return -1;
-    }
-
-    for (i=0 ; i < 8; i++)
-    {
-        strncpy(str,srk_hash_text,8);
-        if (0 != parse_hex_uint32(str, &srk_hash[i]))
-        {
-            fprintf(stderr, "%s\n", "Invalid srk_hash_text.");
-            return -1;
-        }
-        srk_hash_text += 8;
-
-    }
-
-    return 0;
-
-}
 
 static int parse_loader_revocation_count(const char * loader_revocation_count_text, uint16_t * ldrrevcount)
 {
@@ -995,7 +967,7 @@ end:
 static int usage(const char * progname, int ret)
 {
     fprintf((ret ? stderr : stdout), "Usage: %s EEPROM -0 ETH0ADDR -1 ETH1ADDR -t TYPE -p PCB_ASSEMBLY_ISSUE\n", progname);
-    fprintf((ret ? stderr : stdout), "Usage: %s FUSE   -o OUI -s SERIAL_NUMBER -h SRK_HASH_HEX_STRING -a APP_REV_COUNT -l LOADER_REV_COUNT -m MODE\n", progname);
+    fprintf((ret ? stderr : stdout), "Usage: %s FUSE   -o OUI -s SERIAL_NUMBER -a APP_REV_COUNT -l LOADER_REV_COUNT -m MODE\n", progname);
     fprintf((ret ? stderr : stdout), "        EEPROM              : Specify to save characterisation data in EEPROM, should be provided as first argument\n");
     fprintf((ret ? stderr : stdout), "                              Following options are supported for EEPROM\n");
     fprintf((ret ? stderr : stdout), "            -0 ETH0ADDR           : Specify the first Ethernet MAC address.\n");
@@ -1003,10 +975,11 @@ static int usage(const char * progname, int ret)
     fprintf((ret ? stderr : stdout), "                                    Octets are left padded to two digits with zeroes.\n");
     fprintf((ret ? stderr : stdout), "                                    For example: CA:FE:BA:BE:B0:0C.\n");
     fprintf((ret ? stderr : stdout), "            -1 ETH1ADDR           : Specify the second Ethernet MAC address.\n");
-    fprintf((ret ? stderr : stdout), "            -t TYPE               : Specify the board type as a 16 bit decimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "            -t TYPE               : Specify the board type as a 16 bit hexadecimal value (0x0000-0xFFFF).\n");
     fprintf((ret ? stderr : stdout), "                                    The TYPE argument must correspond to a known board hardware type and oscillator value.\n");
     fprintf((ret ? stderr : stdout), "                                    Unused bits must be set to 0.\n");
-    fprintf((ret ? stderr : stdout), "            -p PCB_ASSEMBLY_ISSUE : Specify the PCB assembly issue as a 16 bit decimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "            -p PCB_ASSEMBLY_ISSUE : Specify the PCB assembly issue as a 16 bit hexadecimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "            -test                 : Set test mode flag\n");
     fprintf((ret ? stderr : stdout), "        FUSE                : Specify to save characterisation data in FUSE.should be provided as first argument\n");
     fprintf((ret ? stderr : stdout), "                              Following options are supported for Fuses\n");
     fprintf((ret ? stderr : stdout), "            -o OUI                : Specify the OUI (part of the EID) of this board.\n");
@@ -1014,10 +987,8 @@ static int usage(const char * progname, int ret)
     fprintf((ret ? stderr : stdout), "            -s SERIAL_NUMBER      : Specify the serial number (part of the EID, with DAMM digit) of this board.\n");
     fprintf((ret ? stderr : stdout), "                                    This is specified as a 10 digit decimal number made up of the 9\n");
     fprintf((ret ? stderr : stdout), "                                    serial number digits and 1 DAMM check digit.\n");
-    fprintf((ret ? stderr : stdout), "            -h SRK_HASH           : Specify the SRK Public Key Hash in HEX string, it must be 64 Characters in length\n");
-    fprintf((ret ? stderr : stdout), "                                    For example -h 6333C1DBB6A2EFBDEF6EB5D0152825C8E3191FA7C9140F2d3FE9d3E6B228E750\n");
-    fprintf((ret ? stderr : stdout), "            -a APP_REV_COUNT      : Specify application revocation count as 28bit decimal value(0x0000000-0xFFFFFFF)\n");
-    fprintf((ret ? stderr : stdout), "            -l LOADER_REV_COUNT   : Specify loader revocation count as 12bit decimal value(0x000-0xFFF)\n");
+    fprintf((ret ? stderr : stdout), "            -a APP_REV_COUNT      : Specify application revocation count as 28bit hexadecimal value(0x0000000-0xFFFFFFF)\n");
+    fprintf((ret ? stderr : stdout), "            -l LOADER_REV_COUNT   : Specify loader revocation count as 12bit hexadecimal value(0x000-0xFFF)\n");
     fprintf((ret ? stderr : stdout), "            -m MODE               : Specify the board mode (p, d, s) = (production, development, specials).\n");
     fprintf((ret ? stderr : stdout), "            -f                    : Force acceptance of a serial number that fails the DAMM algorithm check.\n");
     fprintf((ret ? stderr : stdout), "        -no-prompt           : Do not prompt user for input before blowing the fuses (must be used when fuse blowing is done via scripts).\n");
@@ -1053,6 +1024,9 @@ static int characterise_eeprom(struct characterisation_input_s *input,const char
         goto cleanup;
     }
 
+
+    cd.test_mode = input->test_mode_flag;
+
     cd.version = CONFIG_CHARACTERISATION_IPA9131_VERSION;
 
     fprintf(stdout, "%s\n", "Hardware Characterisation EEPROM");
@@ -1062,7 +1036,7 @@ static int characterise_eeprom(struct characterisation_input_s *input,const char
     fprintf(stdout, "      Hardware Variant: %s\n", lookup_variant(cd.variant)->full);
     fprintf(stdout, "            Oscillator: %s\n", lookup_oscillator(cd.osc));
     fprintf(stdout, "    PCB Assembly Issue: %05u\n", cd.pcbai);
-    fprintf(stdout, "%s\n", "");
+    fprintf(stdout, "    Test Mode Flag: %s\n", cd.test_mode?"Set":"Clear");
 
 
     if ( 0 == (ret = user_input(input->prompt_to_user, "EEPROM")) )
@@ -1075,7 +1049,7 @@ static int characterise_eeprom(struct characterisation_input_s *input,const char
 	{
 		if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPA9131_OFFSET + i, 1, serialised + i, 8)))
 		{
-			printf("i2c_write returned %d for a white of 8 bytes at offset %d\n", ret, CONFIG_CHARACTERISATION_IPA9131_OFFSET + i);
+			printf("i2c_write returned %d for a write of 8 bytes at offset %d\n", ret, CONFIG_CHARACTERISATION_IPA9131_OFFSET + i);
 			goto cleanup;
 		}
 
@@ -1101,7 +1075,8 @@ static int characterise_fuses(struct characterisation_input_s *input,const char 
 
     memset(&cd,0,sizeof(cd));
 
-    if (!input->oui_text || !input->serial_text || !input->srk_hash_text)
+    if ( (!input->oui_text || !input->serial_text || !input->app_revocation_count_text || !input->loader_revocation_count_text) ||
+            !(input->prod_mode || input->dev_mode || input->specials_mode) )
     {
         ret = usage(progname, 1);
         goto cleanup;
@@ -1110,9 +1085,8 @@ static int characterise_fuses(struct characterisation_input_s *input,const char 
 
     if ( (0 != parse_oui(input->oui_text, cd.oui)) ||
          (0 != parse_serial_number(input->serial_text, &cd.serial, input->ignore_damm)) ||
-         (0 != parse_srk_hash(input->srk_hash_text,cd.srkhash))||
-         (input->app_revocation_count_text && (0 != parse_app_revocation_count(input->app_revocation_count_text,&cd.apprevcount)))||
-         (input->loader_revocation_count_text && (0 != parse_loader_revocation_count(input->loader_revocation_count_text,&cd.ldrrevcount))))
+         (0 != parse_app_revocation_count(input->app_revocation_count_text,&cd.apprevcount))||
+         (0 != parse_loader_revocation_count(input->loader_revocation_count_text,&cd.ldrrevcount)) )
     {
         ret = usage(progname, 1);
         goto cleanup;
@@ -1125,24 +1099,22 @@ static int characterise_fuses(struct characterisation_input_s *input,const char 
     fprintf(stdout, "%s\n", "Hardware Characterisation Fuses");
     fprintf(stdout, "%s\n", "===============================");
     fprintf(stdout, "Equipment Identifier: %02X%02X%02X-%010u\n", cd.oui[0], cd.oui[1], cd.oui[2], cd.serial);
-    fprintf(stdout, "Srk Pub Key Hash: %08X:%08X:%08X:%08X:%08X:%08X:%08X:%08X\n", cd.srkhash[0], cd.srkhash[1], cd.srkhash[2], cd.srkhash[3], cd.srkhash[4], cd.srkhash[5],cd.srkhash[6],cd.srkhash[7]);
     fprintf(stdout, "Application Revocation Count: %08X\n", cd.apprevcount);
     fprintf(stdout, "Loader Revocation Count: %04X\n", cd.ldrrevcount);
     fprintf(stdout, "        Operating Mode: ");
 
-    if (cd.production_mode)
+    if (cd.development_mode)
     {
-        fprintf(stdout, "Production");
+        fprintf(stdout, "Development\n");
     }
-    else if (cd.development_mode)
+    else if (cd.specials_mode)
     {
-        fprintf(stdout, "Development");
+        fprintf(stdout, "Specials\n");
     }
     else
     {
-        fprintf(stdout, "Specials");
+        fprintf(stdout, "Production\n");
     }
-    fprintf(stdout, "%s\n", "");
 
     if ( 0 == (ret = user_input(input->prompt_to_user,"FUSES")) )
     {
@@ -1172,6 +1144,17 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
     while(i < argc)
     {
+        if (strcmp(argv[i],"-f") && strcmp(argv[i],"-no-prompt") && strcmp(argv[i],"-test") )
+        {
+            if ( argc < (i+1) )
+            {
+                /*check for Array overrun in all other options*/
+                ret = usage(argv[0], 1);
+                goto cleanup;
+            }
+
+        }
+
         if (0 == strcmp(argv[i],"-o"))
         {
             input.oui_text = argv[i+1];
@@ -1232,10 +1215,6 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         {
             input.ignore_damm = 1;
         }
-        else if (0 == strcmp(argv[i],"-h"))
-        {
-            input.srk_hash_text = argv[i+1];
-        }
         else if (0 == strcmp(argv[i],"-a"))
         {
             input.app_revocation_count_text = argv[i+1];
@@ -1248,13 +1227,25 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         {
             input.prompt_to_user = 0;
         }
+        else if (0 == strcmp(argv[i],"-test"))
+        {
+            input.test_mode_flag = 1;
+        }
 
         ++i;
     }
 
     if (0 == strcmp(argv[1],"EEPROM"))
     {
-        ret = characterise_eeprom(&input,argv[0]);
+        if ( ! ipa9131_is_unfused() )
+        {
+            ret = characterise_eeprom(&input,argv[0]);
+        }
+        else
+        {
+            ret = 1;
+            fprintf(stderr,"Characterise fuse data first\n");
+        }
     }
     else if (0 == strcmp(argv[1],"FUSE"))
     {
@@ -1274,9 +1265,9 @@ cleanup:
 
 U_BOOT_CMD(
         characterise_hw, 16, 0, do_characterise,
-        "Hw characterisation command to blow specific fuses",
+        "Hw characterisation command to write data in to fuses/eeprom",
         "<characterise_hw> <args>"
         );
-#endif
+#endif /* #if def CONFIG_CMD_CHARACTERISE_HW*/
 
-#endif
+#endif /*#if defined CONFIG_CHARACTERISATION_IPA9131*/

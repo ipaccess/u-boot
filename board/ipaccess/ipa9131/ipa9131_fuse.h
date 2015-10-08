@@ -4,7 +4,7 @@
 #define IPA9131_LOADER_REVOCATION_MAX 12
 #define IPA9131_APPLICATION_REVOCATION_MAX 28
 #define IPA9131_MINIMAL_OTPMK_VALUE 0x0F
-#define IPA9131_MINIMAL_JTAG_RESP_VALUE 0x1E
+#define IPA9131_MINIMAL_JTAG_RESP_VALUE 0x78000000
 
 #define SFP_INGR_ADDRESS        (CONFIG_SYS_IMMR + 0x000e7020)
 #define SFP_DESSR_ADDRESS       (CONFIG_SYS_IMMR + 0x000e7024)
@@ -48,7 +48,7 @@ extern int ipa9131_fuse_init(void);
 extern int ipa9131_is_unfused(void);
 extern int ipa9131_fuses_are_write_protected(void);
 extern int ipa9131_fuse_should_be_silent(void);
-extern int ipa9131_fuse_read_eid(u64 * eid);
+extern int ipa9131_fuse_read_eid(u8 oui_arr[3],u32 *serial);
 extern int ipa9131_fuse_read_security_profile(u8 * p, u8 * d, u8 * s);
 extern int ipa9131_fuse_read_loader_revocation_value(u16 * r);
 extern int ipa9131_fuse_read_application_revocation_value(u32 * r);
@@ -59,4 +59,5 @@ extern void ipa9131_blow_fuse(void);
 extern int ipa9131_fuse_write_in_range(u32 start_addr, u8 num_words, const u32* val);
 extern void ipa9131_fuse_read_in_range(u32 start_addr, u8 num_words, u32* val);
 extern int ipa9131_read_provisioning_status(u8 *otpmk_set,u8 *dbg_resp_set, u8 *apk_created );
+extern int ipa9131_fuse_its_blown(void);
 #endif

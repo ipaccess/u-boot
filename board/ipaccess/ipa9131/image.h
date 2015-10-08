@@ -13,5 +13,5 @@
 #define APPS9131_IMAGE_ENTRY_POINT 0x00200000
 
 extern int load_image(unsigned int start_block, unsigned int num_blocks, unsigned int image_type);
-
+extern int verify_secboot_images_present(void);
 #endif

@@ -55,9 +55,10 @@
 	"1024k@0k(ML),"			\
 	"1024k@1024k(UBOOT0),"		\
 	"1024k@2048k(UBOOT1),"		\
-	"128k@3328k(BLOB0),"		\
+    "128k@3200k(BLOB0),"        \
+	"128k@3328k(BLOB1),"		\
 	"127488k@3456k(FS),"		\
-	"128k@130944k(BLOB1)"
+	"128k@130944k(BLOB2)"
 
 /* we'd like U-Boot to pass partitioning to the kernel */
 #define CONFIG_FDT_FIXUP_PARTITIONS
@@ -149,6 +150,7 @@
 #define CONFIG_ENV_ADDR	(CONFIG_SYS_MONITOR_BASE - 0x1000)
 #define CONFIG_ENV_SIZE	0x2000 /* 8k for the environment - should be enough */
 
+#define CONFIG_SILENT_CONSOLE
 /* this board uses eth1 only - eth0 faces into the plastics */
 #define CONFIG_ETHPRIME "eTSEC2"
 

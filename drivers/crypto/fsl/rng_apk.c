@@ -36,6 +36,7 @@
 #define SMAPJR0_1_ADDR      (CONFIG_SYS_IMMR + 0x31114)
 #define SMAG2JR0_1_ADDR     (CONFIG_SYS_IMMR + 0x31118)
 #define SMAG1JR0_1_ADDR     (CONFIG_SYS_IMMR + 0x3111C)
+#define SMSTA_ADDR          (CONFIG_SYS_IMMR + 0x30FB4)
 
 #define reg_in_be32(x) in_be32((const volatile unsigned __iomem *)(x))
 #define reg_out_be32(x,y) out_be32((volatile unsigned __iomem *)(x),(y))
@@ -361,6 +362,17 @@ end:
 void sec_mem_init()
 {
 
+
+    if ( !(reg_in_be32(SMSTA_ADDR) & 0x2) )
+    {
+        udelay(1000000);
+        if ( !(reg_in_be32(SMSTA_ADDR) & 0x2) )
+        {
+            set_sec_state_to_fail();
+        }
+
+    }
+
     /*Deallocate default partition*/
     reg_out_be32(SMCJR0_ADDR,0x03);
 
@@ -377,8 +389,8 @@ void sec_mem_init()
     reg_out_be32(SMCJR0_ADDR,0x00020101);
     reg_out_be32(SMCJR0_ADDR,0x00030101);
     /*Let sec engine and e500 core access these partitions*/
-    reg_out_be32(SMAG2JR0_0_ADDR,0x00020001);
-    reg_out_be32(SMAG1JR0_0_ADDR,0x00020001);
+    reg_out_be32(SMAG2JR0_0_ADDR,0x00000001);
+    reg_out_be32(SMAG1JR0_0_ADDR,0x00000001);
     reg_out_be32(SMAG2JR0_1_ADDR,0x00020001);
     reg_out_be32(SMAG1JR0_1_ADDR,0x00020001);
     /*Lock out everything*/
@@ -386,6 +398,20 @@ void sec_mem_init()
     reg_out_be32(SMAPJR0_1_ADDR,0XFFFFF0FF);
 
 
+}
+
+void lock_out_registers()
+{
+    ccsr_sec_t *sec = (void *)CONFIG_SYS_FSL_SEC_ADDR;
+    int i;
+    for (i=0;i<4;i++)
+    {
+        sec_out32(&sec->jrliodnr[i].ms, 0x10000000);
+        sec_out32(&sec->rticliodnr[i].ms, 0x10000000);
+        sec_out32(&sec->decoliodnr[2*i].ms,0x10000000);
+        sec_out32(&sec->decoliodnr[2*i + 1].ms,0x10000000);
+
+    }
 }
 
 #if defined(CONFIG_CMD_SEC_GEN_TRUSTED_DESC)
@@ -405,7 +431,7 @@ int do_gen_trusted_desc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[
 }
 
 U_BOOT_CMD(gen_trusted_desc,2,0,do_gen_trusted_desc,
-        "Excercise gen_trusted_desc",
+        "Exercise gen_trusted_desc",
         "<dst_addr(hex_string)> ");
 #endif
 
@@ -426,7 +452,7 @@ int do_gen_random(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 U_BOOT_CMD(sec_gen_random,3,0,do_gen_random,
-        "Excercise rng functions",
+        "Exercise rng functions",
         "<dst_addr(hex_string)> <rand_num size in bytes(hex_string)>");
 #endif
 

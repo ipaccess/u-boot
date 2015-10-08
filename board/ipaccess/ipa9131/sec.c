@@ -3,16 +3,24 @@
 #include <asm/errno.h>
 #include <asm/io.h>
 #include <asm/immap_85xx.h>
+#include <fsl_sec.h>
 #include "characterisation.h"
 #include "sec.h"
 
-static void set_sec_state(void)
+
+void set_sec_state_to_fail(void)
 {
+       sec_out_be32(SECMON_HPCOMR,0x00000200);
+}
+
+void set_final_sec_state(void)
+{
+        lock_out_registers();
+
         if ( characterisation_is_specials_mode() )
         {
                 /*Transition to soft fail state*/
-                sec_out_be32(SECMON_HPCOMR,0x00000200);
-
+                set_sec_state_to_fail();
         }
 
         /*Transition to appropriate state
@@ -27,7 +35,7 @@ static void set_sec_state(void)
 #if defined CONFIG_CMD_SEC_STATE_CHANGE
 int do_change_sec_state(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-        set_sec_state();
+        set_final_sec_state();
         return CMD_RET_SUCCESS;
 }
 

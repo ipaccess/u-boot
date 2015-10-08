@@ -49,5 +49,6 @@ extern int container_compare(struct container_field_t * a, struct container_fiel
 
 extern int parse_container(const uint8_t * data, uint32_t len, int (*hashfunc)(const uint8_t *, uint32_t, uint8_t *, uint32_t), struct container_field_t ** fields, uint32_t * length);
 extern int serialise_container(uint8_t * data, uint32_t * len, int (*hashfunc)(const uint8_t *, uint32_t, uint8_t *, uint32_t), const struct container_field_t * fields);
-
+extern int do_provisioning(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+extern int do_restore_container(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 #endif

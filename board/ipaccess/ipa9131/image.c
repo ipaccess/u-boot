@@ -239,3 +239,33 @@ int load_image(unsigned int start_block, unsigned int num_blocks, unsigned int i
 
     return 0;
 }
+
+int verify_secboot_images_present()
+{
+    uint8_t buf[128],boot_sig[4]={0x42,0x4f,0x4f,0x54};
+    uint32_t read_size = 128;
+    
+    if (0 != load_image(APPS9131_SEARCH_START_BLOCK, APPS9131_SEARCH_NUM_BLOCKS, APPS9131_SEARCH_IMAGE_TYPE))
+    {
+	    fprintf(stderr,"Invalid Apps image\n");
+	    goto error;
+    }
+
+    if (0 != flash_read_bytes(buf,0,read_size))
+    {
+        fprintf(stderr,"Error reading flash \n");
+        goto error;
+    }
+    else
+    {
+        if (0 != memcmp(&buf[64],boot_sig, sizeof(boot_sig)) )
+        {
+            fprintf(stderr,"Secure boot microloader not present in flash 0x%02X%02X%02X%02X\n",buf[64],buf[65],buf[66],buf[67]);
+            goto error;
+        }
+    }
+
+    return 0;
+error:
+    return -1;
+}

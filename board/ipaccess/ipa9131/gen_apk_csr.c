@@ -21,6 +21,7 @@
 #define CSR_MAX_BUFF_SIZE 4096
 
 #define SUBJECT_NAME "C=GB,L=%s,O=ip.access Ltd,OU=3GAP,CN=%s"
+#define SUBJECT_NAME_PROD "C=GB,O=ip.access Ltd,OU=3GAP,CN=%s"
 #define MAX_SUBJECT_NAME_SIZE 80
 
 #define MAX_BLOB_SIZE 304
@@ -104,27 +105,23 @@ static int gen_csr_pem( pk_context *key,crypt_buf_t *csr_out_buf )
     int ret = 0;
     x509write_csr req;
     char subject_name[MAX_SUBJECT_NAME_SIZE];
-    char *mode = NULL;
     char eid[CHARACTERISATION_EID_LENGTH + 1];
     memset(subject_name,0,sizeof(subject_name));
     memset(eid,0,sizeof(eid));
 
     characterisation_read_eid(eid,sizeof(eid));
 
-    if (characterisation_is_test_mode()||characterisation_is_development_mode())
-    {
-        mode = "Test";
-    }
-    else if (characterisation_is_specials_mode())
-    {
-        mode = "TestSpecial";
-    }
 
     x509write_csr_init( &req );
     x509write_csr_set_md_alg( &req, POLARSSL_MD_SHA256 );
 
    
-    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME, mode,eid);
+    if (characterisation_is_test_mode()||characterisation_is_development_mode())
+	    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME,"Test",eid);
+    else if (characterisation_is_specials_mode())
+	    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME,"TestSpecial",eid);
+    else
+	    snprintf(subject_name, sizeof(subject_name),SUBJECT_NAME_PROD,eid);
 
     if( ( ret = x509write_csr_set_subject_name( &req, subject_name ) ) != 0 )
     {
@@ -360,6 +357,78 @@ static int generate_hamming_code(const u8 *in_buf,u32 len_bits,u8 *ham_code)
 
 }
 
+static int generate_hamming_code_B(const u8 *in_buf,u32 len_bits,u8 *ham_code)
+{
+
+    u32 len_bytes,i = 0,j = 0;
+    u8 *num;
+    u8 parity = 0,l = 0;
+
+    len_bytes = len_bits/8;
+
+    if ( !(num = (u8 *)calloc(len_bits,sizeof(u8))) )
+    {
+        return -ENOMEM;
+
+    }
+
+    /*populate bit array with reversed bytes from input buffer
+     * weird but that's what freescale does, not sure why*/
+    for (i = 0; i < len_bytes; i++) 
+    {
+
+        l = 0x80;
+        for (j = 0; j < len_bytes; j++) {
+            num[len_bytes * 8 - i * 8 - 1 - j] = !!(in_buf[i] & l);
+            l = l >> 1;
+        }
+    }
+
+    /* response must be masked out the hamming coding bits first */
+    for (i = 0; i < len_bits; i = (2*(i+1) - 1))
+        num[i] = 0;
+
+    /* Calculate each code bit in turn */
+    for (i = 0; i < (len_bits/2); i = (2*(i+1) - 1)) 
+    {
+        parity = num[i];
+
+        for (j = i+1; j < len_bits; j++) 
+        {
+            if (((i+1) & (j+1)) != 0)
+                parity ^= num[j];
+
+            num[i] = (num[i] & 0) | parity;
+        }
+    }
+
+    /* Calculate the overall parity */
+    parity = 0;
+    for (j = 0; j < len_bits; j++)
+        parity ^= num[j];
+
+    num[63] = num[63] | parity;
+
+    memset(ham_code,0,len_bytes);
+
+    /*Populate back the hammming code, again reading from the end first*/
+    for (i = 0; i < len_bytes; i++) 
+    {
+        l = 7;
+        for (j = 0; j < 8; j++) {
+            ham_code[i] |= num[(len_bytes - i) * 8 - (j + 1)] << l;
+            --l;
+        }
+    }
+
+
+    free(num);
+    return 0;
+}
+
+
+
+
 static int oem_rsa_encrypt(uint8_t *in_buf,uint32_t in_len,uint8_t *out_buf,uint32_t *out_len )
 {
 	int ret = 0;
@@ -491,9 +560,11 @@ int get_dbg_rsp(u32 *dbg_rsp,crypt_buf_t *dbg_rsp_buf)
     }
 
 
-    rand_buf[7] = rand_buf[7] | IPA9131_MINIMAL_JTAG_RESP_VALUE;
+    rand_buf[0] |= (IPA9131_MINIMAL_JTAG_RESP_VALUE >> 24) & 0xFF;
+    
+    
 
-    if (0 != (ret = generate_hamming_code(rand_buf,len_bits,ham_code)) )
+    if (0 != (ret = generate_hamming_code_B(rand_buf,len_bits,ham_code)) )
         goto cleanup;
 
 
@@ -569,8 +640,8 @@ static int do_gen_apk_csr(cmd_tbl_t *cmdtp, int flag, int argc, char * const arg
 }
 
 U_BOOT_CMD(gen_apk_csr, 2, 0, do_gen_apk_csr,
-	"Excercise gen_csr to test key pair gen,priv key blob gen,csr generation",
-	"gen_csr"
+	"Test Key pair and Csr generation ",
+	"gen_apk_csr"
 	);
 #endif
 
