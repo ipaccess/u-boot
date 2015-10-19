@@ -205,10 +205,8 @@ void ipa9131_fuse_read_in_range(u32 start_addr, u8 num_words, u32* val)
 	for (i = 0; i < num_words;i++)
 	{
 		val[i] = fuse_in_be32(start_addr);
-		printf("0x%08X:",val[i]);
 		start_addr += 4;
 	}
-	printf("\n");
 
 }
 
@@ -305,15 +303,18 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
     u32 optmk_minimal = IPA9131_MINIMAL_OTPMK_VALUE;
     u32 debug_resp_minimal = IPA9131_MINIMAL_JTAG_RESP_VALUE;
     u32 its_csff_value = 0x06, debug_prmsn_val = 0x2;
-    int prompt_to_user = 1, i = 0;
+    int prompt_to_user = 1, i = 1;
     int fuse_dpr = 1;
 
     while( i < argc )
     {
-        if ( 0 == strcmp(argv[i],"no-prompt") )
+        if ( 0 == strcmp(argv[i],"-no-prompt") )
             prompt_to_user = 0;
-        else if ( 0 == strcmp(argv[i],"full-dbg-permission") )
+        else if ( 0 == strcmp(argv[i],"-full-dbg-permission") )
             fuse_dpr = 0;
+	else
+            return CMD_RET_USAGE; 
+
         i++;
 
     }
@@ -425,7 +426,7 @@ error:
 
 U_BOOT_CMD(ipa9131_go_secure, 3, 0, do_ipa9131_secure,
         "Prepare Board for secure boot",
-        "ipa9131_go_secure <no-prompt|full-dbg-permission> "
+        "ipa9131_go_secure <-no-prompt|-full-dbg-permission> "
         );
 
 #endif
