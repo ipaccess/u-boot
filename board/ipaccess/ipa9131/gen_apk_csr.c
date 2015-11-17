@@ -656,7 +656,6 @@ int get_signature( const uint8_t *pub_key_buf, uint32_t pub_key_len ,const uint8
         goto end;
     }
 
-    printf("**Generated sig** Length %d \n %s\n",olen,out_buf);
     sig_buf->buf = out_buf;
     sig_buf->len = olen;
     out_buf = NULL;
