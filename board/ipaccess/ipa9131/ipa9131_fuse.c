@@ -11,6 +11,31 @@
 #define fuse_in_be32(x)	in_be32((const volatile unsigned __iomem *)(x))
 #define fuse_out_be32(x,y) out_be32((volatile unsigned __iomem *)(x),(y))
 
+#define GUTS_PMUXCR1_ADDR   (void *)0xff7e0060
+#define GPIO41_DIR_ADDR     (void *)0xff70f100	
+#define GPIO41_DATA_ADDR    (void *)0xff70f108
+
+void ipa9131_fuse_enable_blowing()
+{
+
+    /*Enable gpio function of the pin*/
+    setbits_be32(GUTS_PMUXCR1_ADDR,0x01000000);
+    setbits_be32(GPIO41_DIR_ADDR,0x00400000);
+    /*pull down gpio41 to enable fuse circuit power*/
+    clrbits_be32(GPIO41_DATA_ADDR,0x00400000);
+    udelay(100);
+
+}
+
+void ipa9131_fuse_disable_blowing()
+{
+    setbits_be32(GPIO41_DATA_ADDR,0x00400000);
+    clrbits_be32(GPIO41_DIR_ADDR,0x00400000);
+    /*Disable gpio function of the pin*/
+    clrbits_be32(GUTS_PMUXCR1_ADDR,0x01000000);
+    udelay(100);
+
+}
 
 int ipa9131_fuse_init(void)
 {
@@ -213,9 +238,13 @@ void ipa9131_fuse_read_in_range(u32 start_addr, u8 num_words, u32* val)
 void ipa9131_blow_fuse(void)
 {
 
+	ipa9131_fuse_enable_blowing();
+
 	fuse_out_be32(SFP_INGR_ADDRESS,0x2);
 	/*Give some time to sfp to blow fuses*/
 	udelay(100000);
+
+	ipa9131_fuse_disable_blowing();
 }
 
 int ipa9131_read_provisioning_status(u8 *otpmk_set,u8 *dbg_resp_set, u8 *apk_created )
@@ -461,7 +490,7 @@ int do_ipa9131_sec_boot_verify(cmd_tbl_t *cmdtp, int flag, int argc, char * cons
         }
 
         val = sec_in_be32(SECMON_HPSVSR);
-        if ( val & 0x09FF001E)
+        if ( val & 0x09FF001C)
         {
             fprintf(stderr,"SECMON_HPSVSR Sec_violations: Secure boot not possible on this chip\n");
             goto error;

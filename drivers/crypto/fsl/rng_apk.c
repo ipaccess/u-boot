@@ -359,7 +359,7 @@ end:
 
 }
 
-void sec_mem_init()
+void sec_mem_init(void)
 {
 
 

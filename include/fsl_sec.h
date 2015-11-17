@@ -181,6 +181,7 @@ int sec_gen_priv_key_blob(const uint8_t *priv_key,uint32_t key_size, uint8_t *bl
 int sec_do_rsa_private(const uint8_t *pub_mod,const uint8_t *in,uint32_t in_len, uint8_t *out);
 int sec_init_apk_from_blob(const uint8_t *privkey_blob,uint32_t blob_length);
 void lock_out_registers(void);
+int gen_desc(uint32_t *dst_addr);
 #endif
 
 #endif /* __FSL_SEC_H */

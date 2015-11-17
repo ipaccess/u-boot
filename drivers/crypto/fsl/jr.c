@@ -15,7 +15,7 @@
 #define CIRC_CNT(head, tail, size)	(((head) - (tail)) & (size - 1))
 #define CIRC_SPACE(head, tail, size)	CIRC_CNT((tail), (head) + 1, (size))
 
-extern void sec_mem_init();
+extern void sec_mem_init(void);
 
 struct jobring jr;
 
