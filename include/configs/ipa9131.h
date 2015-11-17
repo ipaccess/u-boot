@@ -163,11 +163,10 @@
 	"hugepagesz=256m "							\
 	"hugepages=1 "								\
 	"max_num_ipc_channels=64 "						\
-	"max_channel_depth=16 "							\
-	"console=" LINUX_CONSOLEDEV ","  __stringify(CONFIG_BAUDRATE) " "
+	"max_channel_depth=16 "							
 
-#define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS
-#define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS "quiet"
+#define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS "console=" LINUX_CONSOLEDEV ","  __stringify(CONFIG_BAUDRATE) " "
+#define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS "console=tty0 " "quiet"
 
 #define SET_BOOTARGS								\
    "if silent_mode_enabled; then"						\
