@@ -253,6 +253,66 @@ cleanup:
     return ret;
 }
 
+static int create_artefact_sig_container(struct container_field_t *in_data, struct container_field_t **fields )
+{
+    struct container_field_t *pubkey_data = NULL , *privkey_data = NULL , *otpmk_data = NULL, *dbg_rsp_data = NULL;
+    uint8_t *data = NULL, *p = NULL, hash[32];
+    uint32_t data_len;
+    int ret = -1;
+    crypt_buf_t sig_buf = {0};
+
+    memset(hash,0,sizeof(hash));
+
+    if ( (privkey_data = find_container_field(RAW_CONTAINER_TAG_PRIVATE_KEY_BLOB, in_data)) &&
+            ( pubkey_data = find_container_field(RAW_CONTAINER_TAG_PUBLIC_KEY, in_data)) &&
+            ( otpmk_data = find_container_field(RAW_CONTAINER_TAG_OTPMK,in_data)) &&
+            ( dbg_rsp_data = find_container_field(RAW_CONTAINER_TAG_JTAG_DBG_RSP,in_data)) )
+    {
+        data_len = privkey_data->length + otpmk_data->length + dbg_rsp_data->length;
+
+        if (! (data = malloc(data_len)) )
+        {
+            ret = -ENOMEM;
+            goto cleanup;
+
+        }
+
+        p = data;
+        memcpy(p,otpmk_data->value,otpmk_data->length);
+        p += otpmk_data->length;
+        memcpy(p,dbg_rsp_data->value,dbg_rsp_data->length);
+        p += dbg_rsp_data->length;
+        memcpy(p,privkey_data->value,privkey_data->length);
+
+        if (0 != (ret = hashfunc(data,data_len,hash,32)) )
+            goto cleanup;
+
+        if ( 0 != (ret = get_signature( pubkey_data->value, pubkey_data->length , hash, 32, &sig_buf )) )
+        {
+            ret = -EFAULT;
+            goto cleanup;
+        }
+
+
+        if ( 0 != (ret = create_field_in_container(fields,RAW_CONTAINER_TAG_REC_ART_SIG_DATA,sig_buf.buf,sig_buf.len)) )
+            goto cleanup;    
+
+        ret = 0;
+
+    }
+
+cleanup:
+
+    if (data)
+    {
+        free(data);
+        data = NULL;
+    }
+
+    return ret;
+
+}
+
 /*Validate if in container has all the required tags, if in_container is empty then create a new container with all required tags
  * else generate missing tags(if possible) data and create a new container with all the missing tags (indicate consolidation would be required in this case)*/
 static int validate_and_restore_container(struct container_field_t *in_data, struct container_field_t **new_data,uint8_t *need_consolidation)
@@ -307,6 +367,16 @@ static int validate_and_restore_container(struct container_field_t *in_data, str
             }
 
             *need_consolidation = 1;
+
+        }
+
+        if ( NULL == find_container_field(RAW_CONTAINER_TAG_REC_ART_SIG_DATA,in_data) )
+        {
+            /*Non-fatal microloader can still continue*/
+            if ( 0 != create_artefact_sig_container(in_data,new_data) ) 
+                fprintf(stderr,"artefact signature generation failed with existing key pair\n");
+            else
+                *need_consolidation = 1;
 
         }
         

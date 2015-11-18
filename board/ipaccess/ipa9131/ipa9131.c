@@ -134,7 +134,7 @@ int misc_init_r(void)
                 udelay(10000000);
             }
 
-            gen_desc(0xFED01000);
+            gen_desc((uint32_t *)0xFED01000);
 
 
         }

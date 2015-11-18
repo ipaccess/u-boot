@@ -60,4 +60,6 @@ extern int ipa9131_fuse_write_in_range(u32 start_addr, u8 num_words, const u32* 
 extern void ipa9131_fuse_read_in_range(u32 start_addr, u8 num_words, u32* val);
 extern int ipa9131_read_provisioning_status(u8 *otpmk_set,u8 *dbg_resp_set, u8 *apk_created );
 extern int ipa9131_fuse_its_blown(void);
+extern void ipa9131_fuse_enable_blowing(void);
+extern void ipa9131_fuse_disable_blowing(void);
 #endif

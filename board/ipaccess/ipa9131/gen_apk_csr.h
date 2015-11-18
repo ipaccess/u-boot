@@ -19,4 +19,5 @@ extern int get_pub_key(const uint8_t *advert_buf,const uint8_t *privkey_enc_buf,
 extern int get_csr( const uint8_t *pub_key_buf, uint32_t pub_key_len , crypt_buf_t *csr_buf);
 extern int get_otpmk(u32 *otpmk,crypt_buf_t *otpmk_buf);
 extern int get_dbg_rsp(u32 *dbg_rsp,crypt_buf_t *dbg_rsp_buf);
+extern int get_signature( const uint8_t *pub_key_buf, uint32_t pub_key_len ,const uint8_t *hash,uint32_t hash_len, crypt_buf_t *sig_buf );
 #endif
