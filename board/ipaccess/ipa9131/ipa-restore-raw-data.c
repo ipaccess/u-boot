@@ -255,7 +255,7 @@ cleanup:
 
 static int create_artefact_sig_container(struct container_field_t *in_data, struct container_field_t **fields )
 {
-    struct container_field_t *pubkey_data = NULL , *privkey_data = NULL , *otpmk_data = NULL, *dbg_rsp_data = NULL;
+    struct container_field_t *pubkey_data = NULL , *privkey_data = NULL , *otpmk_data = NULL, *dbg_rsp_data = NULL, *csr_data = NULL;
     uint8_t *data = NULL, *p = NULL, hash[32];
     uint32_t data_len;
     int ret = -1;
@@ -266,9 +266,11 @@ static int create_artefact_sig_container(struct container_field_t *in_data, stru
     if ( (privkey_data = find_container_field(RAW_CONTAINER_TAG_PRIVATE_KEY_BLOB, in_data)) &&
             ( pubkey_data = find_container_field(RAW_CONTAINER_TAG_PUBLIC_KEY, in_data)) &&
             ( otpmk_data = find_container_field(RAW_CONTAINER_TAG_OTPMK,in_data)) &&
-            ( dbg_rsp_data = find_container_field(RAW_CONTAINER_TAG_JTAG_DBG_RSP,in_data)) )
+            ( dbg_rsp_data = find_container_field(RAW_CONTAINER_TAG_JTAG_DBG_RSP,in_data)) && 
+            ( csr_data = find_container_field(RAW_CONTAINER_TAG_CSR,in_data))
+	    )
     {
-        data_len = privkey_data->length + otpmk_data->length + dbg_rsp_data->length;
+        data_len = privkey_data->length + otpmk_data->length + dbg_rsp_data->length + csr_data->length;
 
         if (! (data = malloc(data_len)) )
         {
@@ -283,6 +285,8 @@ static int create_artefact_sig_container(struct container_field_t *in_data, stru
         memcpy(p,dbg_rsp_data->value,dbg_rsp_data->length);
         p += dbg_rsp_data->length;
         memcpy(p,privkey_data->value,privkey_data->length);
+        p += privkey_data->length;
+        memcpy(p,csr_data->value,csr_data->length);
 
         if (0 != (ret = hashfunc(data,data_len,hash,32)) )
             goto cleanup;
