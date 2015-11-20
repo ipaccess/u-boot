@@ -43,6 +43,7 @@ int ipa9131_fuse_init(void)
 	fuse_out_be32(SFP_INGR_ADDRESS, 0x1);
 	/*Let sfp initialize the shadow register*/
 	udelay(1000);
+	fuse_out_be32(SFP_INGR_ADDRESS, 0x0);
 	return 0;
 }
 
@@ -204,11 +205,20 @@ int ipa9131_fuse_write_in_range(u32 start_addr, u8 num_words, const u32* val)
 	for ( i = 0; i < num_words; i++ )
 	{
 		if ( ((start_addr >= SFP_DPR_ADDRESS ) && (start_addr <= SFP_OSCR_ADDRESS) ) ||
-							  (start_addr == SFP_OSPR_ADDRESS)
+				(start_addr == SFP_OSPR_ADDRESS)
 		   )
-		{	
-			curr_val = fuse_in_be32(start_addr);
-			curr_val |= *(val+i);
+		{
+			
+			if ( (start_addr >= SFP_DRVR0_ADDRESS) && (start_addr <= SFP_OTPMKR7_ADDRESS) )	
+			{
+				/*DRVR/OTPMK Returns 0 always and are not allowed to be read, raises sfp violation*/
+				curr_val = *(val + i);
+			}
+			else
+			{
+				curr_val = fuse_in_be32(start_addr);
+				curr_val |= *(val+i);
+			}
 
 			fuse_out_be32(start_addr,curr_val);
 			start_addr += 4;
@@ -227,11 +237,16 @@ void ipa9131_fuse_read_in_range(u32 start_addr, u8 num_words, u32* val)
 {
 	int i;
 
-	for (i = 0; i < num_words;i++)
-	{
-		val[i] = fuse_in_be32(start_addr);
-		start_addr += 4;
-	}
+        for (i = 0; i < num_words;i++)
+        {
+            if ( (start_addr < SFP_DRVR0_ADDRESS) || (start_addr > SFP_OTPMKR7_ADDRESS) )
+                val[i] = fuse_in_be32(start_addr);
+            else 
+                /*Do not try reading DRVR/OTPMK, it raises a SFP violation*/
+                val[i] = 0;
+
+            start_addr += 4;
+        }
 
 }
 
@@ -243,6 +258,8 @@ void ipa9131_blow_fuse(void)
 	fuse_out_be32(SFP_INGR_ADDRESS,0x2);
 	/*Give some time to sfp to blow fuses*/
 	udelay(100000);
+	/*Reset INGR to 0*/	
+	fuse_out_be32(SFP_INGR_ADDRESS, 0x0);
 
 	ipa9131_fuse_disable_blowing();
 }
@@ -490,7 +507,7 @@ int do_ipa9131_sec_boot_verify(cmd_tbl_t *cmdtp, int flag, int argc, char * cons
         }
 
         val = sec_in_be32(SECMON_HPSVSR);
-        if ( val & 0x09FF001C)
+        if ( val & 0x09FF001E)
         {
             fprintf(stderr,"SECMON_HPSVSR Sec_violations: Secure boot not possible on this chip\n");
             goto error;
