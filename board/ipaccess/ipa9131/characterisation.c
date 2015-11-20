@@ -1237,6 +1237,8 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
     if (0 == strcmp(argv[1],"EEPROM"))
     {
+        ipa9131_fuse_init(); 
+
         if ( ! ipa9131_is_unfused() )
         {
             ret = characterise_eeprom(&input,argv[0]);

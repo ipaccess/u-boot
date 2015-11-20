@@ -150,19 +150,20 @@ int misc_init_r(void)
 	if (0 != load_security_requirements())
 		return 1;
 
+
+#if defined(CONFIG_CHARACTERISATION_IPA9131) && !defined(CONFIG_ML9131)
+	(void)print_characterisation();
+#endif
 	if (silent_mode_enabled()) {
 		setenv("silent", "1");
 		setenv("silent_linux", "no"); /* broken on bsc9131 kernel */
 		setenv("bootdelay", "0");
+		gd->flags |= GD_FLG_SILENT;
 	} else {
 		setenv("silent", NULL);
 		setenv("silent_linux", NULL);
 		setenv("bootdelay", "3");
 	}
-
-#if defined(CONFIG_CHARACTERISATION_IPA9131) && !defined(CONFIG_ML9131)
-	(void)print_characterisation();
-#endif
 	return 0;
 }
 #endif
