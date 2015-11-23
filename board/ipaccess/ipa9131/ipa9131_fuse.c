@@ -23,7 +23,7 @@ void ipa9131_fuse_enable_blowing()
     setbits_be32(GPIO41_DIR_ADDR,0x00400000);
     /*pull down gpio41 to enable fuse circuit power*/
     clrbits_be32(GPIO41_DATA_ADDR,0x00400000);
-    udelay(100);
+    udelay(10000);
 
 }
 
@@ -33,7 +33,7 @@ void ipa9131_fuse_disable_blowing()
     clrbits_be32(GPIO41_DIR_ADDR,0x00400000);
     /*Disable gpio function of the pin*/
     clrbits_be32(GUTS_PMUXCR1_ADDR,0x01000000);
-    udelay(100);
+    udelay(10000);
 
 }
 
@@ -42,7 +42,7 @@ int ipa9131_fuse_init(void)
 	fuse_out_be32(SFP_INGR_ADDRESS, 0x0);
 	fuse_out_be32(SFP_INGR_ADDRESS, 0x1);
 	/*Let sfp initialize the shadow register*/
-	udelay(1000);
+	udelay(10000);
 	fuse_out_be32(SFP_INGR_ADDRESS, 0x0);
 	return 0;
 }
