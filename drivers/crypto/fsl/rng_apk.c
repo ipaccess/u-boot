@@ -406,12 +406,14 @@ void lock_out_registers()
     int i;
     for (i=0;i<4;i++)
     {
-        sec_out32(&sec->jrliodnr[i].ms, 0x10000000);
-        sec_out32(&sec->rticliodnr[i].ms, 0x10000000);
-        sec_out32(&sec->decoliodnr[2*i].ms,0x10000000);
-        sec_out32(&sec->decoliodnr[2*i + 1].ms,0x10000000);
+        sec_out32(&sec->jrliodnr[i].ms, 0x80000000);
+        sec_out32(&sec->rticliodnr[i].ls, 0x2);
+        sec_out32(&sec->rticliodnr[i].ms, 0x80000000);
 
     }
+    sec_out32(&sec->decoliodnr[0].ls,0x00020002);
+    sec_out32(&sec->decoliodnr[0].ms,0x80000000);
+	
 }
 
 #if defined(CONFIG_CMD_SEC_GEN_TRUSTED_DESC)
