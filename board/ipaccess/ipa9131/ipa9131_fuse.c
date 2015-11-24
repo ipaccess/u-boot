@@ -392,7 +392,7 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
         goto error;
     }
 
-    udelay(50);
+    udelay(10000);
 
     secmon_hpsr = sec_in_be32(SECMON_HPSR);
 

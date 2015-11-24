@@ -699,13 +699,13 @@ static int toughen_otpmk(struct raw_container_t *raw_containers,uint32_t num_raw
 
     }
 
-    udelay(50);
+    udelay(10000);
     secmon_hpsr = sec_in_be32(SECMON_HPSR);
 
     /*Sec mon hpsr almost immediately reflects error if OTPMK is not hamming protected*/
     if (secmon_hpsr & 0x09FF0000)
     {
-        fprintf(stderr,"toughen_otpmk:Wrong value in OTPMK registers, can't blow fuses\n");
+        fprintf(stderr,"toughen_otpmk:Wrong value in OTPMK registers, can't blow fuses %08X\n",secmon_hpsr);
         goto cleanup;
     }
 
