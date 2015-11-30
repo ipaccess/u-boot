@@ -688,6 +688,13 @@ static int toughen_otpmk(struct raw_container_t *raw_containers,uint32_t num_raw
     if ( 0 != create_field_in_container(&otpmk_data,RAW_CONTAINER_TAG_OTPMK,otpmk_buf.buf,otpmk_buf.len) ) 
         goto cleanup;
 
+    if (0 != update_nand(otpmk_data,raw_containers, num_raw_containers))
+    {
+	    fprintf(stderr, "toughen_otpmk:Failed to update any NAND partitions\n");
+	    goto cleanup;
+    }
+
+
     otpmk_buf.buf = NULL;
 
     ipa9131_fuse_init();
@@ -716,12 +723,13 @@ static int toughen_otpmk(struct raw_container_t *raw_containers,uint32_t num_raw
 
     }
 
-
+#if 0
     if (0 != update_nand(otpmk_data,raw_containers, num_raw_containers))
     {
         fprintf(stderr, "toughen_otpmk:Failed to update any NAND partitions\n");
         goto cleanup;
     }
+#endif
 
     /*Finally write the fuses for otpmk*/
     ipa9131_blow_fuse(); 

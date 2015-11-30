@@ -10,4 +10,5 @@
 
 extern void set_final_sec_state(void);
 extern void set_sec_state_to_fail(void);
+extern void wait_until_out_of_check_state(void);
 #endif

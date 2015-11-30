@@ -7,7 +7,7 @@
 #include "characterisation.h"
 #include "sec.h"
 
-
+#define SECMON_CHECK_STATE 0x00000900
 void set_sec_state_to_fail(void)
 {
        sec_out_be32(SECMON_HPCOMR,0x00000200);
@@ -30,6 +30,14 @@ void set_final_sec_state(void)
 
         /*Lock transition back to trusted state from secure state*/
         sec_out_be32(SECMON_HPCOMR,0x00000002);
+}
+
+void wait_until_out_of_check_state(void)
+{
+    while ( (sec_in_be32(SECMON_HPSR) & 0x00000F00) == SECMON_CHECK_STATE )
+    {
+        udelay(10000);
+    }
 }
 
 #if defined CONFIG_CMD_SEC_STATE_CHANGE

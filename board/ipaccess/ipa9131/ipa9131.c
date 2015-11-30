@@ -123,6 +123,7 @@ int misc_init_r(void)
 
 #if defined (CONFIG_ML9131)
 
+        wait_until_out_of_check_state();
         char * const args[] = {"-m","3","-m","4","-m","6"};
         /*Check for its bit to find out if this is bootstrap loader or secure boot loader
          * do following, only in case of when booting up in secure boot*/
