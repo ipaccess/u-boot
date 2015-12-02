@@ -389,10 +389,10 @@ void sec_mem_init(void)
     reg_out_be32(SMCJR0_ADDR,0x00020101);
     reg_out_be32(SMCJR0_ADDR,0x00030101);
     /*Let sec engine and e500 core access these partitions*/
-    reg_out_be32(SMAG2JR0_0_ADDR,0x00000001);
-    reg_out_be32(SMAG1JR0_0_ADDR,0x00000001);
-    reg_out_be32(SMAG2JR0_1_ADDR,0x00020001);
-    reg_out_be32(SMAG1JR0_1_ADDR,0x00020001);
+    reg_out_be32(SMAG2JR0_0_ADDR,0x00000002);
+    reg_out_be32(SMAG1JR0_0_ADDR,0x00000002);
+    reg_out_be32(SMAG2JR0_1_ADDR,0x00020000);
+    reg_out_be32(SMAG1JR0_1_ADDR,0x00020000);
     /*Lock out everything*/
     reg_out_be32(SMAPJR0_0_ADDR,0xFFFFF000);
     reg_out_be32(SMAPJR0_1_ADDR,0XFFFFF0FF);
@@ -406,6 +406,11 @@ void lock_out_registers()
     int i;
     for (i=0;i<4;i++)
     {
+        if (i == 1)
+            sec_out32(&sec->jrliodnr[i].ls, 0x00010001);
+        else
+            sec_out32(&sec->jrliodnr[i].ls, 0x0);
+
         sec_out32(&sec->jrliodnr[i].ms, 0x80000000);
         sec_out32(&sec->rticliodnr[i].ls, 0x2);
         sec_out32(&sec->rticliodnr[i].ms, 0x80000000);

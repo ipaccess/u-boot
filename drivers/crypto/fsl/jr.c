@@ -451,9 +451,8 @@ int sec_init(void)
 	sec_mem_init();
 
 	sec_out32(&sec->jrliodnr[0].ms, 0x00010000);
-	sec_out32(&sec->jrliodnr[1].ms, 0x00010000);
-	sec_out32(&sec->jrliodnr[2].ms, 0x00010000);
-	sec_out32(&sec->jrliodnr[3].ms, 0x00010000);
+	sec_out32(&sec->jrliodnr[0].ls, 0x00010001);
+
 
 	ret = jr_init();
 	if (ret < 0) {

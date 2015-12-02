@@ -94,7 +94,7 @@
 /* Auto-boot options */
 #define CONFIG_AUTOBOOT_KEYED
 #define CONFIG_AUTOBOOT_STOP_STR "stop"
-#define CONFIG_AUTOBOOT_PROMPT "ipa9131: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
+#define CONFIG_AUTOBOOT_PROMPT "ipa9131s: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
 
 #define CONFIG_CHARACTERISATION_IPA9131
 #define CONFIG_CHARACTERISATION_EEPROM_ADDR SPD_EEPROM_ADDRESS
@@ -111,7 +111,7 @@
 #define CONFIG_SYS_LONGHELP
 
 /* Monitor Command Prompt */
-#define CONFIG_SYS_PROMPT   "ipa9131=> "
+#define CONFIG_SYS_PROMPT   "ipa9131s=> "
 
 
 

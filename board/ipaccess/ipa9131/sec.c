@@ -11,6 +11,7 @@
 void set_sec_state_to_fail(void)
 {
        sec_out_be32(SECMON_HPCOMR,0x00000200);
+       udelay(1000);
 }
 
 void set_final_sec_state(void)

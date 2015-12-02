@@ -75,10 +75,10 @@
 #define CONFIG_BOOTDELAY 3
 #define CONFIG_AUTOBOOT_KEYED
 #define CONFIG_AUTOBOOT_STOP_STR "stop"
-#define CONFIG_AUTOBOOT_PROMPT "ml9131: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
+#define CONFIG_AUTOBOOT_PROMPT "ml9131s: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
 
 /* Monitor Command Prompt */
-#define CONFIG_SYS_PROMPT   "ml9131=> "
+#define CONFIG_SYS_PROMPT   "ml9131s=> "
 
 /*
  * IPA Commands
