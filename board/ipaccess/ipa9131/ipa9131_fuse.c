@@ -355,11 +355,23 @@ static int do_ipa9131_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const 
     while( i < argc )
     {
         if ( 0 == strcmp(argv[i],"-no-prompt") )
+        {
             prompt_to_user = 0;
+        }
         else if ( 0 == strcmp(argv[i],"-full-dbg-permission") )
+        {
             fuse_dpr = 0;
-	else
+        }
+        else if ( 0 == strcmp(argv[i],"-no-dbg-permission") )
+        {
+            fuse_dpr = 1;
+            debug_prmsn_val = 0x4;
+            /*This will permanantely disable the JTAG access*/
+        }
+        else
+        {
             return CMD_RET_USAGE; 
+        }
 
         i++;
 
@@ -472,7 +484,7 @@ error:
 
 U_BOOT_CMD(ipa9131_go_secure, 3, 0, do_ipa9131_secure,
         "Prepare Board for secure boot",
-        "ipa9131_go_secure <-no-prompt|-full-dbg-permission> "
+        "ipa9131_go_secure <-no-prompt|-full-dbg-permission|-no-dbg-permission>"
         );
 
 #endif
