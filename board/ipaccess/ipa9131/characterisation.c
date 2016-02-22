@@ -48,6 +48,11 @@ static const variant_record variant_lookup[] = {
     { "278J", "278", "J", 278, 'J' }, /* Bands: 1, 3, 7, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU, secure boot            */
     { "278L", "278", "L", 278, 'L' }, /* Bands: 3, 7, 8, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU band 8, secure boot     */
     { "248L", "248", "L", 248, 'L' }, /* Bands: 3, 7, 8, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU band 8, non secure      */
+    { "431I", "431", "I", 431, 'I' }, /* Bands: N/A              - Notes: Transcede t2200evm Evaluation Board                             */
+    { "248M", "248", "M", 248, 'M' }, /* Bands: 2, 4, 13, 17     - Notes: Freescale bsc9131-based E-40, 1 Tile US vII, non secure         */
+    { "278M", "278", "M", 278, 'M' }, /* Bands: 2, 4, 13, 17     - Notes: Freescale bsc9131-based E-40, 1 Tile US vII, secure boot        */
+    { "400N", "400", "N", 400, 'N' }, /* Bands: 8                - Notes: 2G/3G Product Refresh Band8 Only                                */
+    { "433I", "433", "I", 433, 'I' }, /* Bands: N/A              - Notes: Transcede t3300evm Evaluation Board                             */   
 };
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
 
