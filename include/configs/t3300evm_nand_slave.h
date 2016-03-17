@@ -18,6 +18,7 @@
 #undef CONFIG_BOOTCOMMAND
 #undef CONFIG_BOOTARGS
 
+
 #define CONFIG_SYS_MALLOC_LEN   (CONFIG_ENV_SIZE + 1024*1024)
 #define CONFIG_SYS_LOAD_ADDR	0x02000000
 #define CONFIG_LOADADDR		0x02000000
@@ -35,49 +36,20 @@
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_CMD_ECHO
 
-#define NAND_FLASH_SECTOR_SIZE      (SZ_128K)
-#define CONFIG_ENV_IS_IN_NAND
-#define CONFIG_ENV_OFFSET           (NAND_FLASH_SECTOR_SIZE * 8)
 #define CONFIG_ENV_SIZE         8192
-#define CONFIG_ENV_OFFSET_REDUND    (NAND_FLASH_SECTOR_SIZE * 18)
 #define CONFIG_ENV_OVERWRITE
+#define CONFIG_ENV_IS_IN_EEPROM
+#define CONFIG_ENV_OFFSET 0
 
-#ifndef CONFIG_CMD_NAND
-#define CONFIG_CMD_NAND
-#endif
-#define CONFIG_CMD_NAND_TRIMFFS
 
-#define CONFIG_MTD_DEVICE
-#define CONFIG_CMD_MTDPARTS
-#define CONFIG_MTD_PARTITIONS
-
-#define MTD_PARTITION_DEFAULT	"nand0,0"
-#define MTDIDS_DEFAULT		"nand0=gen_nand"
-#define MTDPARTS_DEFAULT		\
-	"mtdparts=gen_nand:"		\
-	"1024K@0K(ML0),"		\
-	"128K@1152K(RAW0),"		\
-	"1024K@1280K(ML1),"		\
-	"128K@2432K(RAW1),"		\
-	"1024K@2560K(UBOOT0),"		\
-	"128K@3712K(RAW2),"		\
-	"1024K@3840K(UBOOT1),"		\
-	"128K@4992K(RAW3),"		\
-	"-@5120K(FS)"
-
-#define CONFIG_CMD_UBI
-// #define CONFIG_UBI_SILENCE_MSG
 #define CONFIG_RBTREE
 
-#define CONFIG_CMD_UBIFS
 #define CONFIG_LZO
 
 #define CONFIG_PCIE
 #define CONFIG_TURNER
 #define CONFIG_CMD_PCIE
 #define CONFIG_CMD_T3300
-
-// #define CONFIG_UBIFS_SILENCE_MSG
 
 #define CONFIG_FIT
 
@@ -86,7 +58,6 @@
 #define CMD_LINE_ARGS_LINUX									\
 	"console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"			\
 	" elevator=noop "									\
-	MTDPARTS_DEFAULT									\
 	" mem=256M"										\
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
 	" icc_heap_size=2M icc_part_size=384M ddr_limit=2G cram_offset=0x24000"			\
@@ -119,34 +90,16 @@
  * env save
  * env save
  */
+
+/*TODO get fitimage over pcie to expected address*/
 #define IPABOOT_COMMAND										\
 	"if test -n \"${ipa_oui}\" -a -n \"${ipa_serial}\" -a -n \"${ipa_hwchar}\" -a "		\
 		"-n \"${ipa_pai}\" -a -n \"${ipa_secmode}\" -a "				\
 		"-n \"${ipa_loader_revocation}\" -a -n \"${ipa_app_revocation}\" -a "		\
 		"-n \"${ethaddr}\" -a -n \"${eth1addr}\"; then "				\
-	"  mtdparts default; "									\
 	"  run select_bootargs; "								\
 	"  run select_config; "									\
-	"  setenv fsactive fs1; "								\
-	"  setenv fsstandby fs0; "								\
-	"  if ubi part FS; then "								\
-	"    if ubifsmount ubi0:$fsactive; then "						\
-	"      if ubifsload $loadaddr primary.flag; then "					\
-	"        if ubifsload $loadaddr fitImage; then "					\
-	"          setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
-	"          run secureboot; "								\
-	"        fi; "										\
-	"      fi; "										\
-	"    fi; "										\
-	"    setenv fsactive fs0; "								\
-	"    setenv fsstandby fs1; "								\
-	"    if ubifsmount ubi0:$fsactive; then "						\
-	"      if ubifsload $loadaddr fitImage; then "						\
-	"        setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
-	"        run secureboot; "								\
-	"      fi; "										\
-	"    fi; "										\
-	"  fi; "										\
+	"  run secureboot;"									\
 	"else "											\
 	"  echo \"This board has not been characterised yet.  Please set up all required "	\
 		"environment variables, save the environment and reboot.\"; "			\
@@ -173,5 +126,15 @@
 
 #define CONFIG_BOOTCOMMAND									\
 	"run ipaboot"
+
+#define CONFIG_SYS_NO_FLASH
+#undef CONFIG_MTD_PARTITIONS
+#undef CONFIG_MTD_CONCAT
+#undef CONFIG_HAS_DATAFLASH
+#undef CONFIG_FLASH_CFI_DRIVER
+#undef CONFIG_FLASH_CFI_MTD 
+#undef CONFIG_HAS_DATAFLASH
+#undef CONFIG_FTSMC020
+#undef CONFIG_FLASH_CFI_LEGACY
 
 #endif
