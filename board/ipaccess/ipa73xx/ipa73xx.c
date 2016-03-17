@@ -23,7 +23,8 @@
 #include "ipa73xx_led.h"
 #include "ipa73xx_fuse.h"
 #include "secboot.h"
-
+#include "utilities.h"
+#include "pc3xx_mem_arm.h"
 
 /* Macros ------------------------------------------------------------------ */
 static struct mux_def pc3x2_mux[] = {
@@ -281,6 +282,7 @@ int dram_init (void)
 {
 	gd->ram_size = PHYS_SDRAM_1_SIZE;
 
+        printf("SDRAM settings %x\n",  picoxcell_read_reg (PICOXCELL_MEMIF_BASE + MEMIF_ARM_ADDR_MAP_2_OFFSET));
 	return 0;
 }
 
