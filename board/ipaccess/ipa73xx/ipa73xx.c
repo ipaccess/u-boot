@@ -23,8 +23,9 @@
 #include "ipa73xx_led.h"
 #include "ipa73xx_fuse.h"
 #include "secboot.h"
-#include "utilities.h"
-#include "pc3xx_mem_arm.h"
+#include <asm/arch/utilities.h>
+#include <asm/arch/mem_arm.h>
+
 
 /* Macros ------------------------------------------------------------------ */
 static struct mux_def pc3x2_mux[] = {
@@ -271,6 +272,23 @@ int misc_init_r (void)
 
 /*****************************************************************************
  *
+ * picoxcell_read_reg ()
+ *
+ * Purpose: Read a picochip memory-mapped register
+ *
+ * Returns: the register value
+ *
+ * Original code was from utilities.c but this won't link with u-boot.
+ *
+ *****************************************************************************/
+unsigned int picoxcell_read_reg (const unsigned int address)
+{
+        return (*(volatile unsigned int *)address);
+}
+
+
+/*****************************************************************************
+ *
  * dram_init()
  *
  * Purpose: Initialize the DDR SDRAM size info.
@@ -282,7 +300,10 @@ int dram_init (void)
 {
 	gd->ram_size = PHYS_SDRAM_1_SIZE;
 
-        printf("SDRAM settings %x\n",  picoxcell_read_reg (PICOXCELL_MEMIF_BASE + MEMIF_ARM_ADDR_MAP_2_OFFSET));
+        /* Probe RAM size from the memory control registers and override accordingly.*/
+        if (MEMIF_ARM_ADDR_MAP_2_VAL_2Gbx16 == picoxcell_read_reg (PICOXCELL_MEMIF_BASE + MEMIF_ARM_ADDR_MAP_2_OFFSET))
+            gd->ram_size = PHYS_SDRAM_1_SIZE*2;
+
 	return 0;
 }
 
@@ -297,4 +318,9 @@ void dram_init_banksize (void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
 	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
+
+        /* Probe RAM size from the memory control registers and override accordingly.*/
+        if (MEMIF_ARM_ADDR_MAP_2_VAL_2Gbx16 == picoxcell_read_reg (PICOXCELL_MEMIF_BASE + MEMIF_ARM_ADDR_MAP_2_OFFSET))
+            gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE*2;
+
 }
