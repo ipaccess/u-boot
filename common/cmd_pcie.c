@@ -13,9 +13,11 @@ static int locate_sbl_high = 0;     // map high memory for SBL
 static int pcie_initialized = 0;    // PCIe is initialized
 static int pcie_rate = 2500;        // PCIe rate
 
+#define SLAVE_FITIMAGE_LOAD_ADDRESS 0x02000000
+
 int do_pcie (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	int i, pcie_lanes = 1;
+	int i, pcie_lanes = 4;
 	int root_complex = 1;
 	unsigned int window_size = 16 * 1024 * 1024;	// bytes
 	u32 linux_window_addr = PRIMARY_IMAGE_ADDR;
@@ -45,9 +47,10 @@ int do_pcie (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				break;
 			case 'i':		/* init */
 			case 'I':
+#ifndef PCIE_INITIALIZED_IN_ML
 				printf("Selected PCIe rate: %d\n", pcie_rate);
 				PCIeDrvX4Init(root_complex, pcie_rate, pcie_lanes);
-
+#endif
 				PCIeDrvSetOBCfg0AT(	PCIE0_BASEADDR,
 							0,
 							PCIESLAVE_BASEADDR,
@@ -64,10 +67,11 @@ int do_pcie (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 							MEMRW_TLP_SBLADDR,
 							MEMRW_TLP_SBLADDR + window_size - 1,
 							locate_sbl_high ? (SBL_IMAGE_ADDR_HIGH) : (SBL_IMAGE_ADDR) );
-                pcie_initialized = 1;
+                		pcie_initialized = 1;
 				break;
 			case 's':		/* link up, set master bit */
 			case 'S':
+#ifndef PCIE_INITIALIZED_IN_ML
 				//TODO add timeout and result check
 				if (pcie_lanes == 4) {
 					wait_PCIEX4_link_up();
@@ -76,6 +80,7 @@ int do_pcie (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				}
 				SysDelayUs(600); // Slave 'hezitates' for 500 ms
 				// set Master enable bit
+#endif
 				printf("PCIe link is up. Setting MASTER bit\n");
 				pCfg->CommandReg |=  0x7;
 				break;
@@ -151,5 +156,91 @@ U_BOOT_CMD(
 	"    - waits for SBL download complete (polling master bit to be cleared)\n"
 	"pcie [l bytes] c\n"
 	"    - calculates CRC for 0x0000_0000 - 0x00FF_FFF8, and put result to 0x00FF_FFFC\n"
-	"      if option 'l' is used, then default 16Mb replaced by 'bytes' and CRC is culculated over 0x0000_0000 - (bytes - 4), and put result to (bytes - 4)\n"
-);
+        "      if option 'l' is used, then default 16Mb replaced by 'bytes' and CRC is culculated over 0x0000_0000 - (bytes - 4), and put result to (bytes - 4)\n"
+        );
+
+
+
+
+int do_pcie_slave (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	int i, pcie_lanes = 4;
+	int root_complex = 1;
+	unsigned int window_size = 16 * 1024 * 1024;
+	PCIE_CONF_SPACE_HEADER_TYPE0 *pCfg = (PCIE_CONF_SPACE_HEADER_TYPE0*)PCIE0_BASEADDR;
+
+    	if (argc > 1) {
+        for (i = 1; i < argc; i++) {
+            switch (argv[i][0]) {
+                case '1':       /* 1 Lane  */
+                case '4':       /* 4 Lanes */
+                    pcie_lanes = simple_strtoul(argv[i], NULL, 16);
+                    break;
+                case 'r':       /* Root complex */
+                case 'R':
+                    root_complex = 1;
+                    break;
+                case 'e':       /* End Point */
+                case 'E':
+                    root_complex = 0;
+                    break;
+		case 'w':
+                case 'W':
+#ifndef PCIE_INITIALIZED_IN_ML
+/*Skip PCIe initialization if already initialised in previous loader*/
+		    PCIeDrvX4Init(root_complex, pcie_rate, pcie_lanes);
+#endif
+		    if (pcie_lanes == 4) {
+			    wait_PCIEX4_link_up();
+		    } else {
+			    wait_PCIEX1_link_up();
+		    }
+                    /*wait for Master bit being set*/
+                    printf("Link up..Waiting for Master bit being set");
+                    while( (pCfg->CommandReg & (1 << 2)) == 0);
+		    printf("'master' bit set. Reading image...\n");
+		    pcie_read(MEMRW_TLP_BASEADDR, SLAVE_FITIMAGE_LOAD_ADDRESS, window_size);
+		    PCIeDrvSetOBMemAT(PCIE0_BASEADDR, 0, PCIESLAVE_BASEADDR, PCIESLAVE_BASEADDR + window_size -1,MEMRW_TLP_BASEADDR);	
+
+		    memcpy((unsigned char *)SLAVE_FITIMAGE_LOAD_ADDRESS,(unsigned char *)PCIESLAVE_BASEADDR,window_size);
+		    printf("FitImage downloaded. clearing master bit...\n");
+		    pCfg->CommandReg &= ~0x4;
+
+		    break;
+		case 'l':
+		case 'L':
+		    window_size = simple_strtoul(argv[++i], NULL, 10);
+		    if (window_size == 0) {
+			    printf("Incorrect window size '%i'", window_size);
+			    window_size = 16 * 1024 * 1024;
+			    printf("Using default '%i'", window_size);
+		    }
+		    break;
+		default:                /* unknown */
+		    printf("Unknown command (%d:'%s').\n", i, argv[i]);
+		    goto usage;
+	    		}
+		}
+	}
+
+
+	return 1;
+usage:
+	cmd_usage(cmdtp);
+	return 1;
+
+
+}
+
+U_BOOT_CMD(
+        pcie_slave,   6,      1,      do_pcie_slave,
+        "PCIe link related functions",
+        "pcie [1|4] [l bytes] [RC|EP] [h] init\n"
+        "    - initialize PCIe 'Root Complex' | 'End Point', uses 1|4 Lanes.\n"
+        "      if option 'l' is used, then default 16Mb window is changed to 'bytes' size.\n"
+        "pcie [1|4] wait\n"
+        "    - waits for SBL download complete (clears master bit if everything is fine in download)\n"
+        "pcie [l bytes] c\n"
+        "    - calculates CRC for 0x0000_0000 - 0x00FF_FFF8, and put result to 0x00FF_FFFC\n"
+        "      if option 'l' is used, then default 16Mb replaced by 'bytes' and CRC is culculated over 0x0000_0000 - (bytes - 4), and put result to (bytes - 4)\n"
+        );

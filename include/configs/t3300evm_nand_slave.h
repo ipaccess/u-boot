@@ -58,9 +58,10 @@
 #define CMD_LINE_ARGS_LINUX									\
 	"console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"			\
 	" elevator=noop "									\
-	" mem=256M"										\
+	" mem=300M"										\
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
-	" icc_heap_size=2M icc_part_size=384M ddr_limit=2G cram_offset=0x24000"			\
+	" icc_heap_size=4M icc_part_size=573M ddr_limit=2G cram_offset=0x25000"			\
+	" t3300_slave rgmii"									\
 	" ipa_oui=${ipa_oui}"									\
 	" ipa_serial=${ipa_serial}"								\
 	" ipa_hwchar=${ipa_hwchar}"								\
@@ -99,6 +100,7 @@
 		"-n \"${ethaddr}\" -a -n \"${eth1addr}\"; then "				\
 	"  run select_bootargs; "								\
 	"  run select_config; "									\
+	"  run pcie_command; "									\
 	"  run secureboot;"									\
 	"else "											\
 	"  echo \"This board has not been characterised yet.  Please set up all required "	\
@@ -112,6 +114,8 @@
 #define SELECT_CONFIG										\
 	"setenv selected_config config@1; "
 
+#define PCIE_COMMAND "pcie_slave W;"
+
 #define CONFIG_EXTRA_ENV_SETTINGS								\
 	"autoload=no\0"										\
 	"autostart=no\0"									\
@@ -122,10 +126,14 @@
 	"select_bootargs=" SET_BOOTARGS "\0"							\
 	"select_config=" SELECT_CONFIG "\0"							\
 	"ipaboot=" IPABOOT_COMMAND "\0"								\
-	"secureboot=" SECURE_BOOT_COMMAND "\0"
+	"secureboot=" SECURE_BOOT_COMMAND "\0"							\
+	"pcie_command=" PCIE_COMMAND "\0"
+
 
 #define CONFIG_BOOTCOMMAND									\
 	"run ipaboot"
+
+#define PCIE_INITIALIZED_IN_ML
 
 #define CONFIG_SYS_NO_FLASH
 #undef CONFIG_MTD_PARTITIONS
