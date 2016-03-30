@@ -50,20 +50,33 @@
 #define CONFIG_MTD_DEVICE
 #define CONFIG_CMD_MTDPARTS
 #define CONFIG_MTD_PARTITIONS
+#define CONFIG_FLASH_CFI_MTD
 
 #define MTD_PARTITION_DEFAULT	"nand0,0"
-#define MTDIDS_DEFAULT		"nand0=gen_nand"
-#define MTDPARTS_DEFAULT		\
-	"mtdparts=gen_nand:"		\
-	"1024K@0K(ML0),"		\
-	"128K@1152K(RAW0),"		\
-	"1024K@1280K(ML1),"		\
-	"128K@2432K(RAW1),"		\
-	"1024K@2560K(UBOOT0),"		\
-	"128K@3712K(RAW2),"		\
-	"1024K@3840K(UBOOT1),"		\
-	"128K@4992K(RAW3),"		\
-	"-@5120K(FS)"
+#define MTDIDS_DEFAULT		"nand0=gen_nand,nor0=physmap-flash.0"
+
+#define MTDPARTS_DEFAULT		        \
+	"mtdparts="			        \
+	    "gen_nand:"		                \
+		"1024K@0K(ML0),"		\
+		"128K@1152K(RAW0),"		\
+		"1024K@1280K(ML1),"		\
+		"128K@2432K(RAW1),"		\
+		"1024K@2560K(UBOOT0),"		\
+		"128K@3712K(RAW2),"		\
+		"1024K@3840K(UBOOT1),"		\
+		"128K@4992K(RAW3),"		\
+		"-@5120K(FS);"			\
+	    "physmap-flash.0:"		        \
+		"256K@0K(MML),"			\
+		"1024K@256K(MUBOOT),"		\
+		"128K@1280K(MRAW0),"		\
+		"256K@1408K(SML),"		\
+		"1024K@1664K(SUBOOT),"		\
+		"128K@1792K(SRAW0),"		\
+		"-@1920K(RES)"
+
+	
 
 #define CONFIG_CMD_UBI
 // #define CONFIG_UBI_SILENCE_MSG
@@ -77,6 +90,8 @@
 #define CONFIG_CMD_PCIE
 #define CONFIG_CMD_T3300
 
+#define PCIE_INITIALIZED_IN_ML
+
 // #define CONFIG_UBIFS_SILENCE_MSG
 
 #define CONFIG_FIT
@@ -86,10 +101,10 @@
 #define CMD_LINE_ARGS_LINUX									\
 	"console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"			\
 	" elevator=noop "									\
-	MTDPARTS_DEFAULT									\
+	"'" MTDPARTS_DEFAULT "'"								\
 	" mem=256M"										\
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
-	" icc_heap_size=2M icc_part_size=384M ddr_limit=2G cram_offset=0x24000"			\
+	" icc_heap_size=2M icc_part_size=384M ddr_limit=2G cram_offset=0x25000"			\
 	" ipa_oui=${ipa_oui}"									\
 	" ipa_serial=${ipa_serial}"								\
 	" ipa_hwchar=${ipa_hwchar}"								\
@@ -132,6 +147,9 @@
 	"  if ubi part FS; then "								\
 	"    if ubifsmount ubi0:$fsactive; then "						\
 	"      if ubifsload $loadaddr primary.flag; then "					\
+	"        if ubifsload $slave_fitimage_loadaddr $slave_fitimage_name; then "		\
+	"          run pcie_command; "	 							\
+	"        fi; "										\
 	"        if ubifsload $loadaddr fitImage; then "					\
 	"          setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
 	"          run secureboot; "								\
@@ -141,6 +159,9 @@
 	"    setenv fsactive fs0; "								\
 	"    setenv fsstandby fs1; "								\
 	"    if ubifsmount ubi0:$fsactive; then "						\
+	"      if ubifsload $slave_fitimage_loadaddr $slave_fitimage_name; then "               \
+	"        run pcie_command; "	                                                        \
+	"      fi; "                                                                            \
 	"      if ubifsload $loadaddr fitImage; then "						\
 	"        setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
 	"        run secureboot; "								\
@@ -159,6 +180,8 @@
 #define SELECT_CONFIG										\
 	"setenv selected_config config@1; "
 
+#define PCIE_COMMAND "pcie 4 C I S W;"
+
 #define CONFIG_EXTRA_ENV_SETTINGS								\
 	"autoload=no\0"										\
 	"autostart=no\0"									\
@@ -169,7 +192,10 @@
 	"select_bootargs=" SET_BOOTARGS "\0"							\
 	"select_config=" SELECT_CONFIG "\0"							\
 	"ipaboot=" IPABOOT_COMMAND "\0"								\
-	"secureboot=" SECURE_BOOT_COMMAND "\0"
+	"secureboot=" SECURE_BOOT_COMMAND "\0"							\
+	"pcie_command=" PCIE_COMMAND "\0"							\
+	"slave_fitimage_name=fitImage\0"							\
+	"slave_fitimage_loadaddr=0x0\0"
 
 #define CONFIG_BOOTCOMMAND									\
 	"run ipaboot"
