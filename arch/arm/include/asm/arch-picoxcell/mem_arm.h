@@ -85,6 +85,11 @@
 #define MEMIF_ARM_ADDR_MAP_1_VAL_1Gbx16     (0xFFF00000)	/* col */
 #define MEMIF_ARM_ADDR_MAP_2_VAL_1Gbx16     (0x0FF33333)	/* row */
 
+/* Set up values for a single 2Gbx16 sdram device */
+#define MEMIF_ARM_ADDR_MAP_0_VAL_2Gbx16     (0x00000777)        /* bank */
+#define MEMIF_ARM_ADDR_MAP_1_VAL_2Gbx16     (0xFFF00000)        /* col */
+#define MEMIF_ARM_ADDR_MAP_2_VAL_2Gbx16     (0x0F333333)        /* row */
+
 #define MEMIF_ARM_DRAM_EMR_MR_VAL           (0x00000A63)
 
 /* final wait after ddr initialisation sequence is 8 cycles */
