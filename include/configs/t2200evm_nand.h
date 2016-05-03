@@ -74,7 +74,6 @@
 // #define CONFIG_UBIFS_SILENCE_MSG
 
 #define CONFIG_FIT
-cc_heap_size=130M icc_part_size=176M ddr_limit=2G ddr_heap_size=96M
 #define CONFIG_ETHPRIME		"gemac1"
 #define LINUX_CONSOLEDEV	"ttyS0"
 #define CMD_LINE_ARGS_LINUX									\
