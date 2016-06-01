@@ -84,7 +84,7 @@
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
 	" icc_heap_size=130M icc_part_size=176M ddr_limit=2G ddr_heap_size=96M"                 \
 	" cram_offset=0x25000 noswap nopcie"		                                        \
-	" ipa_oui=${ipa_oui}"									\
+	" reth_on=1 ipa_oui=${ipa_oui}"								\
 	" ipa_serial=${ipa_serial}"								\
 	" ipa_hwchar=${ipa_hwchar}"								\
 	" ipa_pai=${ipa_pai}"									\
