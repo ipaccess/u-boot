@@ -105,7 +105,7 @@
 	" mem=256M"										\
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
 	" icc_heap_size=2M icc_part_size=384M ddr_limit=2G cram_offset=0x25000"			\
-	" ipa_oui=${ipa_oui}"									\
+	" reth_on=1 ipa_oui=${ipa_oui}"								\
 	" ipa_serial=${ipa_serial}"								\
 	" ipa_hwchar=${ipa_hwchar}"								\
 	" ipa_pai=${ipa_pai}"									\
