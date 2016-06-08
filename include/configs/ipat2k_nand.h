@@ -131,7 +131,7 @@
 	" ipa_loader_revocation=${ipa_loader_revocation}"					\
 	" ipa_app_revocation=${ipa_app_revocation}"
 
-#define SECURE_BOOT_COMMAND									\
+//#define SECURE_BOOT_COMMAND									\
 	"bootm ${loadaddr}#${selected_config}; "
 
 /*
@@ -152,6 +152,82 @@
  * env save
  * env save
  */
+
+#define SECURE_BOOT_COMMAND							\
+    "NO_SEC_OK=0; "								\
+    "DEV_KEY_OK=0; "								\
+    "TST_KEY_OK=0; "								\
+    "PRD_KEY_OK=0; "								\
+    "secparm blank; "								\
+    "if test $? -eq 0; then "							\
+     "NO_SEC_OK=1; "								\
+    "fi; "									\
+    "secparm spcmode; "								\
+    "if test $? -eq 0; then "							\
+     "NO_SEC_OK=1; "								\
+    "fi; "									\
+    "secparm devmode; "								\
+    "if test $? -eq 0; then "							\
+     "DEV_KEY_OK=1; "								\
+     "TST_KEY_OK=1; "								\
+     "PRD_KEY_OK=1; "								\
+    "fi; "									\
+    "secparm tstmode; "								\
+    "if test $? -eq 0; then "							\
+     "TST_KEY_OK=1; "								\
+     "PRD_KEY_OK=1; "								\
+    "fi; "									\
+    "secparm prdmode; "								\
+    "if test $? -eq 0; then "							\
+     "PRD_KEY_OK=1; "								\
+    "fi; "									\
+    "if test $PRD_KEY_OK -eq 1; then "						\
+     "if key unrequire dev; then "						\
+      "if key unrequire tstoem0; then "						\
+       "if key require ipaoem0 conf; then "					\
+        "if bootm ${loadaddr}#${selected_config}; then "			\
+         "reset; "								\
+        "fi; "									\
+       "fi; "									\
+      "fi; "									\
+     "fi; "									\
+    "fi; "									\
+    "if test $TST_KEY_OK -eq 1; then "						\
+     "if key unrequire dev; then "						\
+      "if key unrequire ipaoem0; then "						\
+       "if key require tstoem0 conf; then "					\
+        "if bootm ${loadaddr}#${selected_config}; then "			\
+         "reset; "								\
+        "fi; "									\
+       "fi; "									\
+      "fi; "									\
+     "fi; "									\
+    "fi; "									\
+    "if test $DEV_KEY_OK -eq 1; then "						\
+     "if key unrequire tstoem0; then "						\
+      "if key unrequire ipaoem0; then "						\
+       "if key require dev conf; then "						\
+        "if bootm ${loadaddr}#${selected_config}; then "			\
+         "ledc all green red 3 1000; "						\
+         "reset; "								\
+        "fi; "									\
+       "fi; "									\
+      "fi; "									\
+     "fi; "									\
+    "fi; "									\
+    "if test $NO_SEC_OK -eq 1; then "						\
+     "if key unrequire tstoem0; then "						\
+      "if key unrequire ipaoem0; then "						\
+       "if key unrequire dev; then "						\
+        "if bootm ${loadaddr}#${selected_config}; then "			\
+         "reset; "								\
+        "fi; "									\
+       "fi; "									\
+      "fi; "									\
+     "fi; "									\
+    "fi; "									\
+    "reset"
+
 #define STANDARD_BOOT_COMMAND 										\
 	"if test -n \"${ipa_oui}\" -a -n \"${ipa_serial}\" -a -n \"${ipa_hwchar}\" -a "		\
 		"-n \"${ipa_pai}\" -a -n \"${ipa_secmode}\" -a "				\
@@ -243,7 +319,6 @@
 	"ipaboot=" STANDARD_BOOT_COMMAND "\0"								\
 	"secureboot=" SECURE_BOOT_COMMAND "\0"
 
-#define CONFIG_BOOTCOMMAND									\
-	"run ipaboot"
+#define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
 
 #endif

@@ -990,6 +990,9 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
         udelay(5000);
     }
+#if defined(CONFIG_CHARACTERISATION_IPAT2K)
+    print_characterisation();
+#endif
 
 cleanup:
     return ret;
