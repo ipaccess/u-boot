@@ -100,6 +100,7 @@
 #define CONFIG_CMD_CHARACTERISE_HW
 
 /* Monitor Command Prompt */
+#undef CONFIG_SYS_PROMPT
 #define CONFIG_SYS_PROMPT   "ipat2k=> "
 
 /*
