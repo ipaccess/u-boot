@@ -200,8 +200,8 @@
 	"    if ubifsmount ubi0:$fsactive; then "						\
 	"      if ubifsload $loadaddr primary.flag; then "                                      \
         "       setenv fsactive fs0; "							        \
-        "       setenv fsstandby fs1; "                                                          \
-        "       if ubifsmount ubi0:$fsactive; then "                                             \              \
+        "       setenv fsstandby fs1; "                                                         \
+        "       if ubifsmount ubi0:$fsactive; then "                                            \
 	"        if ubifsload $loadaddr fitImage; then "					\
 	"          setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
 	"          run secureboot; "								\
