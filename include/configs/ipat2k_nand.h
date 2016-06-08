@@ -76,7 +76,7 @@
 #define CONFIG_FIT
 /*
  * Bootcount is stored in the I2C EEPROM.
- */
+*/
 #define CONFIG_BOOTDELAY 3
 #define CONFIG_BOOTCOUNT_LIMIT
 #define CONFIG_BOOTCOUNT_LIMIT_COUNT 4
@@ -99,6 +99,18 @@
 
 #define CONFIG_CMD_CHARACTERISE_HW
 
+/* Monitor Command Prompt */
+#define CONFIG_SYS_PROMPT   "ipat2k=> "
+
+/*
+ * IPA Commands
+ */
+#define CONFIG_CMD_KEY
+#define CONFIG_CMD_SECPARM
+#define CONFIG_CMD_LIE
+//#define CONFIG_CMD_LEDSET
+//#define CONFIG_CMD_LEDC
+
 
 #define CONFIG_ETHPRIME		"gemac1"
 #define LINUX_CONSOLEDEV	"ttyS0"
@@ -106,10 +118,11 @@
 	"console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"			\
 	" elevator=noop "									\
 	MTDPARTS_DEFAULT									\
-	" mem=256M"										\
+	" mem=380M"										\
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
-	" icc_heap_size=2M icc_part_size=384M ddr_limit=2G cram_offset=0x24000"			\
-	" ipa_oui=${ipa_oui}"									\
+	" icc_heap_size=130M icc_part_size=176M ddr_limit=2G ddr_heap_size=96M"                 \
+	" cram_offset=0x25000 noswap nopcie"		                                        \
+	" reth_on=1 ipa_oui=${ipa_oui}"								\
 	" ipa_serial=${ipa_serial}"								\
 	" ipa_hwchar=${ipa_hwchar}"								\
 	" ipa_pai=${ipa_pai}"									\
@@ -138,7 +151,7 @@
  * env save
  * env save
  */
-#define IPABOOT_COMMAND										\
+#define STANDARD_BOOT_COMMAND 										\
 	"if test -n \"${ipa_oui}\" -a -n \"${ipa_serial}\" -a -n \"${ipa_hwchar}\" -a "		\
 		"-n \"${ipa_pai}\" -a -n \"${ipa_secmode}\" -a "				\
 		"-n \"${ipa_loader_revocation}\" -a -n \"${ipa_app_revocation}\" -a "		\
@@ -172,6 +185,43 @@
 	"fi; "											\
 	"echo \"ERROR: Failed to load and run a kernel on this board, doh!\"; "
 
+#define FALLBACK_BOOT_COMMAND                                                                   \
+	"if test -n \"${ipa_oui}\" -a -n \"${ipa_serial}\" -a -n \"${ipa_hwchar}\" -a "		\
+		"-n \"${ipa_pai}\" -a -n \"${ipa_secmode}\" -a "				\
+		"-n \"${ipa_loader_revocation}\" -a -n \"${ipa_app_revocation}\" -a "		\
+		"-n \"${ethaddr}\" -a -n \"${eth1addr}\"; then "				\
+	"  mtdparts default; "									\
+	"  run select_bootargs; "								\
+	"  run select_config; "									\
+	"  setenv fsactive fs1; "								\
+	"  setenv fsstandby fs0; "								\
+	"  if ubi part FS; then "								\
+	"    if ubifsmount ubi0:$fsactive; then "						\
+	"      if ubifsload $loadaddr primary.flag; then "                                      \
+        "       setenv fsactive fs0; "							        \
+        "       setenv fsstandby fs1; "                                                          \
+        "       if ubifsmount ubi0:$fsactive; then "                                             \              \
+	"        if ubifsload $loadaddr fitImage; then "					\
+	"          setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
+	"          run secureboot; "								\
+	"        fi; "										\
+	"       fi; "										\
+	"      else; "										\
+	"       if ubifsload $loadaddr fitImage; then "						\
+	"        setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
+	"        run secureboot; "								\
+	"       fi; "										\
+	"      fi; "										\
+	"    fi; "										\
+	"  fi; "										\
+	"else "											\
+	"  echo \"This board has not been characterised yet.  Please set up all required "	\
+		"environment variables, save the environment and reboot.\"; "			\
+	"fi; "											\
+	"echo \"ERROR: Failed to load and run a kernel on this board, doh!\"; "
+
+
+
 #define SET_BOOTARGS										\
 	"setenv bootargs " CMD_LINE_ARGS_LINUX
 
@@ -187,6 +237,8 @@
 	"netdev=eth1\0"										\
 	"select_bootargs=" SET_BOOTARGS "\0"							\
 	"select_config=" SELECT_CONFIG "\0"							\
+	"altbootcmd=" FALLBACK_BOOT_COMMAND "\0"				                \
+	"bootlimit=" __stringify(CONFIG_BOOTCOUNT_LIMIT_COUNT) "\0"		                \
 	"ipaboot=" IPABOOT_COMMAND "\0"								\
 	"secureboot=" SECURE_BOOT_COMMAND "\0"
 
