@@ -240,7 +240,7 @@
 	"select_config=" SELECT_CONFIG "\0"							\
 	"altbootcmd=" FALLBACK_BOOT_COMMAND "\0"				                \
 	"bootlimit=" __stringify(CONFIG_BOOTCOUNT_LIMIT_COUNT) "\0"		                \
-	"ipaboot=" IPABOOT_COMMAND "\0"								\
+	"ipaboot=" STANDARD_BOOT_COMMAND "\0"								\
 	"secureboot=" SECURE_BOOT_COMMAND "\0"
 
 #define CONFIG_BOOTCOMMAND									\
