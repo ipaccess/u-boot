@@ -11,6 +11,7 @@ endif
 obj-y := board.o i2c.o $(DDR3_INIT) clk_init.o serdes.o pcie.o mdio_bitbang.o atherosdrv.o ar8328.o rtl8363sb.o clkrst.o dejitter.o spidrv.o
 obj-y += lowlevel_init.o
 obj-$(CONFIG_CMD_NORML) += norml.o
+obj-$(CONFIG_CMD_KEY)   += key.o
 obj-y        += secboot.o
 obj-y        += ipat2k_fuse.o
 obj-$(CONFIG_CHARACTERISATION_IPAT2K) += characterisation.o damm.o
