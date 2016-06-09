@@ -54,6 +54,15 @@ static const variant_record variant_lookup[] = {
     { "278M", "278", "M", 278, 'M' }, /* Bands: 2, 4, 13, 17     - Notes: Freescale bsc9131-based E-40, 1 Tile US vII, secure boot        */
     { "400N", "400", "N", 400, 'N' }, /* Bands: 8                - Notes: 2G/3G Product Refresh Band8 Only                                */
     { "433I", "433", "I", 433, 'I' }, /* Bands: N/A              - Notes: Transcede t3300evm Evaluation Board                             */
+    { "453A", "453", "A", 453, 'A' }, /* Bands: 1                - Notes: P110 integrated AP and WBH, EU                                  */
+    { "453B", "453", "B", 453, 'B' }, /* Bands: 2,5              - Notes: P110 integrated AP and WBH, US                                  */
+    { "435A", "435", "A", 435, 'A' }, /* Bands: 1                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
+    { "436A", "436", "A", 436, 'A' }, /* Bands: 1                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
+    { "435R", "435", "R", 435, 'R' }, /* Bands: 2                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
+    { "436R", "436", "R", 436, 'R' }, /* Bands: 2                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
+    { "435S", "435", "S", 435, 'S' }, /* Bands: 3                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
+    { "436S", "436", "S", 436, 'S' }, /* Bands: 3                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
+    { "431C", "431", "C", 431, 'C' }, /* Bands: 4                - Notes: MitraStar T2K Development Board                                 */
 };
 
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
@@ -990,9 +999,6 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
         udelay(5000);
     }
-#if defined(CONFIG_CHARACTERISATION_IPAT2K)
-    print_characterisation();
-#endif
 
 cleanup:
     return ret;
