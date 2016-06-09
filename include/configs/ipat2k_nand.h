@@ -131,8 +131,10 @@
 	" ipa_loader_revocation=${ipa_loader_revocation}"					\
 	" ipa_app_revocation=${ipa_app_revocation}"
 
-//#define SECURE_BOOT_COMMAND									\
+#define SECURE_BOOT_COMMAND									\
 	"bootm ${loadaddr}#${selected_config}; "
+
+#if 0
 
 /*
  * Something like the following is required to boot this board:
@@ -152,38 +154,32 @@
  * env save
  * env save
  */
-
 #define SECURE_BOOT_COMMAND							\
     "NO_SEC_OK=0; "								\
     "DEV_KEY_OK=0; "								\
     "TST_KEY_OK=0; "								\
     "PRD_KEY_OK=0; "								\
     "secparm blank; "								\
-    "if test $? -eq 0; then "                                                   \
-	"echo \"Place 1\"; "                                                    \
+    "if test $? -eq 0; then "							\
      "NO_SEC_OK=1; "								\
     "fi; "									\
     "secparm spcmode; "								\
     "if test $? -eq 0; then "							\
-	"echo \"Place 2\"; "                                                    \
      "NO_SEC_OK=1; "								\
     "fi; "									\
     "secparm devmode; "								\
     "if test $? -eq 0; then "							\
-	"echo \"Place 3\"; "                                                    \
      "DEV_KEY_OK=1; "								\
      "TST_KEY_OK=1; "								\
      "PRD_KEY_OK=1; "								\
     "fi; "									\
     "secparm tstmode; "								\
     "if test $? -eq 0; then "							\
-	"echo \"Place 4\"; "                                                    \
      "TST_KEY_OK=1; "								\
      "PRD_KEY_OK=1; "								\
     "fi; "									\
     "secparm prdmode; "								\
     "if test $? -eq 0; then "							\
-	"echo \"Place 5\"; "                                                    \
      "PRD_KEY_OK=1; "								\
     "fi; "									\
     "if test $PRD_KEY_OK -eq 1; then "						\
@@ -231,6 +227,7 @@
      "fi; "									\
     "fi; "									\
     "reset"
+#endif
 
 #define STANDARD_BOOT_COMMAND 										\
 	"if test -n \"${ipa_oui}\" -a -n \"${ipa_serial}\" -a -n \"${ipa_hwchar}\" -a "		\
@@ -320,7 +317,6 @@
 	"select_config=" SELECT_CONFIG "\0"							\
 	"altbootcmd=" FALLBACK_BOOT_COMMAND "\0"				                \
 	"bootlimit=" __stringify(CONFIG_BOOTCOUNT_LIMIT_COUNT) "\0"		                \
-	"ipaboot=" STANDARD_BOOT_COMMAND "\0"								\
 	"secureboot=" SECURE_BOOT_COMMAND "\0"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
