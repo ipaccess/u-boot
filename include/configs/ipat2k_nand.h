@@ -131,8 +131,16 @@
 	" ipa_loader_revocation=${ipa_loader_revocation}"					\
 	" ipa_app_revocation=${ipa_app_revocation}"
 
-#define SECURE_BOOT_COMMAND									\
-	"bootm ${loadaddr}#${selected_config}; "
+#define SECURE_BOOT_COMMAND							\
+    "NO_SEC_OK=0; "								\
+    "DEV_KEY_OK=0; "								\
+    "TST_KEY_OK=0; "								\
+    "PRD_KEY_OK=0; "								\
+    "secparm blank; "								\
+    "if test $? -eq 0; then "							\
+     "NO_SEC_OK=1; "								\
+    "fi; "									\
+    "bootm ${loadaddr}#${selected_config}; "
 
 #if 0
 
