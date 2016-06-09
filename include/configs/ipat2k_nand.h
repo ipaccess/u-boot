@@ -159,26 +159,31 @@
     "TST_KEY_OK=0; "								\
     "PRD_KEY_OK=0; "								\
     "secparm blank; "								\
-    "if test $? -eq 0; then "							\
+    "if test $? -eq 0; then "                                                   \
+	"echo \"Place 1\"; "                                                    \
      "NO_SEC_OK=1; "								\
     "fi; "									\
     "secparm spcmode; "								\
     "if test $? -eq 0; then "							\
+	"echo \"Place 2\"; "                                                    \
      "NO_SEC_OK=1; "								\
     "fi; "									\
     "secparm devmode; "								\
     "if test $? -eq 0; then "							\
+	"echo \"Place 3\"; "                                                    \
      "DEV_KEY_OK=1; "								\
      "TST_KEY_OK=1; "								\
      "PRD_KEY_OK=1; "								\
     "fi; "									\
     "secparm tstmode; "								\
     "if test $? -eq 0; then "							\
+	"echo \"Place 4\"; "                                                    \
      "TST_KEY_OK=1; "								\
      "PRD_KEY_OK=1; "								\
     "fi; "									\
     "secparm prdmode; "								\
     "if test $? -eq 0; then "							\
+	"echo \"Place 5\"; "                                                    \
      "PRD_KEY_OK=1; "								\
     "fi; "									\
     "if test $PRD_KEY_OK -eq 1; then "						\
@@ -208,7 +213,6 @@
       "if key unrequire ipaoem0; then "						\
        "if key require dev conf; then "						\
         "if bootm ${loadaddr}#${selected_config}; then "			\
-         "ledc all green red 3 1000; "						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
