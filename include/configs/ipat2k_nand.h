@@ -154,18 +154,6 @@
 	" ipa_loader_revocation=${ipa_loader_revocation}"					\
 	" ipa_app_revocation=${ipa_app_revocation}"
 
-#define SECURE_BOOT_COMMAND							\
-    "NO_SEC_OK=0; "								\
-    "DEV_KEY_OK=0; "								\
-    "TST_KEY_OK=0; "								\
-    "PRD_KEY_OK=0; "								\
-    "secparm blank; "								\
-    "if test $? -eq 0; then "							\
-     "NO_SEC_OK=1; "								\
-    "fi; "									\
-    "bootm ${loadaddr}#${selected_config}; "
-
-#if 0
 
 /*
  * Something like the following is required to boot this board:
@@ -258,7 +246,6 @@
      "fi; "									\
     "fi; "									\
     "reset"
-#endif
 
 #define STANDARD_BOOT_COMMAND 										\
 	"if test -n \"${ipa_oui}\" -a -n \"${ipa_serial}\" -a -n \"${ipa_hwchar}\" -a "		\
