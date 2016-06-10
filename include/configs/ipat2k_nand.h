@@ -2,7 +2,7 @@
 #define __CONFIG_IPAT2K_NAND_H
 
 #include <linux/sizes.h>
-
+#define CONFIG_IPAT2K
 #include "m82xxx_asic_nor16.h"
 
 #if defined(DEBUG)
@@ -74,6 +74,29 @@
 // #define CONFIG_UBIFS_SILENCE_MSG
 
 #define CONFIG_FIT
+
+/*
+ * U-Boot execution will be controlled from an embedded OF tree
+ * created from the file ipa9131.dts.  This simply contains a
+ * set of security keys.
+ */
+#define CONFIG_OF_CONTROL
+#define CONFIG_OF_EMBED
+#define CONFIG_DEFAULT_DEVICE_TREE "ipat2k"
+#define CONFIG_OF_LIBFDT
+
+/*
+ * We will be doing RSA FIT signatures for secure boot.
+ */
+#define CONFIG_FIT_SIGNATURE
+#define CONFIG_RSA
+/* IPA-specific: don't do signature fallback */
+#define CONFIG_FIT_SIGNATURE_REQUIRED_KEYNODE_ONLY
+
+/*
+ * We will do FIT image revocation checking (IPA specific)
+ */
+#define CONFIG_FIT_REVOCATION
 /*
  * Bootcount is stored in the I2C EEPROM.
 */
