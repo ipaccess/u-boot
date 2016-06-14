@@ -247,73 +247,57 @@
     "fi; "									\
     "reset"
 
-#define STANDARD_BOOT_COMMAND 										\
-	"if test -n \"${ipa_oui}\" -a -n \"${ipa_serial}\" -a -n \"${ipa_hwchar}\" -a "		\
-		"-n \"${ipa_pai}\" -a -n \"${ipa_secmode}\" -a "				\
-		"-n \"${ipa_loader_revocation}\" -a -n \"${ipa_app_revocation}\" -a "		\
-		"-n \"${ethaddr}\" -a -n \"${eth1addr}\"; then "				\
-	"  mtdparts default; "									\
-	"  run select_bootargs; "								\
-	"  run select_config; "									\
-	"  setenv fsactive fs1; "								\
-	"  setenv fsstandby fs0; "								\
-	"  if ubi part FS; then "								\
-	"    if ubifsmount ubi0:$fsactive; then "						\
-	"      if ubifsload $loadaddr primary.flag; then "					\
-	"        if ubifsload $loadaddr fitImage; then "					\
-	"          setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
-	"          run secureboot; "								\
-	"        fi; "										\
+#define STANDARD_BOOT_COMMAND 									\
+	"mtdparts default; "									\
+	"run select_bootargs; "								        \
+	"run select_config; "									\
+	"setenv fsactive fs1; "							         	\
+	"setenv fsstandby fs0; "								\
+	"if ubi part FS; then "								        \
+	"  if ubifsmount ubi0:$fsactive; then "						        \
+	"    if ubifsload $loadaddr primary.flag; then "					\
+	"      if ubifsload $loadaddr fitImage; then "						\
+	"         setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
+	"         run secureboot; "								\
 	"      fi; "										\
 	"    fi; "										\
-	"    setenv fsactive fs0; "								\
-	"    setenv fsstandby fs1; "								\
-	"    if ubifsmount ubi0:$fsactive; then "						\
+	"  fi; "										\
+	"  setenv fsactive fs0; "								\
+	"  setenv fsstandby fs1; "								\
+	"  if ubifsmount ubi0:$fsactive; then "						        \
+	"    if ubifsload $loadaddr fitImage; then "						\
+	"      setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
+	"      run secureboot; "								\
+	"    fi; "										\
+	"  fi; "										\
+	"fi; "										        \
+	"echo \"ERROR: Failed to load and run a kernel on this board, doh!\"; "
+
+#define FALLBACK_BOOT_COMMAND                                                                   \
+	"mtdparts default; "									\
+	"run select_bootargs; "								        \
+	"run select_config; "									\
+	"setenv fsactive fs1; "								        \
+	"setenv fsstandby fs0; "								\
+	"if ubi part FS; then "								        \
+	" if ubifsmount ubi0:$fsactive; then "						        \
+	"  if ubifsload $loadaddr primary.flag; then "                                          \
+        "     setenv fsactive fs0; "							        \
+        "     setenv fsstandby fs1; "                                                           \
+        "     if ubifsmount ubi0:$fsactive; then "                                              \
+	"      if ubifsload $loadaddr fitImage; then "					        \
+	"          setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
+	"          run secureboot; "								\
+	"      fi; "										\
+	"     fi; "										\
+	"     else; "										\
 	"      if ubifsload $loadaddr fitImage; then "						\
 	"        setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
 	"        run secureboot; "								\
 	"      fi; "										\
-	"    fi; "										\
+	"     fi; "										\
 	"  fi; "										\
-	"else "											\
-	"  echo \"This board has not been characterised yet.  Please set up all required "	\
-		"environment variables, save the environment and reboot.\"; "			\
-	"fi; "											\
-	"echo \"ERROR: Failed to load and run a kernel on this board, doh!\"; "
-
-#define FALLBACK_BOOT_COMMAND                                                                   \
-	"if test -n \"${ipa_oui}\" -a -n \"${ipa_serial}\" -a -n \"${ipa_hwchar}\" -a "		\
-		"-n \"${ipa_pai}\" -a -n \"${ipa_secmode}\" -a "				\
-		"-n \"${ipa_loader_revocation}\" -a -n \"${ipa_app_revocation}\" -a "		\
-		"-n \"${ethaddr}\" -a -n \"${eth1addr}\"; then "				\
-	"  mtdparts default; "									\
-	"  run select_bootargs; "								\
-	"  run select_config; "									\
-	"  setenv fsactive fs1; "								\
-	"  setenv fsstandby fs0; "								\
-	"  if ubi part FS; then "								\
-	"    if ubifsmount ubi0:$fsactive; then "						\
-	"      if ubifsload $loadaddr primary.flag; then "                                      \
-        "       setenv fsactive fs0; "							        \
-        "       setenv fsstandby fs1; "                                                         \
-        "       if ubifsmount ubi0:$fsactive; then "                                            \
-	"        if ubifsload $loadaddr fitImage; then "					\
-	"          setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
-	"          run secureboot; "								\
-	"        fi; "										\
-	"       fi; "										\
-	"      else; "										\
-	"       if ubifsload $loadaddr fitImage; then "						\
-	"        setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "		\
-	"        run secureboot; "								\
-	"       fi; "										\
-	"      fi; "										\
-	"    fi; "										\
-	"  fi; "										\
-	"else "											\
-	"  echo \"This board has not been characterised yet.  Please set up all required "	\
-		"environment variables, save the environment and reboot.\"; "			\
-	"fi; "											\
+	"fi; "										        \
 	"echo \"ERROR: Failed to load and run a kernel on this board, doh!\"; "
 
 
