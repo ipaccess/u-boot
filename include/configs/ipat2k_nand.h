@@ -119,9 +119,9 @@
 #define CONFIG_BOOTCOUNT_IPAT2K_OFFSET 65532
 
 /* Auto-boot options */
-//#define CONFIG_AUTOBOOT_KEYED
-//#define CONFIG_AUTOBOOT_STOP_STR "stop"
-//#define CONFIG_AUTOBOOT_PROMPT "ipaT2K: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
+#define CONFIG_AUTOBOOT_KEYED
+#define CONFIG_AUTOBOOT_STOP_STR "stop"
+#define CONFIG_AUTOBOOT_PROMPT "ipat2k: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
 
 #define CONFIG_CHARACTERISATION_IPAT2K
 #define CONFIG_CHARACTERISATION_EEPROM_ADDR CONFIG_SYS_I2C_EEPROM_ADDR

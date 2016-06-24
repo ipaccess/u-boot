@@ -32,6 +32,8 @@
 #include "secboot.h"
 //#include "led.h"
 
+DECLARE_GLOBAL_DATA_PTR;
+
 static ulong timestamp;
 static ulong last_count;    /**< Last counter value read from timer for calculations */
 
@@ -68,8 +70,6 @@ static inline void delay (unsigned long loops)
 
 int board_init (void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	gd->bd->bi_arch_number = MACH_TYPE_TRANSCEDE;
 
 	/* adress of boot parameters */
@@ -404,7 +404,6 @@ static void ether__init (void)
 
 int dram_init (void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	//gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
 	//gd->bd->bi_dram[0].size  = PHYS_SDRAM_1_SIZE;
     gd->ram_size = PHYS_SDRAM_1_SIZE; //DDR0_SIZE; //TODO which one??
@@ -509,6 +508,9 @@ static void _timer_init(void)
     REG32(TIMER3_CNTR_REG) = 1;                    /* chain Timer 3 with Timer 1's timeout */
 
     REG32(TIMER1_CNTR_REG) = (u32)TIMER1_CNTR_VALUE;    /* Set Timer 1 counter register */
+
+    gd->arch.tbu = 0;
+    gd->arch.tbl = 0;
 }
 
 void disable_timer(void)
@@ -604,8 +606,26 @@ void udelay_masked (unsigned long usec)
  */
 unsigned long long get_ticks(void)
 {
-        return (unsigned long long)get_timer(0);
+        /* get current millisecond count from timer 3 */
+        ulong now = *(volatile u32 *)TIMER3_CURR_COUNT;
+
+        /* increment tbu if tbl has rolled over */
+        if (now < gd->arch.tbl)
+           gd->arch.tbu++;
+        gd->arch.tbl = now;
+        return (((unsigned long long)gd->arch.tbu) << 32) | gd->arch.tbl;
 }
+
+/*
+ * This function is derived from PowerPC code (timebase clock frequency).
+ * On ARM it returns the number of timer ticks per second.
+ */
+ulong get_tbclk(void)
+{
+    return CONFIG_SYS_HZ;
+}
+
+
 #endif /* CONFIG_RTSM_ONLY */
 
 /*
