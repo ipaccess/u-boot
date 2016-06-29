@@ -74,9 +74,9 @@
 // #define CONFIG_UBIFS_SILENCE_MSG
 
 #define CONFIG_FIT
-+/*
-+ * Bootcount is stored in the I2C EEPROM.
-+ */
+/*
+ * Bootcount is stored in the I2C EEPROM.
+*/
 #define CONFIG_BOOTDELAY 3
 #define CONFIG_BOOTCOUNT_LIMIT
 #define CONFIG_BOOTCOUNT_LIMIT_COUNT 4
