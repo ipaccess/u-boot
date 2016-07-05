@@ -11,6 +11,9 @@
 #undef TSEC2_PHY_ADDR
 #define TSEC2_PHY_ADDR		1
 
+#undef CONFIG_SYS_MALLOC_LEN
+#define CONFIG_SYS_MALLOC_LEN           (4 * 1024 * 1024) /*Reserved for malloc*/
+
 #undef CONFIG_FIT_VERBOSE
 
 /*
