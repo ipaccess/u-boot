@@ -1013,4 +1013,25 @@ U_BOOT_CMD(
         );
 #endif
 
+int do_set_provisioning_req(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+
+    int ret;
+    uint8_t val = 0x05;
+    if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 226, 1, &val, 1)))
+    {
+        printf("i2c_write returned %d: set_provisioning_required failed\n", ret);
+        return CMD_RET_FAILURE;
+    }
+    return CMD_RET_SUCCESS;
+
+}
+
+
+U_BOOT_CMD(
+        set_provisioning_required, 1, 0, do_set_provisioning_req,
+        "set provisioning required in provisioning status byte in eeprom",
+        "<set_provisioning_required>"
+        );
+
 #endif
