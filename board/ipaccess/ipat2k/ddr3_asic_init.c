@@ -28,6 +28,7 @@ extern int get_t2200_rev(void);
 #define T2200_REV_X1        1
 #define T2200_REV_X2        2
 #define T2200_REV_X2_1      3
+#define T2200_REV_X2_1_HS_HP  4
 
 void SysDelayUs(u32 us)
 {
@@ -173,7 +174,7 @@ const unsigned char DdrControllerParams[0x297] = {
 
     dev_id = get_t2200_rev();
 
-    if (dev_id == T2200_REV_X2_1) {
+    if (dev_id >= T2200_REV_X2_1) {
         volatile unsigned char *p_ddr_regs = (volatile unsigned char *)DDR0_CONTROLLER_BASE;
 
         for (i = 0; i < sizeof(DdrControllerParams); i++)

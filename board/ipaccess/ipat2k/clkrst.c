@@ -1,19 +1,19 @@
 /*
  * Copyright(c) 2007-2014 Intel Corporation. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify 
+ * This program is free software; you can redistribute it and/or modify
  * it under the terms of version 2 of the GNU General Public License as
  * published by the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
- * along with this program; if not, write to the Free Software 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- * The full GNU General Public License is included in this distribution 
+ * The full GNU General Public License is included in this distribution
  * in the file called LICENSE.GPL.
  *
  * Contact Information:
@@ -36,7 +36,10 @@ static UINT32 GetDevAddrReg(UINT32 nDevID, PUINT32 ctrl, PUINT32 ctrlDiv, PUINT3
 
 inline UINT32 ClkRstGetRefClock (void)
 {
-    return 25*1000*1000;
+  //return 19200000; // 19.2 MHz
+  //  return 25000000; // 25   MHz
+  return 26000000; // 26   MHz
+  //return 40000000; // 40   MHz
 }
 
 UINT32 ClkGetSrcPll(UINT32 nDevID) /* in progress */
@@ -408,3 +411,4 @@ static UINT32 GetDevAddrReg(UINT32 nDevID, PUINT32 ctrl, PUINT32 ctrlDiv, PUINT3
 
     return SYSRC_SUCCESS;
 }
+

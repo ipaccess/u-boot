@@ -4,7 +4,7 @@
 #include <linux/sizes.h>
 #include <asm/hardware.h>
 #define CONFIG_IPAT2K
-#include "m82xxx_asic_nand.h"
+#include "m82xxx_gt_nand.h"
 
 #if defined(DEBUG)
 #undef DEBUG
@@ -23,12 +23,19 @@
 #undef CONFIG_OVERWRITE_ETHADDR_ONCE
 #undef CONFIG_SYS_NS16550_REG_SIZE
 #undef CONFIG_SYS_PBSIZE
-/*SPI Flash Stuff*/
+#undef CONFIG_CMD_T3300
+#undef CONFIG_CMD_PCIE
+#undef CONFIG_ADT75
+#undef CONFIG_EXTRA_ENV_SETTINGS
+#undef CONFIG_IDENT_STRING
 #if 0
+/*SPI Flash Stuff*/
 #define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_CMD_SF
 #endif
+#define CONFIG_IDENT_STRING     MINDSPEED_VERSION "\n\nIPAS60-UBOOT\n"
+#define CONFIG_CMD_DHCP
 #define CONFIG_SYS_TEXT_BASE 0x20000000
 #define CONFIG_SYS_INIT_SP_ADDR (IRAM_BASE + 0x800)
 #define CONFIG_SYS_MALLOC_LEN   (4*1024*1024)
@@ -127,11 +134,11 @@
 /* Auto-boot options */
 #define CONFIG_AUTOBOOT_KEYED
 #define CONFIG_AUTOBOOT_STOP_STR "stop"
-#define CONFIG_AUTOBOOT_PROMPT "ipat2k: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
+#define CONFIG_AUTOBOOT_PROMPT "ipas60: autoboot in %d seconds (\"stop\" to stop)\n",bootdelay
 
 #define CONFIG_CHARACTERISATION_IPAT2K
 #define CONFIG_CHARACTERISATION_EEPROM_ADDR CONFIG_SYS_I2C_EEPROM_ADDR
-#define CONFIG_CHARACTERISATION_IPAT2K_OFFSET 60000
+#define CONFIG_CHARACTERISATION_IPAT2K_OFFSET 60160
 #define CONFIG_CHARACTERISATION_IPAT2K_SIZE 256
 #define CONFIG_CHARACTERISATION_IPAT2K_VERSION 0x0
 
@@ -139,7 +146,7 @@
 
 /* Monitor Command Prompt */
 #undef CONFIG_SYS_PROMPT
-#define CONFIG_SYS_PROMPT   "ipat2k=> "
+#define CONFIG_SYS_PROMPT   "ipas60=> "
 
 /*
  * IPA Commands
@@ -164,24 +171,6 @@
 	" reth_on=1"								
 
 
-/*
- * Something like the following is required to boot this board:
- *
- * env default -a
- *
- * setenv ethaddr 00:15:E1:18:b4:90
- * setenv eth1addr 00:15:E1:18:b4:91
- * setenv ipa_oui 0015E1
- * setenv ipa_serial 0123456789
- * setenv ipa_hwchar 0x38
- * setenv ipa_pai 0x4141
- * setenv ipa_secmode d
- * setenv ipa_loader_revocation 0
- * setenv ipa_app_revocation 0
- *
- * env save
- * env save
- */
 #define SECURE_BOOT_COMMAND							\
     "NO_SEC_OK=0; "								\
     "DEV_KEY_OK=0; "								\

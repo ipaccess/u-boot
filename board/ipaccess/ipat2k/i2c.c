@@ -145,8 +145,13 @@ static int i2c_calc_baudrate( int speed )
 		}
 	}
 
+#ifndef CONFIG_GT_BOARD
 	return (actualM << 4) | actualN;
+#else
+	return (actualM << 3) | actualN;
+#endif
 }
+
 
 void i2c_init(int speed, int slaveaddr)
 {

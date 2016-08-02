@@ -38,10 +38,12 @@
 #endif
 
 #if defined(CONFIG_T2K)
+#ifndef CONFIG_GT_BOARD
 #include <asm/arch/mdio_bitbang.h>
 #include <asm/arch/atherosdrv.h>
-#include <asm/arch/ar8328.h>
 #include <asm/arch/rtl8363sb.h>
+#endif
+#include <asm/arch/ar8328.h>
 #endif
 
 #if 0
@@ -111,10 +113,12 @@ static u8 *rx_ring_data_buff = (u8 *)BUFFER_ALLOC_0;
 static u8 rx_ring_data_buff[NUM_RX_DESC * MAX_RX_BUFF_SIZE] __attribute((aligned(128)));
 #endif
 
+#ifndef CONFIG_GT_BOARD
 #if defined(CONFIG_T2K)
 // For Atheros driver, provide Linux like
 // MDIO bus structure
 struct mii_bus     GemMdioBusData;
+#endif
 #endif
 
 #if !defined(CONFIG_T2K)
@@ -338,7 +342,7 @@ static int transcede_miiphy_read(char *           devname, /**< Device driver na
 
 	return 0;
 }
-
+#ifndef CONFIG_GT_BOARD
 #if defined(CONFIG_T2K)
 
 /*! @brief Function to change device flags based on name of GEM device
@@ -423,6 +427,122 @@ void free_gem_mdio(struct mii_bus *bus)
 }
 
 #endif /* if defined(CONFIG_T2K) */
+#else /*ifndef CONFIG_GT_BOARD*/
+/*=============================================================================
+ *
+ * NAME: gemt_config_PHY
+ *
+ * PARAMETERS:
+ *   net_device *dev    -INOUT
+ *
+ * DESCRIPTION
+ *   Reconfigure PHY
+ *   This function will set up the PHY device.  This is a required external
+ *   support routine.
+ *   The parameters set up the maximum desired advertised ability for the
+ *   device.
+ *   TODO - read back negotiated ability and set MAC appropriately.
+ *          duplex configuration to be done.
+ *
+ * ASSUMPTIONS
+ *   None
+ *
+ * SIDE EFFECTS / STATIC DATA USE
+ *   None
+ *
+ * RETURNS:
+ *   int        0       -successful
+ *              <0      -failed
+ *
+ *===========================================================================*/
+static int gemt_config_PHY(struct gemac_dev *gemac, int phy_addr, MAC_SPEED speed, u8 duplex)
+{
+#ifndef CONFIG_TURNER
+	unsigned short anar; /* Value for Auto Negotiation Advertising Register */
+	unsigned short bmcr; /* Value for Basic Management Control Register */
+	unsigned short btcr; /* Value for BaseT Control register */
+#endif
+
+	/* Test if SGMII, if so, Trancede devices only support 1 gigabit full on that interface,
+	 * so leave SGMII alone when requested to reinitialize
+	 */
+	if (gemac->mode & GEMAC_GEM_MODE_SGMII)
+		return 0;
+
+	/* Reset the PHY device, return if error */
+	if (miiphy_reset(gemac->dev->name, gemac->phyaddr))
+		return -1;
+
+#ifndef CONFIG_TURNER
+	/* PHY has been reset, figure out register settings to send
+	 * to PHY based on speed
+	 */
+	switch (speed) {
+		case _10BASET:
+			if (duplex == FULL) {
+				anar = PHY_ANAR_10FD | PHY_ANAR_10;
+				btcr = 0x0;
+				bmcr = PHY_BMCR_DPLX | PHY_BMCR_10_MBPS;
+			} else {
+				anar = PHY_ANAR_10;
+				btcr = 0x0;
+				bmcr = PHY_BMCR_10_MBPS;
+			}
+
+			break;
+
+		case _100BASET:
+		default:
+			if (duplex == FULL) {
+				anar = PHY_ANAR_TXFD | PHY_ANAR_TX | PHY_ANAR_10FD | PHY_ANAR_10;
+				btcr = 0x0;
+				bmcr = PHY_BMCR_DPLX | PHY_BMCR_100_MBPS;
+			} else {
+				anar = PHY_ANAR_TX | PHY_ANAR_10;
+				btcr = 0x0;
+				bmcr = PHY_BMCR_100_MBPS;
+			}
+
+			break;
+
+		case _1000BASET:
+			if (duplex == FULL) {
+				anar = PHY_ANAR_TXFD | PHY_ANAR_TX | PHY_ANAR_10FD | PHY_ANAR_10;
+				btcr = PHY_1000BTCR_1000FD | PHY_1000BTCR_1000HD;
+				bmcr = PHY_BMCR_DPLX | PHY_BMCR_1000_MBPS;
+			} else {
+				anar = PHY_ANAR_TX | PHY_ANAR_10;
+				btcr = PHY_1000BTCR_1000HD;
+				bmcr = PHY_BMCR_1000_MBPS;
+			}
+
+			break;
+	}
+
+	/* Test if PHY flag options setup for PHY autonegotiation or not.
+	 * Based on that, write to standard PHY registers to
+	 * setup speed
+	 */
+
+	if (gemac->phyflags & GEMAC_PHY_AUTONEG) {
+		if (miiphy_write(gemac->dev->name, phy_addr, PHY_ANAR, anar | PHY_ANAR_PSB_802_3))
+			return -1;
+
+		if (miiphy_supports_1000base_t(gemac->dev->name, phy_addr)) {
+			if (miiphy_write(gemac->dev->name, phy_addr, PHY_1000BTCR, btcr))
+				return -1;
+		}
+
+		if (miiphy_write(gemac->dev->name, phy_addr, PHY_BMCR, PHY_BMCR_AUTON | PHY_BMCR_RST_NEG | bmcr))
+			return -1;
+	} else {
+		if (miiphy_write(gemac->dev->name, phy_addr, PHY_BMCR, bmcr))
+			return -1;
+	}
+#endif
+	return 0;
+}
+#endif /*ifndef CONFIG_GT_BOARD*/
 
 
 #endif /* defined(CONFIG_MII) || (CONFIG_COMMANDS & CFG_CMD_MII) */
@@ -951,18 +1071,6 @@ static int gemac_init(struct eth_device *dev, bd_t * bd)
 		duplex = miiphy_duplex(gemac->dev->name, gemac->phyaddr);
 	}
 
-#if 0
-	/* TEMP debug, print results of miiphy functions */
-	printf("miiphy_speed:  %u\n",speed);
-	printf("miiphy_duplex: ");
-	if (duplex == FULL)
-		printf("FULL\n");
-	else if (duplex == HALF)
-		printf("HALF\n");
-	else
-		printf("%u\n",duplex);
-#endif
-
 #else
 	/* Standard U-boot MII/MDIO operations not used */
 #if !defined(CONFIG_T2K)
@@ -1033,6 +1141,7 @@ int transcede_gemac_initialize(bd_t * bis, int index, char *devname)
 	struct eth_device *dev;
 	struct gemac_dev *gemac;
 	int i;
+#ifndef CONFIG_GT_BOARD
 #if defined(CONFIG_T2K)
 	int gem_mdio_ok         = 0;
 	int gem_switch_detected = 0;
@@ -1045,7 +1154,7 @@ int transcede_gemac_initialize(bd_t * bis, int index, char *devname)
     struct mii_bus *   bit_bang_bus=NULL;
     struct mii_bus *   valid_bus=NULL;
 #endif
-
+#endif
 #ifdef MDIO_DEBUG
     printf("Begin: %s: index:%d devname:%s\n", __func__, index, devname);
 #endif
@@ -1089,7 +1198,7 @@ int transcede_gemac_initialize(bd_t * bis, int index, char *devname)
 
 	/* Register Ethernet device with U-boot */
 	eth_register(dev);
-
+#ifndef CONFIG_GT_BOARD
 	// TODO: GEM_DMA_CONFIG - DMA receive buffer size in external AHB or AXI system memory
 	// following code doesnt loks like it;
 
@@ -1114,7 +1223,7 @@ int transcede_gemac_initialize(bd_t * bis, int index, char *devname)
 
 	/* disable admittance manager */
 	*(volatile u32 *)(gemac->registers + GEM_DMA_CONFIG) &= ~(1UL << 12);
-
+#endif
 	/* Reset the MAC */
 	gemt_reset_gem(gemac);
 
@@ -1163,7 +1272,11 @@ int transcede_gemac_initialize(bd_t * bis, int index, char *devname)
 	} else if (gemac->mode & GEMAC_GEM_MODE_SGMII) {
 		// printf("%s:%d SGMII configuration for device index = %i\n", __FUNCTION__, __LINE__, index);
 #ifdef SGMII_AUTONEG_MODE
+#ifndef CONFIG_GT_BOARD
 		Serdes1SgmiiInit(1); // Init Serdes in internal loopback
+#else
+		Serdes1SgmiiInit(0); // Init Serdes, no internal loopback
+#endif
 #else
 		Serdes1SgmiiInit(0); // Init Serdes, no internal loopback
 #endif
@@ -1193,7 +1306,7 @@ int transcede_gemac_initialize(bd_t * bis, int index, char *devname)
 		| (1<< 1) // Bit  1: Full duplex mode (overriden by GEMCOR config or PHY)
 		;
 #endif
-
+#ifndef CONFIG_GT_BOARD
 #if defined(CONFIG_T2K)
 
     //
@@ -1566,8 +1679,46 @@ int transcede_gemac_initialize(bd_t * bis, int index, char *devname)
 //          transcede_miiphy_read(gemac->dev->name, 0, 20, &val);
 //          printf("phy val=%04x\n", val);
         }
-#endif
+#endif /*#if !defined(CONFIG_T2K)*/
+#else /*#ifndef CONFIG_GT_BOARD*/
+#if defined(CONFIG_T2K)
 
+    //
+    // New code for RGMII for X2, try and detect if running GEM based MDIO
+    // or if running MDIO bit bang
+    // Run this code only when RGMII port is being initialized
+    //
+	gem_enable_MDIO(gemac);
+    //
+    // Setup MDIO for slowest rate (U-boot we don't need speed, we need reliability)
+    //
+	gem_set_mdc_div(gemac, MDC_DIV_224); // Alternate Divisors: 8, 16, 32, 48, 64, 96, 128, 224
+
+	miiphy_register(dev->name, transcede_miiphy_read, transcede_miiphy_write);
+	//here enable SFP GPIO
+	REG32(GPIO_31_16_PIN_SELECT_REG) |= ((1 << 16) | (1 << 20) | (1 << 22));
+	REG32(GPIO_OE_REG) |= ((1 << 24) | (1 << 26) | (1 << 27));
+	REG32(GPIO_OUTPUT_REG) &=  ~((1 << 24) | (1 << 26) | (1 << 27));
+	//printf("PIN Select:%08x, OE:%08x, OUTPUT:%08x\n", REG32(GPIO_31_16_PIN_SELECT_REG),REG32(GPIO_OE_REG),REG32(GPIO_OUTPUT_REG));
+
+//	if(index == 0){ //only init once.
+//		CfgAtherosSwitch(dev->name);
+//	}
+	if(index == 1){
+		unsigned short phy_tmp;
+		transcede_miiphy_read(dev->name, gemac->phyaddr, 0x03, &phy_tmp);
+		if(phy_tmp != 0xD072){	//factory test code, check phy connection.
+			printf("Can not find PHY\n");
+			while(1);
+		}
+		transcede_miiphy_write(dev->name, gemac->phyaddr, 0x1d, 5);
+		transcede_miiphy_read(dev->name, gemac->phyaddr, 0x1e, &phy_tmp);
+		transcede_miiphy_write(dev->name, gemac->phyaddr, 0x1d, 5);
+		transcede_miiphy_write(dev->name, gemac->phyaddr, 0x1e, phy_tmp | 0x100);
+	}
+#endif /*#ifdef CONFIG_T2K*/
+#endif /*#ifndef CONFIG_GT_BOARD*/
+#ifndef CONFIG_GT_BOARD
 #ifdef MDIO_DEBUG
     printf("End:   %s: index:%d devname:%s\n", __func__, index, devname);
 #endif
@@ -1575,7 +1726,7 @@ int transcede_gemac_initialize(bd_t * bis, int index, char *devname)
     {
         printf("\n       ");
     }
-
+#endif
 	return 0;
 }
 
