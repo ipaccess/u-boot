@@ -24,7 +24,9 @@
 #include <asm/arch/hardware.h>
 #include <nand.h>
 #include <asm/arch/pcie.h>
+#ifndef CONFIG_GT_BOARD
 #include <asm/arch/dejitter.h>
+#endif
 #if defined(CONFIG_CHARACTERISATION_IPAT2K)
 #include "characterisation.h"
 #endif
@@ -43,6 +45,28 @@ static void _timer_init(void);
 static void gpio_init(void);
 static void serdes_init(void);
 int dram_init (void);
+
+#if 0
+//BSP 5.11 change for GT Board but probably not needed
+#ifdef CONFIG_GT_BOARD
+#ifdef CONFIG_ADT75
+extern void adt75_init(void);
+#endif
+typedef struct {
+    unsigned int    magic;        //GT81
+    unsigned int    hw_ver;       // start from 1, so need reg vaule + 1;
+    unsigned int    uloader_ver;  // for x.y.z, uloader version is 0x00xxyyzz
+    unsigned int    uboot_ver;    // for x.y.z, uboot version is 0x00xxyyzz
+    unsigned int    uboot_fs;     //tell uboot, if it is failsafe image
+    unsigned int    reserved1;
+    unsigned int    reserved2;
+    unsigned int    reserved3;
+    unsigned int    reserved4;
+}FC81VER, *PFC81VER;
+/*iram is 256K(0xF4000000 to 0xF4040000), put it to 255k(0xf403fc00), because our loader should be less than 64K.*/
+PFC81VER fc81_ver = (PFC81VER)0xf403fc00;
+#endif
+#endif
 
 #define NAND_CS    4
 #define NAND_ADDR_ALE   (1 << 25)
@@ -70,6 +94,33 @@ static inline void delay (unsigned long loops)
 
 int board_init (void)
 {
+#if 0
+//BSP 5.11 change for GT Board but probably not needed
+#ifdef CONFIG_GT_BOARD
+	unsigned int boot_mode = ((REG32(SYS_SEC_CFG_BCR)) & 0x700) >> 8;
+	/*wrong boot mode, UART boot mode should not boot to uboot, so board support I2C boot only.*/
+	if(boot_mode != 1)
+		while(1);
+	if(fc81_ver->magic != 0x47543831){
+		printf("Wrong version info, please double-check uloader version\n");
+		while(1);
+	}
+	/*check collision, because 2nd version might be 1G memory.*/
+        /*1st version, 2G mem, uloader and uboot version is 1.x.x, 2nd version uloader and uboot should be 2.x.x*/
+	if(fc81_ver->hw_ver == 1){
+                /*this uboot need uloader version > 1.0.1.*/
+		if(fc81_ver->uloader_ver >= 0x00010001)	{
+                        /*here some confuse, because print out version is defined in mindspeed_version.h, remember to modify them together.*/
+			fc81_ver->uboot_ver = 0x00010001;
+                }
+		else
+			while(1);
+	}
+        /*tell user that we are using failsafe image. If intel want to do more, here give them a chance.*/
+	if(fc81_ver->uboot_fs == 1)
+		printf("Warning, failsafe image is running...\n");
+#endif
+#endif
 	gd->bd->bi_arch_number = MACH_TYPE_TRANSCEDE;
 
 	/* adress of boot parameters */
@@ -90,8 +141,17 @@ int board_init (void)
 	// for VSEMI debugging
 	serdes_init();
 #endif
+#if 0
+//BSP 5.11 change for GT Board but probably not needed
+#ifdef CONFIG_GT_BOARD	300
+#ifdef CONFIG_ADT75	301
+       adt75_init();
+#endif
+#endif
+#endif
 	return 0;
 }
+#ifndef CONFIG_GT_BOARD
 void dejitter__init(void)
 {
 	char*    dejitter_cfg;
@@ -288,7 +348,7 @@ void dejitter__init(void)
         SetI2cDacValue(I2cDacValue);
     }
 }
-
+#endif
 int misc_init_r (void)
 {
 #if defined(CONFIG_CHARACTERISATION_IPAT2K)
@@ -299,7 +359,9 @@ int misc_init_r (void)
 		return 1;
 
 	ether__init ();
+#ifndef CONFIG_GT_BOARD
 	dejitter__init ();
+#endif
 	setenv("verify", "y");
 
 #if defined(CONFIG_CHARACTERISATION_IPAT2K)
@@ -632,7 +694,12 @@ ulong get_tbclk(void)
  * Write the system control status register to cause reset
  */
 void reset_cpu(ulong addr){
-    /* TBD */
+#ifdef CONFIG_GT_BOARD
+	REG32(GPIO_OUTPUT_REG) &= ~(1<< 2);
+	REG32(GPIO_OE_REG) |= (1 << 2);
+	udelay(200000);
+	REG32(GPIO_OUTPUT_REG) |= (1<< 2);
+#endif
 }
 
 
@@ -719,20 +786,26 @@ int board_eth_init(bd_t *bis)
 {
     int ret = 0;
 
+#if defined(CONFIG_COMCERTO_GEMAC)
+	transcede_gemac_initialize(bis, 0, "gemac0");
+#ifdef CONFIG_T2K
+	transcede_gemac_initialize(bis, 1, "gemac1");
+#endif
+#endif
+#if 0
     ret = transcede_gemac_initialize(bis, 0, "gemac0");
     if(0 != ret)
     {
         printf("%s failed to init gemac0\n", __func__);
         return ret;
     }
-
     ret = transcede_gemac_initialize(bis, 1, "gemac1");
     if(0 != ret)
     {
         printf("%s failed to init gemac1\n", __func__);
         return ret;
     }
-
+#endif
     return ret;
 }
 

@@ -26,6 +26,7 @@
 #include <asm/arch/pcie.h>
 #include <asm/arch/serdes.h>
 
+#ifdef CONFIG_PCIE
 #ifndef CONFIG_RTSM_ONLY
 #define PCIE_USE_DMA
 #endif
@@ -349,4 +350,5 @@ PCIe_retcode pcie_write(u32 src, u32 dst, u32 len)
     	return (REG32(PCIE0_DMA_CNL_CTRL_REG) & (1 << 5)) ? RETCODE_OK : RETCODE_ERROR;
 }
 #endif //defined (PCIE_USE_DMA)
+#endif //defined CONFIG_PCIE
 
