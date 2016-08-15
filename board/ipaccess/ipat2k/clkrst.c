@@ -36,9 +36,10 @@ static UINT32 GetDevAddrReg(UINT32 nDevID, PUINT32 ctrl, PUINT32 ctrlDiv, PUINT3
 
 inline UINT32 ClkRstGetRefClock (void)
 {
+  return get_sys_ref_clk_hz();
   //return 19200000; // 19.2 MHz
   //  return 25000000; // 25   MHz
-  return 26000000; // 26   MHz
+  //return 26000000; // 26   MHz
   //return 40000000; // 40   MHz
 }
 

@@ -989,9 +989,9 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     serialise_characterisation_info(&cd, serialised);
 
     /* write the EEPROM in page mode (8 bytes at a time) */
-    for (i = 0; i < CONFIG_CHARACTERISATION_IPAT2K_SIZE; i += 8)
+    for (i = 0; i < CONFIG_CHARACTERISATION_IPAT2K_SIZE; i += 256)
     {
-        if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + i, 1, serialised + i, 8)))
+        if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + i, 1, serialised + i, 256)))
         {
             printf("i2c_write returned %d for a white of 8 bytes at offset %d\n", ret, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + i);
             goto cleanup;
