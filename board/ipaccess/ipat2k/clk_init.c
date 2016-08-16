@@ -32,11 +32,9 @@
 #define DEFAULT_SYS_REF_CLK_MHZ (DEFAULT_SYS_REF_CLK_HZ / 1000000)
 #endif
 
-#if 0
 #ifndef AUTO_DETECT_SYSCLK_FREQ
 // New feature to allow for auto-detecting strapped
 #define AUTO_DETECT_SYSCLK_FREQ
-#endif
 #endif
 
 // T2200  Clock ratios
@@ -287,7 +285,6 @@ int get_t2200_rev(void)
 
 unsigned int get_sys_ref_clk_hz(void)
 {
-#define AUTO_DETECT_SYSCLK_FREQ
 #ifdef AUTO_DETECT_SYSCLK_FREQ
     switch((REG32(SYSCONF_STAT_REG) >> 20) & 3)
     {
