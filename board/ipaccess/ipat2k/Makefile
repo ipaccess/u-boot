@@ -12,7 +12,7 @@ obj-y += lowlevel_init.o
 obj-$(CONFIG_CMD_NORML) += norml.o
 obj-$(CONFIG_CMD_KEY)   += key.o
 obj-y        += secboot.o
-obj-y        += ipat2k_fuse.o
+obj-y        += ipat2k_fuse.o  efuse.o
 obj-$(CONFIG_CHARACTERISATION_IPAT2K) += characterisation.o damm.o
 
 

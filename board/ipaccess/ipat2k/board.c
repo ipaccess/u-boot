@@ -30,7 +30,6 @@
 #if defined(CONFIG_CHARACTERISATION_IPAT2K)
 #include "characterisation.h"
 #endif
-#include "ipat2k_fuse.h"
 #include "secboot.h"
 //#include "led.h"
 
@@ -699,6 +698,9 @@ void reset_cpu(ulong addr){
 	REG32(GPIO_OE_REG) |= (1 << 2);
 	udelay(200000);
 	REG32(GPIO_OUTPUT_REG) |= (1<< 2);
+#else
+	REG32(PLLS_GLOBAL_CNTRL) |= 0xf;
+	REG32(DEVICE_RST_CNTRL) = 1;
 #endif
 }
 
