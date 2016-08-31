@@ -63,6 +63,11 @@ static const variant_record variant_lookup[] = {
     { "435S", "435", "S", 435, 'S' }, /* Bands: 3                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
     { "436S", "436", "S", 436, 'S' }, /* Bands: 3                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
     { "431C", "431", "C", 431, 'C' }, /* Bands: 4                - Notes: MitraStar T2K Development Board                                 */
+    { "437T", "437", "T", 437, 'T' }, /* Bands: 40               - Notes: S60 single band TDD HW, T2K 2130 + ADI radio                    */
+    { "438T", "438", "T", 438, 'T' }, /* Bands: 40               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence)         */
+    { "437U", "437", "U", 437, 'U' }, /* Bands: 41               - Notes: S60 single band TDD HW, T2K 2130 + ADI radio                    */
+    { "438U", "438", "U", 438, 'U' }, /* Bands: 41               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence          */
+
 };
 
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
