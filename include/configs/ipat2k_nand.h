@@ -164,10 +164,10 @@
 	"console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"			\
 	" elevator=noop "									\
 	MTDPARTS_DEFAULT									\
-	" mem=380M"										\
+	" mem=512M"										\
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
-	" icc_heap_size=130M icc_part_size=176M ddr_limit=2G ddr_heap_size=96M"                 \
-	" cram_offset=0x25000 noswap nopcie"		                                        \
+	" icc_heap_size=132M icc_part_size=320M icc_amp_heap_size=2M ddr_limit=2G"              \
+	" ddr_heap_size=256M ddrcb_heap_size=64M cram_offset=0x25000 noswap nopcie"             \
 	" reth_on=1"								
 
 
