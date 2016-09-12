@@ -448,8 +448,22 @@ int miiphy_speed(const char *devname, unsigned char addr)
 	 */
 	/* Check for 1000BASE-T. */
 	if (miiphy_read(devname, addr, MII_STAT1000, &btsr)) {
+#if 0
+		/* Original U-boot code, if unable to read 1000Base-T status
+		 * register, assume failure, print error message
+		 * and return default speed
+                 */
 		printf("PHY 1000BT status");
 		goto miiphy_read_failed;
+#else
+		/*
+		 * Code modified for Transcede, if read failed, interface
+		 * is probably either SGMII SFP or attached to switch.
+		 * Either way, return speed as 10000BaseT
+		 */
+		return _1000BASET;
+#endif
+
 	}
 	if (btsr != 0xFFFF &&
 			(btsr & (PHY_1000BTSR_1000FD | PHY_1000BTSR_1000HD)))
@@ -474,8 +488,8 @@ int miiphy_speed(const char *devname, unsigned char addr)
 	return (bmcr & BMCR_SPEED100) ? _100BASET : _10BASET;
 
 miiphy_read_failed:
-	printf(" read failed, assuming 10BASE-T\n");
-	return _10BASET;
+	printf(" read failed, assuming 1000BASE-T\n");
+	return _1000BASET;
 }
 
 /*****************************************************************************
@@ -502,8 +516,21 @@ int miiphy_duplex(const char *devname, unsigned char addr)
 	 */
 	/* Check for 1000BASE-T. */
 	if (miiphy_read(devname, addr, MII_STAT1000, &btsr)) {
-		printf("PHY 1000BT status");
+#if 0
+		/* Original U-boot code, if unable to read 1000Base-T status
+		 * register, assume failure, print error message
+		 * and return default speed
+		 */
+		printf ("PHY 1000BT status");
 		goto miiphy_read_failed;
+#else
+		 /* Code modified for Transcede, if read failed, interface
+		 * is probably either SGMII SFP or attached to switch.
+		 * Either way, return duplex as full
+		 */
+		return FULL;
+#endif
+
 	}
 	if (btsr != 0xFFFF) {
 		if (btsr & PHY_1000BTSR_1000FD) {
@@ -533,8 +560,8 @@ int miiphy_duplex(const char *devname, unsigned char addr)
 	return (bmcr & BMCR_FULLDPLX) ? FULL : HALF;
 
 miiphy_read_failed:
-	printf(" read failed, assuming half duplex\n");
-	return HALF;
+	printf(" read failed, assuming FULL duplex\n");
+	return FULL;
 }
 
 /*****************************************************************************
@@ -544,7 +571,14 @@ miiphy_read_failed:
  */
 int miiphy_is_1000base_x(const char *devname, unsigned char addr)
 {
-#if defined(CONFIG_PHY_GIGE)
+//#if defined(CONFIG_PHY_GIGE)
+#if 0
+	/* Changed to #if 0 above,
+	 * as if a PHY (e.g. Atheros) supports both BASE-X and
+	 * BASE-T, PHY can be in BASE-T mode
+	 * This patch is to force BASE-T until a better method
+	 * to detect BASE-X mode can be found
+	 */
 	u16 exsr;
 
 	if (miiphy_read(devname, addr, MII_ESTATUS, &exsr)) {
