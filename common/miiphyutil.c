@@ -294,7 +294,7 @@ int miiphy_read(const char *devname, unsigned char addr, unsigned char reg,
  * Write <value> to the PHY attached to device <devname>,
  * use PHY address <addr> and register <reg>.
  *
- * This API is deprecated. Use phy_write on a phy_deviCe found by phy_connect
+ * This API is deprecated. Use phy_write on a phy_device found by phy_connect
  *
  * Returns:
  *   0 on success
@@ -615,5 +615,4 @@ int miiphy_link(const char *devname, unsigned char addr)
 		return 0;
 	}
 }
-#undef debug
 #endif
