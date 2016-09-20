@@ -16,6 +16,9 @@
 #define MASTER_KEY_EFUSE_INSTANCE_START         9
 #define MASTER_KEY_EFUSE_INSTANCE_END           10
 
+#define byte_index_from_instance_num(x) ((x)/8)
+#define bit_shift_from_instance_num(x)	((x)%8)
+
 extern uint8_t ipat2k_is_secure_boot();
 extern uint8_t ipat2k_is_board_fused();
 uint8_t ipat2k_fuse_read_loader_revocation();

@@ -281,7 +281,8 @@ void deserialise_characterisation_info_eeprom(const uint8_t payload[CONFIG_CHARA
     else if ( (payload[239] & 0xE1) == 0x01)
 	    cd->test_mode = 1;
     else 
-	    cd->production_mode = 1;
+	    /*nothing set: Consider specials in case of eeprom characterisation*/
+	    cd->specials_mode = 1;
 
 }
 
@@ -861,7 +862,6 @@ void characterise_fuses (const struct characterisation_data_t * cd)
     buff[2] = (((cd->osc & 0x3) << 6) & 0xC0) | (((cd->variant & 0x3FF) >> 4) & 0x3F);
     buff[3] = (((cd->variant & 0xF) << 4) & 0xF0); /* remaining four bits are reserved */
 
-    /*TODO clarifiaction if pcbai goes to fuses or not*/
     buff[4] = (((cd->pcbai & 0xFF00) >> 8) & 0xFF);
     buff[5] = (cd->pcbai & 0xFF);
 
@@ -896,7 +896,8 @@ void characterise_fuses (const struct characterisation_data_t * cd)
 
     memset(buff,0,16);
     /*set mac address instance to last time program*/
-    buff[1] = 0x80;
+    buff[byte_index_from_instance_num(MAC_ADDR_EFUSE_INSTANCE)] |= 1 << bit_shift_from_instance_num(MAC_ADDR_EFUSE_INSTANCE);
+
     efuse_write_instance(LAST_TIME_PROG_EFUSE_INSTANCE,buff);
 
 }
@@ -1112,7 +1113,7 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
             cd.version = CONFIG_CHARACTERISATION_IPAT2K_VERSION;
             serialise_characterisation_info_eeprom(&cd, serialised);
 
-            /* write the EEPROM (256 bytes at a time) */
+            /* write the EEPROM in page mode (8 bytes at a time) */
             for (i = 0; i < CONFIG_CHARACTERISATION_IPAT2K_SIZE; i += 256)
             {
                 if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + i, 1, serialised + i, 256)))

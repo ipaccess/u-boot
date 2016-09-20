@@ -70,7 +70,7 @@ uint8_t ipat2k_is_secure_boot()
     {
         memset(buff,0,16);
         efuse_read_instance(INTEL_DEFINED_EFUSE_INSTANCE,buff);
-        if ( buff[4] & 0x01 )
+        if ( buff[3] & 0x80 )
             return 1;
     }
 
@@ -156,24 +156,25 @@ static int do_ipat2k_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const a
     memset(efuse2_buff,0,16);
 
 /*EFUSE INSTANCE_0 byte 0 masks*/
-#define BOUNDARY_SCAN_DISBALE     0x80
-#define BLOCK_JTAG_CORESIGHT      0x20
-#define TZ_ENABLE                 0x40
+#define BOUNDARY_SCAN_DISBALE     0x01
+#define TZ_ENABLE                 0x02
+#define BLOCK_JTAG_CORESIGHT      0x04
 
 /*EFUSE INSTANCE_0 byte 1 masks*/
-#define AUTHENTICATE_BOOT_CODE    0x40
-#define DEBUG_MODE                0x80
-#define KEY_SIZE_2K               0x10
+#define AUTHENTICATE_BOOT_CODE    0x02
+#define DEBUG_MODE                0x01
+#define KEY_SIZE_2K               0x08
+#define KEY_IN_HEADER		  0x10
 
-/*EFUSE INSTANCE_0 bit 31 mask*/
-#define SECURE_BOOT_ENABLE        0x01
+/*EFUSE INSTANCE_0 sceure boot enable*/
+#define SECURE_BOOT_ENABLE        0x80
 
 /*EFUSE INSTANCE_2 byte 15 masks*/	
-#define BLOCK_INVASIVE_DEBUG      0x02
-#define BLOCK_NON_INVASIVE_DEBUG  0x04
+#define BLOCK_INVASIVE_DEBUG      0x40
+#define BLOCK_NON_INVASIVE_DEBUG  0x20
 
     efuse0_buff[0] |= TZ_ENABLE;
-    efuse0_buff[1] |= AUTHENTICATE_BOOT_CODE | DEBUG_MODE | KEY_SIZE_2K;
+    efuse0_buff[1] |= AUTHENTICATE_BOOT_CODE | DEBUG_MODE | KEY_SIZE_2K | KEY_IN_HEADER;
     efuse0_buff[3] |= SECURE_BOOT_ENABLE;
 
     if (disable_jtag)
@@ -185,14 +186,16 @@ static int do_ipat2k_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const a
     }
 
     /*Set last time program bits for INTEL_DEFINED_EFUSE_INSTANCE,OEM_SIGN_KEY_HASH_PART_1_INSTANCE,OEM_SIGN_KEY_HASH_PART_2_INSTANCE*/
-    efuse2_buff[0] = 0x8C;
+    efuse2_buff[byte_index_from_instance_num(INTEL_DEFINED_EFUSE_INSTANCE)] |= 1 << bit_shift_from_instance_num(INTEL_DEFINED_EFUSE_INSTANCE);
+    efuse2_buff[byte_index_from_instance_num(OEM_SIGN_KEY_HASH_PART_1_INSTANCE)] |= 1 << bit_shift_from_instance_num(OEM_SIGN_KEY_HASH_PART_1_INSTANCE);
+    efuse2_buff[byte_index_from_instance_num(OEM_SIGN_KEY_HASH_PART_2_INSTANCE)] |= 1 << bit_shift_from_instance_num(OEM_SIGN_KEY_HASH_PART_2_INSTANCE);
 
     efuse_write_instance(INTEL_DEFINED_EFUSE_INSTANCE,efuse0_buff);
     
     efuse_write_instance(LAST_TIME_PROG_EFUSE_INSTANCE,efuse2_buff);
 
-    memset(efuse2_buff,1,6);
-    efuse2_buff[6] = 0xF0;
+    memset(efuse2_buff,0xFF,6);
+    efuse2_buff[6] = 0x0F;
     /*Disable access to all 51 fuse instances from external pins*/
     efuse_write_instance(DIS_EXTERNAL_PIN_EFUSE_INSTANCE,efuse2_buff);
 
