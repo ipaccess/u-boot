@@ -146,9 +146,9 @@ void serialise_characterisation_info_eeprom(const struct characterisation_data_t
 
     if (cd->production_mode)
         payload[239] = 0x80;
-    if (cd->development_mode)
+    else if (cd->development_mode)
         payload[239] = 0x40;
-    if (cd->test_mode)
+    else if (cd->test_mode)
         payload[239] = 0x01;
     else
         payload[239] = 0x20; /*Specials*/
@@ -198,6 +198,10 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
     cd->variant = buff[2] & 0x3F;
     cd->variant <<= 4;
     cd->variant |= (((buff[3] & 0xF0) >> 4) & 0xF);
+
+    cd->pcbai = buff[4];
+    cd->pcbai <<= 8;
+    cd->pcbai |= buff[5];
 
     cd->oui[0] = buff[8];
     cd->oui[1] = buff[9];
@@ -303,12 +307,10 @@ void deserialise_characterisation_info_eeprom(const uint8_t payload[CONFIG_CHARA
 		    cd->production_mode = 1;
 	    else if ((payload[239] & 0xE1) == 0x40)
 		    cd->development_mode = 1;
-	    else if ( (payload[239] & 0xE1) == 0x20)
-		    cd->specials_mode = 1;
 	    else if ( (payload[239] & 0xE1) == 0x01)
 		    cd->test_mode = 1;
 	    else 
-		    cd->production_mode = 1;
+		    cd->specials_mode = 1;
     }
 
 }
