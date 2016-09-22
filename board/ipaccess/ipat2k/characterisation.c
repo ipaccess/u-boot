@@ -271,54 +271,30 @@ void deserialise_characterisation_info_eeprom(const uint8_t payload[CONFIG_CHARA
     cd->oui[1] = payload[18];
     cd->oui[2] = payload[19];
 
-    if (cd->version == 0)
-    {
-	    cd->serial = ((((uint64_t)(payload[20])) << 24) & 0xFF000000) |
-		    ((((uint64_t)(payload[21])) << 16) & 0x00FF0000) |
-		    ((((uint64_t)(payload[22])) <<  8) & 0x0000FF00) |
-		    ((((uint64_t)(payload[23])) <<  0) & 0x000000FF);
+    cd->serial = ((((uint64_t)(payload[20])) << 32) & 0x300000000) | 
+        ((((uint64_t)(payload[21])) << 24) & 0xFF000000) |
+        ((((uint64_t)(payload[22])) << 16) & 0x00FF0000) |
+        ((((uint64_t)(payload[23])) <<  8) & 0x0000FF00) |
+        ((((uint64_t)(payload[24])) <<  0) & 0x000000FF);
 
-	    if ((payload[239] & 0x2) == 0x2)
-	    {
-		    if ((payload[239] & 0x1) == 0x1)
-		    {
-			    cd->test_mode = 1;
-		    }
-		    else
-		    {
-			    cd->development_mode = 1;
-		    }
-	    }
-	    else
-	    {
-		    cd->specials_mode = 1;
-	    }
 
-    }
-    else
-    {
-	    cd->serial = ((((uint64_t)(payload[20])) << 32) & 0x300000000) | 
-		    ((((uint64_t)(payload[21])) << 24) & 0xFF000000) |
-		    ((((uint64_t)(payload[22])) << 16) & 0x00FF0000) |
-		    ((((uint64_t)(payload[23])) <<  8) & 0x0000FF00) |
-		    ((((uint64_t)(payload[24])) <<  0) & 0x000000FF);
-
-	    if ( (payload[239] & 0xE1) == 0x80)
-		    cd->production_mode = 1;
-	    else if ((payload[239] & 0xE1) == 0x40)
-		    cd->development_mode = 1;
-	    else if ( (payload[239] & 0xE1) == 0x01)
-		    cd->test_mode = 1;
-	    else 
-		    cd->specials_mode = 1;
-    }
+    if ( (payload[239] & 0xE1) == 0x80)
+        cd->production_mode = 1;
+    else if ((payload[239] & 0xE1) == 0x40)
+        cd->development_mode = 1;
+    else if ( (payload[239] & 0xE1) == 0x20)
+        cd->specials_mode = 1;
+    else if ( (payload[239] & 0xE1) == 0x01)
+        cd->test_mode = 1;
+    else 
+        cd->specials_mode = 1;
 
 }
 
 int is_test_mode()
 {
     uint8_t val = 0;
-    if (0 == i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 239, 1,&val,1))
+    if (0 == i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 239, 2,&val,1))
     {
         if ( (val & 0x01) == 0x01 )
             return 1;
@@ -330,7 +306,7 @@ int is_test_mode()
 void set_test_mode()
 {
     uint8_t val = 0x01;
-    if (0 != i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 239, 1, &val, 1))
+    if (0 != i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 239, 2, &val, 1))
         printf("Setting test mode bit in eeprom failed\n");
 
 }
@@ -375,7 +351,7 @@ static int do_hwchar_i2c_read(void)
 {
     memset(serialised_characterisation_data, 0, CONFIG_CHARACTERISATION_IPAT2K_SIZE);
     return i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,
-                    CONFIG_CHARACTERISATION_IPAT2K_OFFSET, 1,
+                    CONFIG_CHARACTERISATION_IPAT2K_OFFSET, 2,
                     serialised_characterisation_data,
                     CONFIG_CHARACTERISATION_IPAT2K_SIZE);
 }
@@ -1145,7 +1121,7 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
             /* write the EEPROM in page mode (256 bytes at a time) */
             for (i = 0; i < CONFIG_CHARACTERISATION_IPAT2K_SIZE; i += 256)
             {
-                if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + i, 1, serialised + i, 256)))
+                if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + i, 2, serialised + i, 256)))
                 {
                     printf("i2c_write returned %d for 8 bytes at offset %d\n", ret, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + i);
                     goto cleanup;
@@ -1183,7 +1159,7 @@ int do_set_provisioning_req_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char * 
 
     int ret;
     uint8_t val = 0x05;
-    if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 226, 1, &val, 1)))
+    if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 226, 2, &val, 1)))
     {
         printf("i2c_write returned %d: set_provisioning_required failed\n", ret);
         return CMD_RET_FAILURE;
