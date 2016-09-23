@@ -44,7 +44,7 @@ int do_i2c_flash_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[
 	    fprintf(stderr, "%s\n", "Invalid length: not a hexadecimal number.");
 	    return CMD_RET_USAGE;
     }
-    printf("%X %X %X\n",offset,mem_addr,length);
+
     int tmp=0;
     while (length > 256 )
     {
@@ -74,7 +74,7 @@ int do_i2c_flash_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[
 	    }
 
     }
-
+    printf("\nDone\n");
     return CMD_RET_SUCCESS;
 
 }

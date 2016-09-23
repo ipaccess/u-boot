@@ -195,7 +195,7 @@ int i2c_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 
 #ifdef CONFIG_SYS_I2C_EEPROM_ADDR
 	// If EEPROM, force to correct length
-	if (chip == CONFIG_SYS_I2C_EEPROM_ADDR)
+	if ((chip >= CONFIG_SYS_I2C_EEPROM_ADDR) && (chip <= (CONFIG_SYS_I2C_EEPROM_ADDR+3)))
 		alen =  CONFIG_SYS_I2C_EEPROM_ADDR_LEN;
 #endif
 
@@ -360,7 +360,7 @@ int i2c_write(uchar chip, uint addr, int alen, uchar *buffer, int len)
 
 #ifdef CONFIG_SYS_I2C_EEPROM_ADDR
 	// If EEPROM, force to correct length
-	if (chip == CONFIG_SYS_I2C_EEPROM_ADDR)
+	if ((chip >= CONFIG_SYS_I2C_EEPROM_ADDR) && (chip <= (CONFIG_SYS_I2C_EEPROM_ADDR+3)))
 		alen =  CONFIG_SYS_I2C_EEPROM_ADDR_LEN;
 #endif
 

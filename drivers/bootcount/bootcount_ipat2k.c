@@ -10,7 +10,7 @@ void bootcount_store(ulong a)
 
     ret = i2c_write(CONFIG_BOOTCOUNT_EEPROM_ADDR,
                     CONFIG_BOOTCOUNT_IPAT2K_OFFSET,
-                    1,
+                    2,
                     &buf,
                     1);
 
@@ -25,7 +25,7 @@ ulong bootcount_load(void)
 
     ret = i2c_read(CONFIG_BOOTCOUNT_EEPROM_ADDR,
                    CONFIG_BOOTCOUNT_IPAT2K_OFFSET,
-                   1,
+                   2,
                    &buf,
                    1);
 
