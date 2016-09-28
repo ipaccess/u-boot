@@ -326,7 +326,7 @@ static void set_test_mode()
 {
     uint8_t val = 0x01;
     if (0 != i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 239, 2, &val, 1))
-        printf("Setting test mode bit in eeprom failed\n");
+        printf("WARNING: Setting test mode bit in eeprom failed\n");
 
 }
 
@@ -335,7 +335,7 @@ static void clear_test_mode()
     /*Clearing test mode bit means setting the board to Development mode in eeprom*/
     uint8_t val = 0x40;
     if (0 != i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 239, 2, &val, 1))
-        printf("Clearing test mode bit in eeprom failed\n");
+        printf("WARNING: Clearing test mode bit in eeprom failed\n");
 
 }
 
