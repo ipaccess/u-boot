@@ -161,6 +161,25 @@ void serialise_characterisation_info_eeprom(const struct characterisation_data_t
     if (cd->boot_license_disabled)
         payload[1] |= 0x10;
 
+    /*Check if board is already EEPROM characterised*/
+    if (memcmp(cdo.eth1addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth1addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
+    {
+        /*Case of EEPROM re-characterisation: preserve provisioning status info*/
+        if (i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 226, 2,&payload[226],1))
+            /*failed reading try once more*/
+            if (i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 226, 2,&payload[226],1))
+                /*failed reading try once more*/
+                i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 226, 2,&payload[226],1);
+
+	/*Case of EEPROM re-characterisation: preserve Master Key value*/
+	if (i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 192, 2,&payload[192],32))
+		/*failed reading try once more*/
+		if (i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 192, 2,&payload[192],32))
+			/*failed reading try once more*/
+			i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 192, 2,&payload[192],32);
+
+    }
+
 }
 
 
@@ -308,11 +327,20 @@ int is_test_mode()
     return 0;
 }
 
-void set_test_mode()
+static void set_test_mode()
 {
     uint8_t val = 0x01;
     if (0 != i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 239, 2, &val, 1))
-        printf("Setting test mode bit in eeprom failed\n");
+        printf("WARNING: Setting test mode bit in eeprom failed\n");
+
+}
+
+static void clear_test_mode()
+{
+    /*Clearing test mode bit means setting the board to Development mode in eeprom*/
+    uint8_t val = 0x40;
+    if (0 != i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 239, 2, &val, 1))
+        printf("WARNING: Clearing test mode bit in eeprom failed\n");
 
 }
 
@@ -1180,4 +1208,27 @@ U_BOOT_CMD(
         "<set_provisioning_required>"
         );
 
+int do_test_mode_flag_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+
+    if (argc < 2)
+        return CMD_RET_USAGE;
+
+    if ( 0 == strcmp(argv[1],"set") )
+        set_test_mode();
+    else if (0 == strcmp(argv[1],"clear") )
+        clear_test_mode();
+    else
+        return CMD_RET_USAGE;
+
+    return CMD_RET_SUCCESS;
+
+}
+
+
+U_BOOT_CMD(
+        test_mode_flag, 2, 0, do_test_mode_flag_eeprom,
+        "test_mode_flag to switch the board between Dev/test mode",
+        "<test_mode_flag <set|clear> >"
+        );
 #endif
