@@ -357,6 +357,17 @@ int misc_init_r (void)
 	if (0 != load_security_requirements())
 		return 1;
 
+	if (silent_mode_enabled()) {
+		setenv("silent", "1");
+		setenv("silent_linux", "no");
+		setenv("bootdelay", "0");
+	} else {
+		setenv("silent", NULL);
+		setenv("silent_linux", "NULL");
+		setenv("bootdelay", "3");
+	}
+
+
 	ether__init ();
 #ifndef CONFIG_GT_BOARD
 	dejitter__init ();

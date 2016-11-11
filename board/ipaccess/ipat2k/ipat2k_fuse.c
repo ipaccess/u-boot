@@ -96,8 +96,9 @@ static int do_ipat2k_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const a
     int prompt_to_user = 1, i = 1;
     int disable_jtag = 1;
     uint8_t efuse0_buff[16],efuse2_buff[16];
-    /*TODO CA to confirm the public key hash, all zeroes at the moment*/
-    uint8_t oem_sig_pub_key_hash[32]={0};
+    /*CA TMSK public key hash*/
+    uint8_t oem_sig_pub_key_hash[32]={ 0x91,0x91,0x70,0x65,0xAA,0xBD,0x72,0x77,0x92,0xF5,0x1C,0xE6,0xE7,0xB3,0xA0,0x4C,
+										0xD9,0x4E,0x52,0x74,0x96,0xCC,0x0A,0x4F,0xCE,0x7D,0x51,0x85,0x3A,0x56,0x4D,0x17 };
 
     while( i < argc )
     {
@@ -194,6 +195,7 @@ static int do_ipat2k_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const a
     
     efuse_write_instance(LAST_TIME_PROG_EFUSE_INSTANCE,efuse2_buff);
 
+	memset(efuse2_buff,0x0,16);
     memset(efuse2_buff,0xFF,6);
     efuse2_buff[6] = 0x0F;
     /*Disable access to all 51 fuse instances from external pins*/
