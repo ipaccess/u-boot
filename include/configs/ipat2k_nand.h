@@ -160,15 +160,24 @@
 
 #define CONFIG_ETHPRIME		"gemac1"
 #define LINUX_CONSOLEDEV	"ttyS0"
-#define CMD_LINE_ARGS_LINUX									\
-	"console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"			\
+#define IPA_BASE_BOOTARGS									\
 	" elevator=noop "									\
 	MTDPARTS_DEFAULT									\
 	" mem=512M"										\
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
 	" icc_heap_size=132M icc_part_size=320M icc_amp_heap_size=2M ddr_limit=2G"              \
 	" ddr_heap_size=256M ddrcb_heap_size=64M cram_offset=0x25000 noswap nopcie"             \
-	" reth_on=1"								
+	" reth_on=1 "								
+
+#define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS  " console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"
+#define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS " console=tty0 " "quiet"
+
+#define SET_BOOTARGS							\
+	"if silent_mode_enabled; then "					\
+	" setenv bootargs " CMDLINE_ARGS_LINUX_SILENT "; "		\
+	"else; "							\
+	" setenv bootargs " CMDLINE_ARGS_LINUX "; "			\
+	"fi; "
 
 
 #define SECURE_BOOT_COMMAND							\
@@ -299,10 +308,6 @@
 	"echo \"ERROR: Failed to load and run a kernel on this board, doh!\"; "
 
 
-
-#define SET_BOOTARGS										\
-	"setenv bootargs " CMD_LINE_ARGS_LINUX
-
 #define SELECT_CONFIG										\
 	"setenv selected_config config@1; "
 
@@ -320,5 +325,7 @@
 	"secureboot=" SECURE_BOOT_COMMAND "\0"
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
-
+#define CONFIG_SILENT_CONSOLE
+#define CONFIG_SILENT_CONSOLE_UPDATE_ON_SET
+#define CONFIG_SILENT_CONSOLE_UPDATE_ON_RELOC
 #endif

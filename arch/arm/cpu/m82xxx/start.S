@@ -94,33 +94,35 @@ v_copy_loop:
     orr r0,r0,#0xd3
     msr cpsr,r0
 
-    ldr r0,=0xF4C08000  /*TODO: IRAM remap remove*/
-    ldr r1,[r0]
-    bic r1,r1,#0x2000000 /*TODO: 25th bit IRAM remap*/
-    str r1,[r0]
+/*Commented out block, not required with microloader already setting up things
+This block hangs the board once trustzone is enabled as these register are no more accessible*/
+    #ldr r0,=0xF4C08000  /*TODO: IRAM remap remove*/
+    #ldr r1,[r0]
+    #bic r1,r1,#0x2000000 /*TODO: 25th bit IRAM remap*/
+    #str r1,[r0]
 
     /*
      * Enable access to debugger
      */
     /* set A9_AUTHENT_REG */
-    mov    r0,#0xFE000000
-    mov    r1,#0x00070000
-    orr    r0, r0, r1
-    mov    r1,#0xF
-    str     r1, [r0,#0x70]
+    #mov    r0,#0xFE000000
+    #mov    r1,#0x00070000
+    #orr    r0, r0, r1
+    #mov    r1,#0xF
+    #str     r1, [r0,#0x70]
     /* set DBGEN in Cross Trigger Source Enable Register */
-    mov    r0,#0xF4000000
-    mov    r1,#0x00C00000
-    orr    r0, r0, r1
-    mov     r1, #0x300;
-    str     r1, [r0,#0x100]
+    #mov    r0,#0xF4000000
+    #mov    r1,#0x00C00000
+    #orr    r0, r0, r1
+    #mov     r1, #0x300;
+    #str     r1, [r0,#0x100]
 
     /* set DDR Low and High limit */
-    ldr     r1,=0xB0000000
-    ldr     r0,=0xF4C00010
-    str     r1,[r0]
-    dsb
-
+    #ldr     r1,=0xB0000000
+    #ldr     r0,=0xF4C00010
+    #str     r1,[r0]
+    #dsb
+/*Commented out block ends*/
     /*
      * we do sys-critical inits only at reboot,
      * not when booting from ram!
