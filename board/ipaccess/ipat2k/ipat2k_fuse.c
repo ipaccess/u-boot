@@ -121,7 +121,7 @@ static int do_ipat2k_secure(cmd_tbl_t *cmdtp, int flag, int argc, char * const a
 
     if (!ipat2k_is_board_fused())
     {
-        fprintf(stderr,"Invalid Operation: Board not characterised, fuse characterisation data first\n");
+        fprintf(stderr,"\nInvalid operation: Board not characterised, fuse characterisation data first\n");
         goto error;
     }
 
