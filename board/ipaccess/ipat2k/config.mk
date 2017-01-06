@@ -1,0 +1,8 @@
+#
+# 
+#
+
+#TEXT_BASE = 0x0C800000
+#TEXT_BASE = 0x20000000
+#TEXT_BASE = 0xa0080000
+       

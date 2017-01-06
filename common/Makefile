@@ -153,6 +153,13 @@ obj-$(CONFIG_CMD_PART) += cmd_part.o
 ifdef CONFIG_PCI
 obj-$(CONFIG_CMD_PCI) += cmd_pci.o
 endif
+ifdef CONFIG_PCIE
+obj-$(CONFIG_CMD_PCIE) += cmd_pcie.o
+endif
+ifdef CONFIG_TURNER
+obj-$(CONFIG_CMD_SYSINFO) += cmd_transcede_sysinfo.o
+endif
+obj-$(CONFIG_CMD_T3300) += cmd_t3300.o
 obj-y += cmd_pcmcia.o
 obj-$(CONFIG_CMD_PORTIO) += cmd_portio.o
 obj-$(CONFIG_CMD_PXE) += cmd_pxe.o
