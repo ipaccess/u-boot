@@ -873,70 +873,81 @@ void characterise_fuses (const struct characterisation_data_t * cd)
     uint8_t buff[16];
     memset(buff,0,16);
 
-    if (cd->production_mode)
+    if (!ipat2k_is_board_fused())
     {
-        buff[1] |= 0x80;
+        if (cd->production_mode)
+        {
+            buff[1] |= 0x80;
+        }
+        else if (cd->specials_mode)
+        {
+            buff[1] |= 0x20;
+        }
+        else if (cd->development_mode)
+        {
+            buff[1] |= 0x40;
+        }
+        else if (cd->test_mode)
+        {
+            buff[1] |= 0x40;
+            /*set test mode bit*/
+            set_test_mode();
+
+        }
+
+
+        if (cd->boot_license_disabled)
+            buff[1] |= 0x10;
+
+        buff[2] = (((cd->osc & 0x3) << 6) & 0xC0) | (((cd->variant & 0x3FF) >> 4) & 0x3F);
+        buff[3] = (((cd->variant & 0xF) << 4) & 0xF0); /* remaining four bits are reserved */
+
+        buff[4] = (((cd->pcbai & 0xFF00) >> 8) & 0xFF);
+        buff[5] = (cd->pcbai & 0xFF);
+
+        buff[8] = cd->oui[0];
+        buff[9] = cd->oui[1];
+        buff[10] = cd->oui[2];
+        buff[11] = (cd->serial & 0x300000000) >> 32;
+        buff[12] = (cd->serial & 0x0FF000000) >> 24;
+        buff[13] = (cd->serial & 0x000FF0000) >> 16;
+        buff[14] = (cd->serial & 0x00000FF00) >> 8;
+        buff[15] = (cd->serial & 0x0000000FF);
+
+
+        efuse_write_instance(AP_CHARACTERISATION_EFUSE_INSTANCE,buff);
+
+        memset(buff,0,16);
+        buff[0] = cd->eth0addr[0];
+        buff[1] = cd->eth0addr[1];
+        buff[2] = cd->eth0addr[2];
+        buff[3] = cd->eth0addr[3];
+        buff[4] = cd->eth0addr[4];
+        buff[5] = cd->eth0addr[5];
+        buff[6] = cd->eth1addr[0];
+        buff[7] = cd->eth1addr[1];
+        buff[8] = cd->eth1addr[2];
+        buff[9] = cd->eth1addr[3];
+        buff[10] = cd->eth1addr[4];
+        buff[11] = cd->eth1addr[5];
+
+
+        efuse_write_instance(MAC_ADDR_EFUSE_INSTANCE,buff);
+
+
+        memset(buff,0,16);
+        /*set mac address instance to last time program*/
+        buff[byte_index_from_instance_num(MAC_ADDR_EFUSE_INSTANCE)] |= 1 << bit_shift_from_instance_num(MAC_ADDR_EFUSE_INSTANCE);
+
+
+        efuse_write_instance(LAST_TIME_PROG_EFUSE_INSTANCE,buff);
+	printf("\nSuccess: fuse characterisation done\n");
     }
-    else if (cd->specials_mode)
+    else
     {
-        buff[1] |= 0x20;
+        printf("\nInvalid operation: board already fuse characterised\n");
+        
     }
-    else if (cd->development_mode)
-    {
-        buff[1] |= 0x40;
-    }
-    else if (cd->test_mode)
-    {
-        buff[1] |= 0x40;
-        /*set test mode bit*/
-        set_test_mode();
-
-    }
-
-
-    if (cd->boot_license_disabled)
-        buff[1] |= 0x10;
-
-    buff[2] = (((cd->osc & 0x3) << 6) & 0xC0) | (((cd->variant & 0x3FF) >> 4) & 0x3F);
-    buff[3] = (((cd->variant & 0xF) << 4) & 0xF0); /* remaining four bits are reserved */
-
-    buff[4] = (((cd->pcbai & 0xFF00) >> 8) & 0xFF);
-    buff[5] = (cd->pcbai & 0xFF);
-
-    buff[8] = cd->oui[0];
-    buff[9] = cd->oui[1];
-    buff[10] = cd->oui[2];
-    buff[11] = (cd->serial & 0x300000000) >> 32;
-    buff[12] = (cd->serial & 0x0FF000000) >> 24;
-    buff[13] = (cd->serial & 0x000FF0000) >> 16;
-    buff[14] = (cd->serial & 0x00000FF00) >> 8;
-    buff[15] = (cd->serial & 0x0000000FF);
-
-    
-    efuse_write_instance(AP_CHARACTERISATION_EFUSE_INSTANCE,buff);
-
-    memset(buff,0,16);
-    buff[0] = cd->eth0addr[0];
-    buff[1] = cd->eth0addr[1];
-    buff[2] = cd->eth0addr[2];
-    buff[3] = cd->eth0addr[3];
-    buff[4] = cd->eth0addr[4];
-    buff[5] = cd->eth0addr[5];
-    buff[6] = cd->eth1addr[0];
-    buff[7] = cd->eth1addr[1];
-    buff[8] = cd->eth1addr[2];
-    buff[9] = cd->eth1addr[3];
-    buff[10] = cd->eth1addr[4];
-    buff[11] = cd->eth1addr[5];
-
-
-    efuse_write_instance(MAC_ADDR_EFUSE_INSTANCE,buff);
-
-    memset(buff,0,16);
-    /*set mac address instance to last time program*/
-    buff[byte_index_from_instance_num(MAC_ADDR_EFUSE_INSTANCE)] |= 1 << bit_shift_from_instance_num(MAC_ADDR_EFUSE_INSTANCE);
-
-    efuse_write_instance(LAST_TIME_PROG_EFUSE_INSTANCE,buff);
 
 }
 

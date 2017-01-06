@@ -122,7 +122,6 @@ int efuse_read_instance(UINT32 inst_no, UINT8* buff)
 int efuse_write_instance(UINT32 inst_no, UINT8 *buff)
 {
 /*Commented out deliberately so that fuses are not blown by mistake*/
-#if 0
     int i,j;
     int d_id, b_id, bit;
     UINT8 *data = (UINT8 *)buff;
@@ -179,6 +178,5 @@ int efuse_write_instance(UINT32 inst_no, UINT8 *buff)
     efuse_signal_set(0);
     /*Let's put some delay before the next call to this func*/
     SysDelayUs(1200);
-#endif
     return 0;
 }
