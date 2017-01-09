@@ -99,7 +99,7 @@
 
 /*
  * U-Boot execution will be controlled from an embedded OF tree
- * created from the file ipa9131.dts.  This simply contains a
+ * created from the file ipat2k.dts.  This simply contains a
  * set of security keys.
  */
 #define CONFIG_OF_CONTROL
@@ -154,8 +154,8 @@
 #define CONFIG_CMD_KEY
 #define CONFIG_CMD_SECPARM
 #define CONFIG_CMD_LIE
-//#define CONFIG_CMD_LEDSET
-//#define CONFIG_CMD_LEDC
+#define CONFIG_CMD_LEDSET
+#define CONFIG_CMD_LEDC
 
 
 #define CONFIG_ETHPRIME		"gemac1"
@@ -213,6 +213,7 @@
       "if key unrequire tstoem0; then "						\
        "if key require ipaoem0 conf; then "					\
         "if bootm ${loadaddr}#${selected_config}; then "			\
+        "ledc all green red 3 1000;"						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
@@ -224,6 +225,7 @@
       "if key unrequire ipaoem0; then "						\
        "if key require tstoem0 conf; then "					\
         "if bootm ${loadaddr}#${selected_config}; then "			\
+        "ledc all green red 3 1000;"						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
@@ -235,6 +237,7 @@
       "if key unrequire ipaoem0; then "						\
        "if key require dev conf; then "						\
         "if bootm ${loadaddr}#${selected_config}; then "			\
+        "ledc all green red 3 1000;"						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
@@ -246,15 +249,18 @@
       "if key unrequire ipaoem0; then "						\
        "if key unrequire dev; then "						\
         "if bootm ${loadaddr}#${selected_config}; then "			\
+        "ledc all green red 3 1000;"						\
          "reset; "								\
         "fi; "									\
        "fi; "									\
       "fi; "									\
      "fi; "									\
     "fi; "									\
+    "ledc all green red 3 1000;"						\
     "reset"
 
 #define STANDARD_BOOT_COMMAND 									\
+	"ledc nwk svc green off 1 300; "							\
 	"mtdparts default; "									\
 	"run select_bootargs; "								        \
 	"run select_config; "									\
@@ -278,9 +284,11 @@
 	"    fi; "										\
 	"  fi; "										\
 	"fi; "										        \
-	"echo \"ERROR: Failed to load and run a kernel on this board, doh!\"; "
+	"ledc all green red 3 1000;"								\
+	"reset"
 
 #define FALLBACK_BOOT_COMMAND                                                                   \
+	"ledc nwk svc green off 1 300; "							\
 	"mtdparts default; "									\
 	"run select_bootargs; "								        \
 	"run select_config; "									\
@@ -305,8 +313,8 @@
 	"     fi; "										\
 	"  fi; "										\
 	"fi; "										        \
-	"echo \"ERROR: Failed to load and run a kernel on this board, doh!\"; "
-
+	"ledc all green red 3 1000;"								\
+	"reset"
 
 #define SELECT_CONFIG										\
 	"setenv selected_config config@1; "

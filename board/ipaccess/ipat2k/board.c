@@ -93,33 +93,6 @@ static inline void delay (unsigned long loops)
 
 int board_init (void)
 {
-#if 0
-//BSP 5.11 change for GT Board but probably not needed
-#ifdef CONFIG_GT_BOARD
-	unsigned int boot_mode = ((REG32(SYS_SEC_CFG_BCR)) & 0x700) >> 8;
-	/*wrong boot mode, UART boot mode should not boot to uboot, so board support I2C boot only.*/
-	if(boot_mode != 1)
-		while(1);
-	if(fc81_ver->magic != 0x47543831){
-		printf("Wrong version info, please double-check uloader version\n");
-		while(1);
-	}
-	/*check collision, because 2nd version might be 1G memory.*/
-        /*1st version, 2G mem, uloader and uboot version is 1.x.x, 2nd version uloader and uboot should be 2.x.x*/
-	if(fc81_ver->hw_ver == 1){
-                /*this uboot need uloader version > 1.0.1.*/
-		if(fc81_ver->uloader_ver >= 0x00010001)	{
-                        /*here some confuse, because print out version is defined in mindspeed_version.h, remember to modify them together.*/
-			fc81_ver->uboot_ver = 0x00010001;
-                }
-		else
-			while(1);
-	}
-        /*tell user that we are using failsafe image. If intel want to do more, here give them a chance.*/
-	if(fc81_ver->uboot_fs == 1)
-		printf("Warning, failsafe image is running...\n");
-#endif
-#endif
 	gd->bd->bi_arch_number = MACH_TYPE_TRANSCEDE;
 
 	/* adress of boot parameters */
@@ -411,7 +384,7 @@ static void gpio_init(void)
 #endif
 	//TODO: random hangs?
 	/* enable both SS0 and SS1, define only one really used */
-	*(volatile u32*)  GPIO_31_16_PIN_SELECT_REG &= ~((0x0fUL << 28) | (0x0fUL << 4));
+	*(volatile u32*)  GPIO_31_16_PIN_SELECT_REG &= ~((0x0fUL << 28));
 
 	// HW tracing enable
 	REG32(BOOTSTRAP_OVERRIDE_REG) |= 0x18;
