@@ -176,3 +176,42 @@ U_BOOT_CMD(
     "<spcmode|devmode|tstmode|prdmode> - force development mode or production secure boot on - you can only elevate the current setting"
 );
 #endif
+
+
+
+static int  __smc(u32 command, u32 buff1, u32 buff1_len,u32 buff2,u32 buff2_len,u32 buff3,u32 buff3_len) {
+
+    register u32 r0 asm("r0") = command;
+    register uint32_t r1 __asm("r1") = buff1;
+    register uint32_t r2 __asm("r2") = buff1_len;
+    register uint32_t r3 __asm("r3") = buff2;
+    register uint32_t r4 __asm("r4") = buff2_len;
+    register uint32_t r5 __asm("r5") = buff3;
+    register uint32_t r6 __asm("r6") = buff3_len;
+
+    asm volatile(
+            __asmeq("%0", "r0")
+            __asmeq("%1", "r0")
+            __asmeq("%2", "r1")
+            __asmeq("%3", "r2")
+            __asmeq("%4", "r3")
+            __asmeq("%5", "r4")
+            __asmeq("%6", "r5")
+            __asmeq("%7", "r6")
+            ".arch armv7-a\n"
+            "smc #0 @ switch to secure world\n"
+            : "=r" (r0)
+            : "r" (r0), "r" (r1), "r" (r2), "r" (r3), "r" (r4), "r" (r5), "r" (r6)
+            );
+
+    return r0;
+}
+
+/*command value as defined and used in microloader code*/
+#define SMC_GET_ACTIVE_RSM 6
+int smc_get_active_rsm(void)
+{
+        return __smc(SMC_GET_ACTIVE_RSM,0,0,0,0,0,0);
+}
+
+

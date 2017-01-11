@@ -389,6 +389,44 @@ static int do_hwchar_i2c_read(void)
                     CONFIG_CHARACTERISATION_IPAT2K_SIZE);
 }
 
+static void update_rsm_from_tz(struct characterisation_data_t * cdo)
+{
+    switch (smc_get_active_rsm())
+    {
+        case RSM_A_PROD:
+            {
+                cdo->production_mode = cdo->test_mode = cdo->development_mode = cdo->specials_mode = 0;
+                cdo->production_mode = 1;
+                break;
+            }
+        case RSM_A_DEV:
+            {
+                cdo->production_mode = cdo->test_mode = cdo->development_mode = cdo->specials_mode = 0;
+                if (is_test_mode())
+                    cdo->test_mode = 1;
+                else
+                    cdo->development_mode = 1;
+                break;
+            }
+        case RSM_A_TEST:
+            {
+                cdo->production_mode = cdo->test_mode = cdo->development_mode = cdo->specials_mode = 0;
+                cdo->test_mode = 1;
+                break;
+            }
+        case RSM_A_SPECIALS:
+            {
+                cdo->production_mode = cdo->test_mode = cdo->development_mode = cdo->specials_mode = 0;
+                cdo->specials_mode = 1;
+                break;
+            }
+        default:
+            /*Do nothing: keep the mode as read from fuse/eeprom*/
+            break;
+    }
+
+}
+
 int characterisation_init(void)
 {
     int ret;
@@ -423,6 +461,9 @@ int characterisation_init(void)
 
         deserialise_characterisation_info_eeprom(serialised_characterisation_data, &cdo);
     }
+
+    /*Boot license: update RSM via TZ call*/
+    update_rsm_from_tz(&cdo);
 
     hw_variant = lookup_variant(cdo.variant);
 
