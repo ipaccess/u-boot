@@ -3,6 +3,11 @@
 
 #include <common.h>
 
+#define RSM_A_PROD          0x8
+#define RSM_A_DEV           0x4
+#define RSM_A_SPECIALS      0x2
+#define RSM_A_TEST          0x5
+
 extern int characterisation_init(void);
 extern void print_characterisation(void);
 

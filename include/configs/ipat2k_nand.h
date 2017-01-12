@@ -166,7 +166,7 @@
 	" mem=512M"										\
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
 	" icc_heap_size=132M icc_part_size=320M icc_amp_heap_size=2M ddr_limit=2G"              \
-	" ddr_heap_size=256M ddrcb_heap_size=64M cram_offset=0x25000 noswap nopcie"             \
+	" ddr_heap_size=256M ddrcb_heap_size=64M cram_offset=0x26000 noswap nopcie"             \
 	" reth_on=1 "								
 
 #define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS  " console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"
