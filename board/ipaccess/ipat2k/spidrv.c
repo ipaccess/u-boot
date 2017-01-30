@@ -65,7 +65,7 @@ UINT32 SPIDrvInit(PSPICONFIG pSpiConfig)
         // This should be defaulted for this, but set this in case
         // some other software change the pins to GPIO
         //
-        REG32(GPIO_31_16_PIN_SELECT_REG) &= ~((0x0fUL << 28) | (0x0fUL << 4)); // TODO: here we enable both SS0 and SS1, define only one really used
+        //REG32(GPIO_31_16_PIN_SELECT_REG) &= ~((0x0fUL << 28) | (0x0fUL << 4)); // TODO: here we enable both SS0 and SS1, define only one really used
         //REG32(GPIO_31_16_PIN_SELECT_REG) &= ~(0x0fUL << 28); // Clear bits 31-28 to enable TX and RX controlled by SPI controller instead of GPIO
         //
         // Set maximum drive strength for clock and TX data and slave selects and fast I/O
@@ -231,9 +231,10 @@ UINT8 SPISendReadByte(UINT32 busID, UINT8 Data)
 void SPIDrvEnableCS(UINT32 busID, UINT32 cs)
 {
     volatile P_SPI_REGISTER_STRUCT pSpiController;
-
+    //UINT32 gpio_val;
     pSpiController = GET_SPI_CONTROLLER_POINTER(busID);
-
+    //gpio_val = 1 << 18;
+    //REG32(GPIO_OUTPUT_REG) &= ~(gpio_val);
     pSpiController->SSIENR = 0x0;
     pSpiController->SER   |= cs;
     pSpiController->SSIENR = 0x1;
@@ -242,8 +243,13 @@ void SPIDrvEnableCS(UINT32 busID, UINT32 cs)
 void SPIDrvDisableCS(UINT32 busID, UINT32 cs)
 {
     volatile P_SPI_REGISTER_STRUCT pSpiController;
-
+    //UINT32 gpio_val;
     pSpiController = GET_SPI_CONTROLLER_POINTER(busID);
+    //gpio_val = 1 << 18;
+    //if (gpio_val)
+    //{
+     //   REG32(GPIO_OUTPUT_REG) |= gpio_val;
+    //}
 
     pSpiController->SSIENR = 0x0;
     pSpiController->SER   &= ~cs;
