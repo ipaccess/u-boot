@@ -336,4 +336,6 @@
 #define CONFIG_SILENT_CONSOLE
 #define CONFIG_SILENT_CONSOLE_UPDATE_ON_SET
 #define CONFIG_SILENT_CONSOLE_UPDATE_ON_RELOC
+/*Silent u-boot only with CONFIG_SILENT_CONSOLE, for kernel seprate bootargs environment variable is set*/
+#define CONFIG_SILENT_U_BOOT_ONLY
 #endif
