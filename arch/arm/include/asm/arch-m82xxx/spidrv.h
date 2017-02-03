@@ -34,7 +34,7 @@ unsigned int get_bus_clock(void);
 #define EXPBUSTICKS_IN_1_US  (get_bus_clock())
 #define EXPBUSTICKS_IN_1_MS ((get_bus_clock()) * 1000)
 
-ulong get_timer (ulong base);
+unsigned long get_timer (unsigned long base);
 #define SysTime (get_timer(0))
 
 /*
