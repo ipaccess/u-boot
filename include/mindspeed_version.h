@@ -1,2 +1,2 @@
 /* Mindspeed version */
-#define MINDSPEED_VERSION             " Intel 2.8.4.3.1"
+#define MINDSPEED_VERSION             " BSP 2.8.5.11"
