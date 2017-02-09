@@ -1,9 +1,8 @@
 #include "secboot.h"
 
 #include <common.h>
-#include <fuse.h>
 #include <asm-generic/errno.h>
-
+#include "ipat2k_fuse.h"
 #include "characterisation.h"
 
 
@@ -43,7 +42,8 @@ int load_security_requirements()
 
 int silent_mode_enabled(void)
 {
-    return BT_PROD == g_board_type;
+    /*silent only when production and secure boot enabled*/
+    return ((BT_PROD == g_board_type) && ipat2k_is_secure_boot());
 }
 
 
