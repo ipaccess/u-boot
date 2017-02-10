@@ -10,6 +10,12 @@
 
 #if defined(CONFIG_CHARACTERISATION_IPAT2K)
 
+/*RSM bitmap in fuse/eeprom: r:reserved p:production d:development s:specials t:test*/
+/*p|d|s|r| r|r|r|r*/
+#define BOARD_RSM_MASK_FUSE 0xE0
+/*p|d|s|r| r|r|r|t*/
+#define BOARD_RSM_MASK_EEPROM 0xE1
+
 uint8_t serialised_characterisation_data[CONFIG_CHARACTERISATION_IPAT2K_SIZE];
 
 static const char * oscillator_text[] = {
@@ -193,16 +199,16 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
 
     cd->production_mode = cd->test_mode = cd->development_mode = cd->specials_mode = 0;
 
-    if ( (buff[1] & 0xE0 ) == 0x80 )
+    if ( (buff[1] & BOARD_RSM_MASK_FUSE ) == 0x80 )
     {
         cd->production_mode = 1;
     }
-    else if ( (buff[1] & 0xE0 ) == 0x20 )
+    else if ( (buff[1] & BOARD_RSM_MASK_FUSE ) == 0x20 )
     {
         cd->specials_mode = 1;
 
     }
-    else if ( (buff[1] & 0xE0 ) == 0x40)
+    else if ( (buff[1] & BOARD_RSM_MASK_FUSE ) == 0x40)
     {
 
         if (is_test_mode())
@@ -302,13 +308,13 @@ void deserialise_characterisation_info_eeprom(const uint8_t payload[CONFIG_CHARA
         ((((uint64_t)(payload[24])) <<  0) & 0x000000FF);
 
 
-    if ( (payload[239] & 0xE1) == 0x80)
+    if ( (payload[239] & BOARD_RSM_MASK_EEPROM) == 0x80)
         cd->production_mode = 1;
-    else if ((payload[239] & 0xE1) == 0x40)
+    else if ((payload[239] & BOARD_RSM_MASK_EEPROM) == 0x40)
         cd->development_mode = 1;
-    else if ( (payload[239] & 0xE1) == 0x20)
+    else if ( (payload[239] & BOARD_RSM_MASK_EEPROM) == 0x20)
         cd->specials_mode = 1;
-    else if ( (payload[239] & 0xE1) == 0x01)
+    else if ( (payload[239] & BOARD_RSM_MASK_EEPROM) == 0x01)
         cd->test_mode = 1;
     else 
         cd->specials_mode = 1;
@@ -320,7 +326,7 @@ int is_test_mode()
     uint8_t val = 0;
     if (0 == i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 239, 2,&val,1))
     {
-        if ( (val & 0x01) == 0x01 )
+        if ( (val & BOARD_RSM_MASK_EEPROM) == 0x01 )
             return 1;
             
     }
@@ -919,6 +925,9 @@ void characterise_fuses (const struct characterisation_data_t * cd)
         if (cd->production_mode)
         {
             buff[1] |= 0x80;
+            /*set test mode bit, when fused rsm is going to be production
+            so that once the dev boot license is installed the board board becomes test first*/
+            set_test_mode();
         }
         else if (cd->specials_mode)
         {
