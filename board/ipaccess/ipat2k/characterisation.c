@@ -925,6 +925,9 @@ void characterise_fuses (const struct characterisation_data_t * cd)
         if (cd->production_mode)
         {
             buff[1] |= 0x80;
+            /*set test mode bit, when fused rsm is going to be production
+            so that once the dev boot license is installed the board board becomes test first*/
+            set_test_mode();
         }
         else if (cd->specials_mode)
         {
