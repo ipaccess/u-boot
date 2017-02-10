@@ -10,10 +10,10 @@
 
 #if defined(CONFIG_CHARACTERISATION_IPAT2K)
 
-/*RSM bitmap in fuse/eeprom: r:reserved p:prodcution d:development s:specials t:test*/
+/*RSM bitmap in fuse/eeprom: r:reserved p:production d:development s:specials t:test*/
 /*p|d|s|r| r|r|r|r*/
 #define BOARD_RSM_MASK_FUSE 0xE0
-/*p|d|s|r| t|r|r|r*/
+/*p|d|s|r| r|r|r|t*/
 #define BOARD_RSM_MASK_EEPROM 0xE1
 
 uint8_t serialised_characterisation_data[CONFIG_CHARACTERISATION_IPAT2K_SIZE];
