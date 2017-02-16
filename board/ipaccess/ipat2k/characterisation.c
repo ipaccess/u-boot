@@ -114,7 +114,9 @@ struct characterisation_data_t
     uint8_t test_mode;
     uint8_t development_mode;
     uint8_t specials_mode;
-    uint8_t boot_license_disabled
+    uint8_t boot_license_disabled;
+    uint8_t app_rev_count;
+    uint8_t loader_rev_count;
 };
 
 struct characterisation_data_t cdo;
@@ -862,6 +864,47 @@ static int parse_pcb_assembly_issue(const char * pcb_assembly_issue_text, uint16
     return 0;
 }
 
+static int parse_revocation_count(const char * revocation_count_text, uint8_t *revocation_count )
+{
+
+    uint16_t v;
+
+    v = 0;
+
+    if (!revocation_count_text || !revocation_count)
+    {
+        fprintf(stderr, "%s\n", "Invalid app/loader revocation count type: NULL argument to conversion function.");
+        return -1;
+    }
+
+    if (strlen(revocation_count_text) < 3)
+    {
+        fprintf(stderr, "%s\n", "Invalid app/loader revocation count type: Input too short.");
+        return -1;
+    }
+
+    if (revocation_count_text[0] != '0' || !(revocation_count_text[1] == 'x' || revocation_count_text[1] == 'X'))
+    {
+        fprintf(stderr, "%s\n", "Invalid app/loader revocation count: Invalid prefix (must be 0x or 0X).");
+        return -1;
+    }
+
+    if (0 != parse_hex_uint16(revocation_count_text + 2, &v))
+    {
+        fprintf(stderr, "%s\n", "Invalid app/loader revocation count: failed to parse input.");
+        return -1;
+    }
+
+    if (v > MAX_REVOCATION_COUNT_VALUE)
+    {
+        fprintf(stderr, "%s\n", "Invalid app/loader revocation count: Value above Max revocation count value.");
+        return -1;
+    }
+	
+    *revocation_count = (uint8_t)(v & 0xFF);
+
+}
+
 static int user_input( int prompt_to_user, const char *type)
 {
     int ret = 0;
@@ -915,7 +958,7 @@ end:
     return ret;
 }
 
-void characterise_fuses (const struct characterisation_data_t * cd)
+int characterise_fuses (const struct characterisation_data_t * cd)
 {
     uint8_t buff[16];
     memset(buff,0,16);
@@ -991,11 +1034,17 @@ void characterise_fuses (const struct characterisation_data_t * cd)
 
 
         efuse_write_instance(LAST_TIME_PROG_EFUSE_INSTANCE,buff);
+        
+        if (cd->app_rev_count || cd->loader_rev_count)
+            ipat2k_fuse_write_revocation_counts(cd->loader_rev_count,cd->app_rev_count);
+
 	printf("\nSuccess: fuse characterisation done\n");
+        return 0;
     }
     else
     {
         printf("\nInvalid operation: board already fuse characterised\n");
+        return 1;
         
     }
 
@@ -1020,6 +1069,8 @@ static int usage(const char * progname, int ret)
     fprintf((ret ? stderr : stdout), "                              Unused bits must be set to 0.\n");
     fprintf((ret ? stderr : stdout), "       -p PCB_ASSEMBLY_ISSUE: Specify the PCB assembly issue as a 16 bit decimal value (0x0000-0xFFFF).\n");
     fprintf((ret ? stderr : stdout), "       -m MODE              : Specify the board mode (p, t, d, s) = (production, test, development, specials).\n");
+    fprintf((ret ? stderr : stdout), "       -a APP_REV_COUNT     : Specify application revocation count as hexadecimal number (0x00-0x40) \n");
+    fprintf((ret ? stderr : stdout), "       -l LOADER_REV_COUNT  : Specify loader revocation count hexadecimal value(0x00-0x40)\n");
     fprintf((ret ? stderr : stdout), "       -f                   : Force acceptance of a serial number that fails the DAMM algorithm check.\n");
     fprintf((ret ? stderr : stdout), "       -no-prompt           : Do not prompt user for input before blowing the fuses (must be used when fuse blowing is done via scripts).\n");
     fprintf((ret ? stderr : stdout), "       -dis-boot-license    : Disables boot license feature for this board\n");
@@ -1038,6 +1089,8 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     const char * eth1addr_text;
     const char * type_text;
     const char * pcb_assembly_issue_text;
+    const char * app_revocation_count_text;
+    const char * loader_revocation_count_text;
     int prod_mode;
     int test_mode;
     int dev_mode;
@@ -1049,7 +1102,7 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
     ret = 1;
     i = 0;
-    oui_text = serial_text = eth0addr_text = eth1addr_text = type_text = pcb_assembly_issue_text = NULL;
+    oui_text = serial_text = eth0addr_text = eth1addr_text = type_text = pcb_assembly_issue_text = app_revocation_count_text = loader_revocation_count_text=NULL;
     prod_mode = test_mode = dev_mode = specials_mode = 0;
     ignore_damm = 0;
     prompt_to_user = 1;
@@ -1092,6 +1145,14 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         else if (0 == strcmp(argv[i],"-p"))
         {
             pcb_assembly_issue_text = argv[i+1];
+        }
+        else if (0 == strcmp(argv[i],"-l"))
+        {
+            loader_revocation_count_text = argv[i+1];
+        }
+        else if (0 == strcmp(argv[i],"-a"))
+        {
+            app_revocation_count_text = argv[i+1];
         }
         else if (0 == strcmp(argv[i],"-m"))
         {
@@ -1169,6 +1230,16 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         goto cleanup;
     }
 
+    /*optional parameters: parse if passed*/
+    if ( (loader_revocation_count_text && (0 != parse_revocation_count(loader_revocation_count_text, &cd.loader_rev_count ))) ||
+         (app_revocation_count_text && (0 != parse_revocation_count(app_revocation_count_text, &cd.app_rev_count ))) 
+        )
+    {
+        ret = usage(argv[0], 1);
+        goto cleanup;
+    }
+
+
     cd.production_mode = prod_mode ? 1 : 0;
     cd.test_mode = test_mode ? 1 : 0;
     cd.development_mode = dev_mode ? 1 : 0;
@@ -1201,6 +1272,12 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         fprintf(stdout, "Specials");
     }
 
+    if (loader_revocation_count_text)
+        fprintf(stdout, "\n      Loader rev count: %d",cd.loader_rev_count);
+    
+    if (app_revocation_count_text)
+        fprintf(stdout, "\n Application rev count: %d",cd.app_rev_count);
+
     fprintf(stdout, "%s\n", "\n");
 
 
@@ -1218,17 +1295,20 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + i, 2, serialised + i, 256)))
                 {
                     printf("i2c_write returned %d for 8 bytes at offset %d\n", ret, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + i);
+                    printf("Failure: EEPROM characterisation failed\n");
                     goto cleanup;
                 }
 
                 udelay(5000);
             }
+            printf("Success: EEPROM characterisation done\n");
+            ret = 0;
         }
     }
     else if (0 == strcmp(argv[1],"FUSE"))
     {
         if ( 0 == (ret = user_input(prompt_to_user, "FUSE")) )
-            characterise_fuses(&cd);
+            ret = characterise_fuses(&cd); 
     }
     else
     {
@@ -1242,7 +1322,7 @@ cleanup:
 
 
 U_BOOT_CMD(
-        characterise_hw, 18, 0, do_characterise,
+        characterise_hw, 20, 0, do_characterise,
         "Hw characterisation command to characterise board in eeprom/fuses",
         "<characterise_hw> <args>"
         );

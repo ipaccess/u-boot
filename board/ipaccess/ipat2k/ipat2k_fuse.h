@@ -3,6 +3,7 @@
 
 
 #include "efuse.h"
+#define MAX_REVOCATION_COUNT_VALUE 64
 
 #define INTEL_DEFINED_EFUSE_INSTANCE            0
 #define READ_ONCE_PER_BOOT_EFUSE_INSTANCE       1
