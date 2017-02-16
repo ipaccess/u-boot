@@ -4,13 +4,12 @@
 #include <asm/io.h>
 #include "ipat2k_fuse.h"
 
-#define MAX_REVOCATION_COUNT_VALUE 64
 
 uint8_t ipat2k_fuse_read_loader_revocation()
 {
     uint8_t buff[16], bit, i;
     unsigned int rc = MAX_REVOCATION_COUNT_VALUE;
-    uint8_t mask;
+    uint8_t mask=0x80;
 
     memset(buff,0,16);
 
@@ -18,28 +17,24 @@ uint8_t ipat2k_fuse_read_loader_revocation()
 
     for (i=0 ; i < 8;i++)
     {
-        mask=0x80;
         for (bit = 0;bit < 8 ;bit++)
         {
-            mask = mask >> bit;
-            if (buff[i] & mask)
+            if (buff[i] & (mask >> bit))
             {
-                break;
+                return rc;
             }
             --rc;
         }
 
     }
-
-
-    return rc;
+    return 0;
 }
 
 uint8_t ipat2k_fuse_read_application_revocation()
 {
     uint8_t buff[16], bit, i;
     unsigned int rc = MAX_REVOCATION_COUNT_VALUE;
-    uint8_t mask;
+    uint8_t mask=0x80;
 
     memset(buff,0,16);
 
@@ -47,20 +42,48 @@ uint8_t ipat2k_fuse_read_application_revocation()
 
     for (i=8 ; i < 16;i++)
     {
-        mask=0x80;
         for (bit = 0;bit < 8 ;bit++)
         {
-            mask = mask >> bit;
-            if (buff[i] & mask)
+            if (buff[i] & (mask >> bit))
             {
-                break;
+                return rc;
             }
             --rc;
         }
 
     }
 
-    return rc;
+    return 0;
+}
+
+
+void ipat2k_fuse_write_revocation_counts(uint8_t loader_rev_count,uint8_t app_rev_count)
+{
+
+    uint8_t buff[16],byte_index=0,bit_pos=0;
+    memset(buff,0,16);
+
+    if (loader_rev_count)
+    {
+        if (loader_rev_count > MAX_REVOCATION_COUNT_VALUE)
+            loader_rev_count=MAX_REVOCATION_COUNT_VALUE;
+        byte_index = 7 - (loader_rev_count-1)/8;
+        bit_pos= (loader_rev_count-1)%8;
+        buff[byte_index] = 1 << bit_pos;
+    }
+
+    if (app_rev_count)
+    {
+        if (app_rev_count > MAX_REVOCATION_COUNT_VALUE)
+            app_rev_count=MAX_REVOCATION_COUNT_VALUE;
+        byte_index = 15 - (app_rev_count-1)/8;
+        bit_pos= (app_rev_count-1)%8;
+        buff[byte_index] = 1 << bit_pos;
+    }
+
+    if (loader_rev_count || app_rev_count)
+        efuse_write_instance(REVOCATION_COUNT_EFUSE_INSTANCE,buff);
+
 }
 
 uint8_t ipat2k_is_secure_boot()
