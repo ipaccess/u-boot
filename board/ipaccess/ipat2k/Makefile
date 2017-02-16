@@ -15,5 +15,4 @@ obj-y += led.o
 obj-y        += secboot.o
 obj-y        += ipat2k_fuse.o  efuse.o i2c_flash.o
 obj-$(CONFIG_CHARACTERISATION_IPAT2K) += characterisation.o damm.o
-
-
+obj-$(CONFIG_FIT_REVOCATION) += revocation.o
