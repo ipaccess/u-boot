@@ -167,8 +167,8 @@
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
 	" icc_heap_size=132M icc_part_size=320M icc_amp_heap_size=2M ddr_limit=2G"              \
 	" ddr_heap_size=256M ddrcb_heap_size=64M cram_offset=0x26000 noswap nopcie"             \
-	" reth_on=1 ethpoll=1000"								
-
+	" reth_on=1 ethpoll=1000 pcb_assembly_issue=${board_pcb_assembly_issue}"                \
+        " board_variant_part=${board_variant_part}"
 #define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS  " console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"
 #define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS " console=tty0 " "quiet"
 
