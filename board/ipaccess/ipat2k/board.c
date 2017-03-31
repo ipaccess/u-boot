@@ -388,6 +388,10 @@ static void gpio_init(void)
 
 	// HW tracing enable
 	REG32(BOOTSTRAP_OVERRIDE_REG) |= 0x18;
+        /*Changing the default value of MISC PIN REGISTER
+          This will disable default settings for USIM and
+          enable use to use GPIO 12 and 13*/
+        REG32(MISC_PIN_SELECT_REG)&=1;
 }
 
 static void flash__init (void)
