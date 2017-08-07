@@ -364,6 +364,39 @@ static void serdes_init(void)
 	REG32(RAD_CFG_BASEADDR + 0x220) = 0xF;
 }
 
+#if defined(CONFIG_HW_WATCHDOG)
+static bool hw_watchdog_init_done;
+static int  hw_watchdog_trigger_level;
+
+void hw_watchdog_reset(void)
+{
+	if (!hw_watchdog_init_done)
+		return;
+
+	hw_watchdog_trigger_level = hw_watchdog_trigger_level ? 0 : 1;
+	if (hw_watchdog_trigger_level)
+	{
+		REG32(GPIO_OUTPUT_REG) |= GPIO_24;
+		//REG32(GPIO_OUTPUT_REG) &= ~GPIO_9;
+	}
+	else
+	{
+		REG32(GPIO_OUTPUT_REG) &= ~GPIO_24;
+		//REG32(GPIO_OUTPUT_REG) |= GPIO_9;
+	}
+}
+
+#define GPIO_MUX(x) (1 << ((x-16) * 2))
+void hw_watchdog_init(void)
+{
+	REG32(GPIO_31_16_PIN_SELECT_REG) |= GPIO_MUX(24);
+	REG32(GPIO_OE_REG) |= GPIO_24;
+	//REG32(GPIO_OE_REG) |= GPIO_9;/*Service LED GREEN*/
+	hw_watchdog_reset();
+	hw_watchdog_init_done = 1;
+}
+#endif /* defined(CONFIG_HW_WATCHDOG) */
+
 /*
  * Route UART0, I2C and NAND through gpio pins
  * Power off HBI, bootstrap
@@ -371,6 +404,7 @@ static void serdes_init(void)
 static void gpio_init(void)
 {
 //	REG32(GPIO_PIN_SELECT_REG1) |= I2C_SDA | I2C_SCL;
+        hw_watchdog_init();
 	REG32(GPIO_PIN_SELECT_REG1) &= ~(GPIO_MUX_I2C_SCL | GPIO_MUX_I2C_SDA);	// make sure GPIO function is not selected for I2C SCL\SDA pins
 	REG32(AXI_RESET_1) &=  ~(1 << 5);
 	REG32(GPIO_PIN_SELECT_REG1) |= EXP_RDY_BSY;
