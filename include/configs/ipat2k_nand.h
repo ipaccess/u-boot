@@ -156,6 +156,7 @@
 #define CONFIG_CMD_LIE
 #define CONFIG_CMD_LEDSET
 #define CONFIG_CMD_LEDC
+#define CONFIG_HW_WATCHDOG
 
 
 #define CONFIG_ETHPRIME		"gemac1"
