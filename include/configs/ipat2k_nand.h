@@ -156,7 +156,8 @@
 #define CONFIG_CMD_LIE
 #define CONFIG_CMD_LEDSET
 #define CONFIG_CMD_LEDC
-#define CONFIG_HW_WATCHDOG
+//Keeping watchdog disabled for now, as the u-boot revision where this was added was never pulled in to yocto build.
+//#define CONFIG_HW_WATCHDOG
 
 
 #define CONFIG_ETHPRIME		"gemac1"

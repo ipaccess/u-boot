@@ -117,6 +117,7 @@ struct characterisation_data_t
     uint8_t boot_license_disabled;
     uint8_t app_rev_count;
     uint8_t loader_rev_count;
+    uint64_t parent_serial;
 };
 
 struct characterisation_data_t cdo;
@@ -156,6 +157,12 @@ void serialise_characterisation_info_eeprom(const struct characterisation_data_t
     payload[22] = (((cd->serial & 0x00FF0000) >> 16) & 0xFF);
     payload[23] = (((cd->serial & 0x0000FF00) >>  8) & 0xFF);
     payload[24] = (((cd->serial & 0x000000FF) >>  0) & 0xFF);
+    payload[25] = (((cd->parent_serial & 0x300000000) >> 32) & 0xFF);
+    payload[26] = (((cd->parent_serial & 0xFF000000) >> 24) & 0xFF);
+    payload[27] = (((cd->parent_serial & 0x00FF0000) >> 16) & 0xFF);
+    payload[28] = (((cd->parent_serial & 0x0000FF00) >>  8) & 0xFF);
+    payload[29] = (((cd->parent_serial & 0x000000FF) >>  0) & 0xFF);
+
 
     if (cd->production_mode)
         payload[239] = 0x80;
@@ -309,6 +316,11 @@ void deserialise_characterisation_info_eeprom(const uint8_t payload[CONFIG_CHARA
         ((((uint64_t)(payload[23])) <<  8) & 0x0000FF00) |
         ((((uint64_t)(payload[24])) <<  0) & 0x000000FF);
 
+    cd->parent_serial = ((((uint64_t)(payload[25])) << 32) & 0x300000000) |
+        ((((uint64_t)(payload[26])) << 24) & 0xFF000000) |
+        ((((uint64_t)(payload[27])) << 16) & 0x00FF0000) |
+        ((((uint64_t)(payload[28])) <<  8) & 0x0000FF00) |
+        ((((uint64_t)(payload[29])) <<  0) & 0x000000FF);
 
     if ( (payload[239] & BOARD_RSM_MASK_EEPROM) == 0x80)
         cd->production_mode = 1;
@@ -435,6 +447,21 @@ static void update_rsm_from_tz(struct characterisation_data_t * cdo)
 
 }
 
+static void read_parent_serial_from_eeprom(uint64_t *parent_serial)
+{
+
+    uint8_t payload[5];
+    if (0 == i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 25, 2,payload,5))	
+    {
+        *parent_serial = ((((uint64_t)(payload[0])) << 32) & 0x300000000) |
+        ((((uint64_t)(payload[1])) << 24) & 0xFF000000) |
+        ((((uint64_t)(payload[2])) << 16) & 0x00FF0000) |
+        ((((uint64_t)(payload[3])) <<  8) & 0x0000FF00) |
+        ((((uint64_t)(payload[4])) <<  0) & 0x000000FF);
+    }
+
+}
+
 int characterisation_init(void)
 {
     int ret;
@@ -444,7 +471,8 @@ int characterisation_init(void)
     if (ipat2k_is_board_fused())
     {
         read_characterisation_from_fuses(&cdo);
-
+        read_parent_serial_from_eeprom(&cdo.parent_serial);
+	
     }
     else
     {
@@ -469,6 +497,7 @@ int characterisation_init(void)
 
         deserialise_characterisation_info_eeprom(serialised_characterisation_data, &cdo);
     }
+
 
     /*Boot license: update RSM via TZ call*/
     update_rsm_from_tz(&cdo);
@@ -541,6 +570,9 @@ void print_characterisation(void)
             printf("Specials\n");
 
         printf("Fused: %s\n", (ipat2k_is_board_fused() ? "Yes" : "No"));
+        if (cdo.parent_serial)
+            printf("Parent EID:   %02X%02X%02X-%010llu\n", cdo.oui[0], cdo.oui[1], cdo.oui[2], cdo.parent_serial);
+	
     }
     else
     {
@@ -1054,26 +1086,29 @@ static int usage(const char * progname, int ret)
 {
     fprintf((ret ? stderr : stdout), "Usage: %s EEPROM -o OUI -s SERIAL_NUMBER -0 ETH0ADDR -1 ETH1ADDR -t TYPE -p PCB_ASSEMBLY_ISSUE\n", progname);
     fprintf((ret ? stderr : stdout), "Usage: %s FUSE -o OUI -s SERIAL_NUMBER -0 ETH0ADDR -1 ETH1ADDR -t TYPE -p PCB_ASSEMBLY_ISSUE\n", progname);
-    fprintf((ret ? stderr : stdout), "       -o OUI               : Specify the OUI (part of the EID) of this board.\n");
-    fprintf((ret ? stderr : stdout), "                              This is specified as three hexadecimal octets.\n");
-    fprintf((ret ? stderr : stdout), "       -s SERIAL_NUMBER     : Specify the serial number (part of the EID, with DAMM digit) of this board.\n");
-    fprintf((ret ? stderr : stdout), "                              This is specified as a 10 digit decimal number made up of the 9\n");
-    fprintf((ret ? stderr : stdout), "                              serial number digits and 1 DAMM check digit.\n");
-    fprintf((ret ? stderr : stdout), "       -0 ETH0ADDR          : Specify the first Ethernet MAC address.\n");
-    fprintf((ret ? stderr : stdout), "                              An Ethernet address is specified as six colon separated hexadecimal octets.\n");
-    fprintf((ret ? stderr : stdout), "                              Octets are left padded to two digits with zeroes.\n");
-    fprintf((ret ? stderr : stdout), "                              For example: CA:FE:BA:BE:B0:0C.\n");
-    fprintf((ret ? stderr : stdout), "       -1 ETH1ADDR          : Specify the second Ethernet MAC address.\n");
-    fprintf((ret ? stderr : stdout), "       -t TYPE              : Specify the board type as a 16 bit decimal value (0x0000-0xFFFF).\n");
-    fprintf((ret ? stderr : stdout), "                              The TYPE argument must correspond to a known board hardware type and oscillator value.\n");
-    fprintf((ret ? stderr : stdout), "                              Unused bits must be set to 0.\n");
-    fprintf((ret ? stderr : stdout), "       -p PCB_ASSEMBLY_ISSUE: Specify the PCB assembly issue as a 16 bit decimal value (0x0000-0xFFFF).\n");
-    fprintf((ret ? stderr : stdout), "       -m MODE              : Specify the board mode (p, t, d, s) = (production, test, development, specials).\n");
-    fprintf((ret ? stderr : stdout), "       -a APP_REV_COUNT     : Specify application revocation count as hexadecimal number (0x00-0x40) \n");
-    fprintf((ret ? stderr : stdout), "       -l LOADER_REV_COUNT  : Specify loader revocation count hexadecimal value(0x00-0x40)\n");
-    fprintf((ret ? stderr : stdout), "       -f                   : Force acceptance of a serial number that fails the DAMM algorithm check.\n");
-    fprintf((ret ? stderr : stdout), "       -no-prompt           : Do not prompt user for input before blowing the fuses (must be used when fuse blowing is done via scripts).\n");
-    fprintf((ret ? stderr : stdout), "       -dis-boot-license    : Disables boot license feature for this board\n");
+    fprintf((ret ? stderr : stdout), "       -o OUI                 : Specify the OUI (part of the EID) of this board.\n");
+    fprintf((ret ? stderr : stdout), "                                This is specified as three hexadecimal octets.\n");
+    fprintf((ret ? stderr : stdout), "       -s SERIAL_NUMBER       : Specify the serial number (part of the EID, with DAMM digit) of this board.\n");
+    fprintf((ret ? stderr : stdout), "                                This is specified as a 10 digit decimal number made up of the 9\n");
+    fprintf((ret ? stderr : stdout), "                                serial number digits and 1 DAMM check digit.\n");
+    fprintf((ret ? stderr : stdout), "       -0 ETH0ADDR            : Specify the first Ethernet MAC address.\n");
+    fprintf((ret ? stderr : stdout), "                                An Ethernet address is specified as six colon separated hexadecimal octets.\n");
+    fprintf((ret ? stderr : stdout), "                                Octets are left padded to two digits with zeroes.\n");
+    fprintf((ret ? stderr : stdout), "                                For example: CA:FE:BA:BE:B0:0C.\n");
+    fprintf((ret ? stderr : stdout), "       -1 ETH1ADDR            : Specify the second Ethernet MAC address.\n");
+    fprintf((ret ? stderr : stdout), "       -t TYPE                : Specify the board type as a 16 bit decimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "                                The TYPE argument must correspond to a known board hardware type and oscillator value.\n");
+    fprintf((ret ? stderr : stdout), "                                Unused bits must be set to 0.\n");
+    fprintf((ret ? stderr : stdout), "       -p PCB_ASSEMBLY_ISSUE  : Specify the PCB assembly issue as a 16 bit decimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "       -m MODE                : Specify the board mode (p, t, d, s) = (production, test, development, specials).\n");
+    fprintf((ret ? stderr : stdout), "       -a APP_REV_COUNT       : Specify application revocation count as hexadecimal number (0x00-0x40) \n");
+    fprintf((ret ? stderr : stdout), "       -l LOADER_REV_COUNT    : Specify loader revocation count hexadecimal value(0x00-0x40)\n");
+    fprintf((ret ? stderr : stdout), "       -f                     : Force acceptance of a serial number that fails the DAMM algorithm check.\n");
+    fprintf((ret ? stderr : stdout), "       -no-prompt             : Do not prompt user for input before blowing the fuses (must be used when fuse blowing is done via scripts).\n");
+    fprintf((ret ? stderr : stdout), "       -dis-boot-license      : Disables boot license feature for this board\n");
+    fprintf((ret ? stderr : stdout), "       -S PARENT_SERIAL_NUMBER: Optional(EEPROM only): Specify the serial number (part of the EID, with DAMM digit) of it's parent assembly.\n");
+    fprintf((ret ? stderr : stdout), "                                This is specified as a 10 digit decimal number made up of the 9\n");
+    fprintf((ret ? stderr : stdout), "                                serial number digits and 1 DAMM check digit.\n");
     fprintf((ret ? stderr : stdout), "\n");
     fprintf((ret ? stderr : stdout), "       This utility is only supposed to work on blank boards.\n");
     return ret;
@@ -1091,6 +1126,7 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     const char * pcb_assembly_issue_text;
     const char * app_revocation_count_text;
     const char * loader_revocation_count_text;
+    const char * parent_serial_text;
     int prod_mode;
     int test_mode;
     int dev_mode;
@@ -1103,6 +1139,7 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     ret = 1;
     i = 0;
     oui_text = serial_text = eth0addr_text = eth1addr_text = type_text = pcb_assembly_issue_text = app_revocation_count_text = loader_revocation_count_text=NULL;
+    parent_serial_text=NULL;
     prod_mode = test_mode = dev_mode = specials_mode = 0;
     ignore_damm = 0;
     prompt_to_user = 1;
@@ -1203,6 +1240,10 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         {
             cd.boot_license_disabled = 1;
         }
+        else if (0 == strcmp(argv[i],"-S"))
+        {
+            parent_serial_text = argv[i+1];
+        }
 
         ++i;
     }
@@ -1232,7 +1273,8 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
     /*optional parameters: parse if passed*/
     if ( (loader_revocation_count_text && (0 != parse_revocation_count(loader_revocation_count_text, &cd.loader_rev_count ))) ||
-         (app_revocation_count_text && (0 != parse_revocation_count(app_revocation_count_text, &cd.app_rev_count ))) 
+         (app_revocation_count_text && (0 != parse_revocation_count(app_revocation_count_text, &cd.app_rev_count ))) ||
+         (parent_serial_text && (0 != parse_serial_number(parent_serial_text, &cd.parent_serial, ignore_damm))) 
         )
     {
         ret = usage(argv[0], 1);
@@ -1271,14 +1313,17 @@ int do_characterise(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     {
         fprintf(stdout, "Specials");
     }
+    fprintf(stdout, "\n");
 
     if (loader_revocation_count_text)
-        fprintf(stdout, "\n      Loader rev count: %d",cd.loader_rev_count);
+        fprintf(stdout, "      Loader rev count: %d\n",cd.loader_rev_count);
     
     if (app_revocation_count_text)
-        fprintf(stdout, "\n Application rev count: %d",cd.app_rev_count);
+        fprintf(stdout, " Application rev count: %d\n",cd.app_rev_count);
 
-    fprintf(stdout, "%s\n", "\n");
+    if(cd.parent_serial)
+        fprintf(stdout, "            Parent EID: %02X%02X%02X-%010llu\n", cd.oui[0], cd.oui[1], cd.oui[2], cd.parent_serial);
+
 
 
     if (0 == strcmp(argv[1],"EEPROM"))
@@ -1322,7 +1367,7 @@ cleanup:
 
 
 U_BOOT_CMD(
-        characterise_hw, 20, 0, do_characterise,
+        characterise_hw, 21, 0, do_characterise,
         "Hw characterisation command to characterise board in eeprom/fuses",
         "<characterise_hw> <args>"
         );

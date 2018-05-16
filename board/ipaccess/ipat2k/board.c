@@ -404,7 +404,9 @@ void hw_watchdog_init(void)
 static void gpio_init(void)
 {
 //	REG32(GPIO_PIN_SELECT_REG1) |= I2C_SDA | I2C_SCL;
+#if defined(CONFIG_HW_WATCHDOG)
         hw_watchdog_init();
+#endif /* defined(CONFIG_HW_WATCHDOG) */
 	REG32(GPIO_PIN_SELECT_REG1) &= ~(GPIO_MUX_I2C_SCL | GPIO_MUX_I2C_SDA);	// make sure GPIO function is not selected for I2C SCL\SDA pins
 	REG32(AXI_RESET_1) &=  ~(1 << 5);
 	REG32(GPIO_PIN_SELECT_REG1) |= EXP_RDY_BSY;
