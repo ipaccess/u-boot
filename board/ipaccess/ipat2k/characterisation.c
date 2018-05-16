@@ -934,7 +934,7 @@ static int parse_revocation_count(const char * revocation_count_text, uint8_t *r
     }
 	
     *revocation_count = (uint8_t)(v & 0xFF);
-
+    return 0;
 }
 
 static int user_input( int prompt_to_user, const char *type)
