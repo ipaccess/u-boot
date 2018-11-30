@@ -38,7 +38,7 @@ typedef struct variant_record_s {
 
 
 
-
+static int do_hwchar_i2c_read(void);
 
 static const variant_record variant_lookup[] = {
     { "0000", "000", "0",   0, '0' }, /* Bands: N/A              - Notes: N/A                                                             */
@@ -73,7 +73,10 @@ static const variant_record variant_lookup[] = {
     { "438T", "438", "T", 438, 'T' }, /* Bands: 40               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence)         */
     { "437U", "437", "U", 437, 'U' }, /* Bands: 41               - Notes: S60 single band TDD HW, T2K 2130 + ADI radio                    */
     { "438U", "438", "U", 438, 'U' }, /* Bands: 41               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence          */
-    { "470Z", "470", "Z", 470, 'Z' }, /* Bands: 41               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence          */
+    { "470Z", "470", "Z", 470, 'Z' }, /* Bands: 1-48             - Notes: S60 unbanded FDD and TDD                                        */
+    { "499_", "499", "_", 499, '_' }, /* Bands: No radio present - Notes: S60 Digital FDD and TDD                                         */
+    { "495X", "495", "X", 495, 'X' }, /* Band:  48               - Notes: based on S60 Digital and lvds band 48 radio for CBRS            */
+    { "495T", "495", "T", 495, 'T' }, /* Band:  40               - Notes: based on S60 Digital and lvds band 40 radio                     */
 };
 
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
@@ -121,8 +124,38 @@ struct characterisation_data_t
     uint8_t hwsw_compat;
 };
 
-struct characterisation_data_t cdo;
+struct radio_characterisation_data_t
+{
+    uint8_t version;
+    uint64_t serial; 
+    uint16_t variant;
+    uint16_t pcbai;
+};
 
+struct characterisation_data_t cdo;
+struct radio_characterisation_data_t radio_cdo;
+
+void serialise_radio_info_eeprom(const struct radio_characterisation_data_t *cd, uint8_t payload[CONFIG_CHARACTERISATION_IPA_RAD_SIZE])
+{
+    memset(payload, 0, CONFIG_CHARACTERISATION_IPA_RAD_SIZE);
+
+    strncpy((char *)payload,"IPACCESS",8);
+    
+    payload[8] = cd->version;
+
+    payload[9] = (((cd->serial & 0x300000000) >> 32) & 0xFF);
+    payload[10] = (((cd->serial & 0xFF000000) >> 24) & 0xFF);
+    payload[11] = (((cd->serial & 0x00FF0000) >> 16) & 0xFF);
+    payload[12] = (((cd->serial & 0x0000FF00) >>  8) & 0xFF);
+    payload[13] = (((cd->serial & 0x000000FF) >>  0) & 0xFF);
+
+    payload[14] = (((cd->variant & 0x3FF) >> 4) & 0x3F);
+    payload[15] = (((cd->variant & 0xF) << 4) & 0xF0); /* remaining four bits are reserved */
+
+    payload[16] = (((cd->pcbai & 0xFF00) >> 8) & 0xFF);
+    payload[17] = (cd->pcbai & 0xFF);
+
+}
 
 void serialise_characterisation_info_eeprom(const struct characterisation_data_t * cd, uint8_t payload[CONFIG_CHARACTERISATION_IPAT2K_SIZE])
 {
@@ -275,8 +308,79 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
 
 }
 
-void deserialise_characterisation_info_eeprom(const uint8_t payload[CONFIG_CHARACTERISATION_IPAT2K_SIZE], struct characterisation_data_t * cd)
+#define I2C_RAD_EEPROM_READ(payload) i2c_read(CONFIG_CHARACTERISATION_RAD_EEPROM_ADDR, \
+                            CONFIG_CHARACTERISATION_IPA_RAD_OFFSET, 2,            \
+                            payload,                                                   \
+                            CONFIG_CHARACTERISATION_IPA_RAD_SIZE)
+
+int deserialise_radio_info_eeprom( struct radio_characterisation_data_t * cd)
 {
+
+    uint8_t payload[CONFIG_CHARACTERISATION_IPA_RAD_SIZE];
+    memset(cd,0,sizeof(struct radio_characterisation_data_t));
+    memset(payload,0,CONFIG_CHARACTERISATION_IPA_RAD_SIZE);
+
+    if (0 != I2C_RAD_EEPROM_READ(payload)) 
+    {
+        udelay(250);
+        if (0 != I2C_RAD_EEPROM_READ(payload))
+        {
+            return -1;
+        }
+
+    }
+
+    if ( 0 == strncmp((char *)payload,"IPACCESS",8) ) 
+    {
+        cd->version=payload[8];
+        cd->serial = ((((uint64_t)(payload[9])) << 32) & 0x300000000) |
+        ((((uint64_t)(payload[10])) << 24) & 0xFF000000) |
+        ((((uint64_t)(payload[11])) << 16) & 0x00FF0000) |
+        ((((uint64_t)(payload[12])) <<  8) & 0x0000FF00) |
+        ((((uint64_t)(payload[13])) <<  0) & 0x000000FF);
+
+
+        cd->variant = payload[14] & 0x3F;
+        cd->variant <<= 4;
+        cd->variant |= (((payload[15] & 0xF0) >> 4) & 0xF);
+
+
+        cd->pcbai = payload[16];
+        cd->pcbai <<= 8;
+        cd->pcbai |= payload[17];
+    }   
+    
+    return 0;
+
+}
+
+int deserialise_characterisation_info_eeprom(struct characterisation_data_t * cd)
+{
+
+    uint8_t *payload;
+    int ret=0;
+
+    if (0 != (ret = do_hwchar_i2c_read())) {
+        udelay(250);
+        if (0 != (ret = do_hwchar_i2c_read())) {
+            udelay(250);
+            if (0 != (ret = do_hwchar_i2c_read())) {
+                udelay(250);
+                if (0 != (ret = do_hwchar_i2c_read())) {
+                    udelay(250);
+                    do_hwchar_i2c_read();
+                }
+            }
+        }
+    }
+
+    if (ret != 0) {
+        puts("Error loading characterisation information\n");
+        return -1;
+    }
+
+    payload = serialised_characterisation_data;
+ 
     cd->version = payload[0];
 
     cd->production_mode = 0;
@@ -333,6 +437,8 @@ void deserialise_characterisation_info_eeprom(const uint8_t payload[CONFIG_CHARA
         cd->test_mode = 1;
     else 
         cd->specials_mode = 1;
+
+    return 0;
 
 }
 
@@ -448,17 +554,22 @@ static void update_rsm_from_tz(struct characterisation_data_t * cdo)
 
 }
 
-static void read_parent_serial_from_eeprom(uint64_t *parent_serial)
+static void override_characterisation_from_eeprom(struct characterisation_data_t *cdo)
 {
 
-    uint8_t payload[5];
-    if (0 == i2c_read(CONFIG_CHARACTERISATION_EEPROM_ADDR,CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 25, 2,payload,5))	
+    struct characterisation_data_t eeprom_cdo;
+    const variant_record * hw_variant;
+    if ( cdo && (0 == deserialise_characterisation_info_eeprom(&eeprom_cdo)))
     {
-        *parent_serial = ((((uint64_t)(payload[0])) << 32) & 0x300000000) |
-        ((((uint64_t)(payload[1])) << 24) & 0xFF000000) |
-        ((((uint64_t)(payload[2])) << 16) & 0x00FF0000) |
-        ((((uint64_t)(payload[3])) <<  8) & 0x0000FF00) |
-        ((((uint64_t)(payload[4])) <<  0) & 0x000000FF);
+
+        cdo->parent_serial = eeprom_cdo.parent_serial; 
+        /*check if fuses returned 499 (S60D) hw variant, override it with eeprom variant data if it's valid*/
+        if ((hw_variant == lookup_variant(cdo->variant)) && (hw_variant->part_num == 499) && lookup_variant(eeprom_cdo.variant))
+        {
+            /*Override variant from eeprom characterisation*/
+            cdo->variant = eeprom_cdo.variant;
+        }
+
     }
 
 }
@@ -472,31 +583,14 @@ int characterisation_init(void)
     if (ipat2k_is_board_fused())
     {
         read_characterisation_from_fuses(&cdo);
-        read_parent_serial_from_eeprom(&cdo.parent_serial);
-	
+        override_characterisation_from_eeprom(&cdo);
+
     }
     else
     {
-        if (0 != (ret = do_hwchar_i2c_read())) {
-            udelay(250);
-            if (0 != (ret = do_hwchar_i2c_read())) {
-                udelay(250);
-                if (0 != (ret = do_hwchar_i2c_read())) {
-                    udelay(250);
-                    if (0 != (ret = do_hwchar_i2c_read())) {
-                        udelay(250);
-                        do_hwchar_i2c_read();
-                    }
-                }
-            }
-        }
 
-        if (ret != 0) {
-            puts("Error loading characterisation information\n");
+        if (0 != deserialise_characterisation_info_eeprom(&cdo))
             return 0;
-        }
-
-        deserialise_characterisation_info_eeprom(serialised_characterisation_data, &cdo);
     }
 
 
@@ -509,6 +603,9 @@ int characterisation_init(void)
         puts("Error locating hardware variant\n");
         return 0;
     }
+
+    if ( hw_variant->part_num == 495 )
+       deserialise_radio_info_eeprom(&radio_cdo);
 
     if (memcmp(cdo.eth0addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth0addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
     {
@@ -573,6 +670,23 @@ void print_characterisation(void)
         printf("Fused: %s\n", (ipat2k_is_board_fused() ? "Yes" : "No"));
         if (cdo.parent_serial)
             printf("Parent EID:   %02X%02X%02X-%010llu\n", cdo.oui[0], cdo.oui[1], cdo.oui[2], cdo.parent_serial);
+
+        /*Print radio board info if available*/
+        if (radio_cdo.serial)
+        {
+            printf("Radio Serial Number:   %02X%02X%02X-%010llu\n", cdo.oui[0], cdo.oui[1], cdo.oui[2], radio_cdo.serial);
+            printf("Radio Board: %s-", lookup_variant(radio_cdo.variant)->full);
+            pcbai0 = (radio_cdo.pcbai & 0xFF00) >> 8;
+            pcbai1 = radio_cdo.pcbai & 0xFF;
+
+            if (pcbai0 >= 0x41 && pcbai0 <= 0x7a)
+                printf("%c", pcbai0);
+
+            if (pcbai1 >= 0x41 && pcbai1 <= 0x7a)
+               printf("%c", pcbai1);
+            printf("\n");
+
+        }
 	
     }
     else
@@ -1425,12 +1539,142 @@ cleanup:
 }
 
 
+static int usage_rad(const char * progname, int ret)
+{
+    fprintf((ret ? stderr : stdout), "Usage: %s -s SERIAL_NUMBER -t TYPE -s RAD_SERIAL_NUMBER -p PCB_ASSEMBLY_ISSUE\n", progname);
+    fprintf((ret ? stderr : stdout), "       -s SERIAL_NUMBER       : Specify the radio serial number (part of the EID, with DAMM digit) of parent assembly.\n");
+    fprintf((ret ? stderr : stdout), "                                        This is specified as a 10 digit decimal number made up of the 9\n");
+    fprintf((ret ? stderr : stdout), "                                        serial number digits and 1 DAMM check digit.\n");
+    fprintf((ret ? stderr : stdout), "       -t TYPE                : Specify the radio board type as a 16 bit decimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "                                        The TYPE argument must correspond to a known board hardware type\n");
+    fprintf((ret ? stderr : stdout), "                                        Unused bits must be set to 0.\n");
+    fprintf((ret ? stderr : stdout), "       -p PCB_ASSEMBLY_ISSUE  : (Optional) Specify the PCB assembly issue of the radio board as a 16 bit decimal value (0x0000-0xFFFF).\n");
+    fprintf((ret ? stderr : stdout), "       -f                     : (Optional) Force acceptance of a serial number that fails the DAMM algorithm check.\n");
+    fprintf((ret ? stderr : stdout), "       -no-prompt             : (Optional) Do not prompt user for input before blowing the fuses (must be used when fuse blowing is done via scripts).\n");
+    fprintf((ret ? stderr : stdout), "\n");
+    fprintf((ret ? stderr : stdout), "       This utility is only supposed to characterise ipaccess radio boards attached to S60D.\n");
+    return ret;
+}
+
+int do_characterise_radio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+    int ret;
+    int i;
+    const char * serial_text;
+    const char * type_text;
+    const char * pcbai_text;
+    int ignore_damm;
+    int prompt_to_user;
+    struct radio_characterisation_data_t cd;
+    uint8_t serialised[CONFIG_CHARACTERISATION_IPA_RAD_SIZE];
+    uint8_t discard;
+
+    ret = 1;
+    i = 0;
+    serial_text = type_text = pcbai_text =NULL;
+    ignore_damm = 0;
+    prompt_to_user = 1;
+    memset(&cd, 0, sizeof(cd));
+    memset(serialised, 0, CONFIG_CHARACTERISATION_IPA_RAD_SIZE);
+
+    while(i < argc)
+    {
+        if (strcmp(argv[i],"-f") && strcmp(argv[i],"-no-prompt"))
+        {
+            if ( argc < (i+1) )
+            {
+                /*check for Array overrun in all other options*/
+                ret = usage_rad(argv[0], 1);
+                goto cleanup;
+            }
+
+        }
+
+        if (0 == strcmp(argv[i],"-s"))
+        {
+            serial_text = argv[i+1];
+        }
+        else if (0 == strcmp(argv[i],"-t"))
+        {
+            type_text = argv[i+1];
+        }
+        else if (0 == strcmp(argv[i],"-p"))
+        {
+            pcbai_text = argv[i+1];
+        }
+        else if (0 == strcmp(argv[i],"-f"))
+        {
+            ignore_damm = 1;
+        }
+        else if (0 == strcmp(argv[i],"-no-prompt"))
+        {
+            prompt_to_user = 0;
+        }
+
+        ++i;
+    }
+
+    if (!serial_text || !type_text)
+    {
+        ret = usage_rad(argv[0], 1);
+        goto cleanup;
+    }
+
+    /*All mandatory parameters for all radio board characterisation*/
+    if (0 != parse_serial_number(serial_text, &cd.serial, ignore_damm) ||
+        0 != parse_board_type(type_text, &cd.variant, &discard)    ||
+        0 != parse_pcb_assembly_issue(pcbai_text, &cd.pcbai) ) 
+    {
+        ret = usage_rad(argv[0], 2);
+        goto cleanup;
+    }
+
+    fprintf(stdout, "%s\n", "Radio Characterisation");
+    fprintf(stdout, "%s\n", "=========================");
+    fprintf(stdout, "     Serial Number: %010llu\n",cd.serial);
+    fprintf(stdout, "  Hardware Variant: %s\n", lookup_variant(cd.variant)->full);
+    fprintf(stdout, "PCB Assembly Issue: %05u\n", cd.pcbai);
+
+    cd.version = CONFIG_CHARACTERISATION_IPA_RAD_VERSION;
+
+    if ( 0 == (ret = user_input(prompt_to_user, "EEPROM")) )
+    {
+
+        serialise_radio_info_eeprom(&cd, serialised);
+
+        for (i = 0; i < CONFIG_CHARACTERISATION_IPA_RAD_SIZE; i += 256)
+        {
+            if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_RAD_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPA_RAD_OFFSET + i, 2, serialised + i, 256)))
+            {
+                printf("i2c_write returned %d for 8 bytes at offset %d\n", ret, CONFIG_CHARACTERISATION_IPA_RAD_OFFSET + i);
+                printf("Failure: Radio EEPROM characterisation failed\n");
+                goto cleanup;
+            }
+
+            udelay(5000);
+        }
+    }
+    /*Do not change the text in following print, MTS expects this exact print*/
+    printf("Success: Radio EEPROM characterisation done\n");
+
+cleanup:
+    return ret;
+}
 
 U_BOOT_CMD(
         characterise_hw, 22, 0, do_characterise,
         "Hw characterisation command to characterise board in eeprom/fuses",
         "<characterise_hw> <args>"
         );
+
+U_BOOT_CMD(
+        characterise_radio_hw, 12, 0, do_characterise_radio,
+        "Hw characterisation command to characterise board in eeprom/fuses",
+        "<characterise_radio_hw> <args>"
+        );
+
+
+
 #endif
 
 int do_set_provisioning_req_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
