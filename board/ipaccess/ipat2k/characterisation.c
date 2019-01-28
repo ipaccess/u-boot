@@ -75,8 +75,10 @@ static const variant_record variant_lookup[] = {
     { "438U", "438", "U", 438, 'U' }, /* Bands: 41               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence          */
     { "470Z", "470", "Z", 470, 'Z' }, /* Bands: 1-48             - Notes: S60 unbanded FDD and TDD                                        */
     { "499_", "499", "_", 499, '_' }, /* Bands: No radio present - Notes: S60 Digital FDD and TDD                                         */
-    { "495X", "495", "X", 495, 'X' }, /* Band:  48               - Notes: based on S60 Digital and lvds band 48 radio for CBRS            */
-    { "495T", "495", "T", 495, 'T' }, /* Band:  40               - Notes: based on S60 Digital and lvds band 40 radio                     */
+    { "495X", "495", "X", 495, 'X' }, /* Band:  48               - Notes: S60 Digital lvds + band 48 FEM  aka E61                         */
+    { "495T", "495", "T", 495, 'T' }, /* Band:  40               - Notes: S60 Digital lvds + band 40 FEM                                */
+    { "496Y", "496", "Y", 496, 'Y' }, /* Band:  1 & 3            - Notes: S60 Digital lvds + band 1 & 3 FEM aka Aero                      */
+    { "492R", "492", "R", 492, 'R' }, /* Band:  2                - Notes: S60 Digital lvds + band 2 benetel aka R60                       */
 };
 
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
@@ -1541,7 +1543,7 @@ cleanup:
 
 static int usage_rad(const char * progname, int ret)
 {
-    fprintf((ret ? stderr : stdout), "Usage: %s -s SERIAL_NUMBER -t TYPE -s RAD_SERIAL_NUMBER -p PCB_ASSEMBLY_ISSUE\n", progname);
+    fprintf((ret ? stderr : stdout), "Usage: %s -s SERIAL_NUMBER -t TYPE -p PCB_ASSEMBLY_ISSUE\n", progname);
     fprintf((ret ? stderr : stdout), "       -s SERIAL_NUMBER       : Specify the radio serial number (part of the EID, with DAMM digit) of parent assembly.\n");
     fprintf((ret ? stderr : stdout), "                                        This is specified as a 10 digit decimal number made up of the 9\n");
     fprintf((ret ? stderr : stdout), "                                        serial number digits and 1 DAMM check digit.\n");
@@ -1642,9 +1644,9 @@ int do_characterise_radio(cmd_tbl_t *cmdtp, int flag, int argc, char * const arg
 
         serialise_radio_info_eeprom(&cd, serialised);
 
-        for (i = 0; i < CONFIG_CHARACTERISATION_IPA_RAD_SIZE; i += 256)
+        for (i = 0; i < CONFIG_CHARACTERISATION_IPA_RAD_SIZE; i += CONFIG_CHARACTERISATION_RAD_EEPROM_PSIZE)
         {
-            if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_RAD_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPA_RAD_OFFSET + i, 2, serialised + i, 256)))
+            if (0 != (ret = i2c_write(CONFIG_CHARACTERISATION_RAD_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPA_RAD_OFFSET + i, 2, serialised + i, CONFIG_CHARACTERISATION_RAD_EEPROM_PSIZE)))
             {
                 printf("i2c_write returned %d for 8 bytes at offset %d\n", ret, CONFIG_CHARACTERISATION_IPA_RAD_OFFSET + i);
                 printf("Failure: Radio EEPROM characterisation failed\n");
