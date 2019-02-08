@@ -566,7 +566,7 @@ static void override_characterisation_from_eeprom(struct characterisation_data_t
 
         cdo->parent_serial = eeprom_cdo.parent_serial; 
         /*check if fuses returned 499 (S60D) hw variant, override it with eeprom variant data if it's valid*/
-        if ((hw_variant == lookup_variant(cdo->variant)) && (hw_variant->part_num == 499) && lookup_variant(eeprom_cdo.variant))
+        if ((hw_variant = lookup_variant(cdo->variant)) && (hw_variant->part_num == 499) && lookup_variant(eeprom_cdo.variant))
         {
             /*Override variant from eeprom characterisation*/
             cdo->variant = eeprom_cdo.variant;
