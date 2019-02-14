@@ -124,6 +124,7 @@ struct characterisation_data_t
     uint8_t loader_rev_count;
     uint64_t parent_serial;
     uint8_t hwsw_compat;
+    uint16_t bb_variant;
 };
 
 struct radio_characterisation_data_t
@@ -606,8 +607,22 @@ int characterisation_init(void)
         return 0;
     }
 
-    if ( hw_variant->part_num == 495 )
-       deserialise_radio_info_eeprom(&radio_cdo);
+    switch (hw_variant->part_num)
+    {
+        case 495:
+        case 496:
+            deserialise_radio_info_eeprom(&radio_cdo);
+            /*index for 499_ in the variant table. it won't change*/
+            cdo.bb_variant = 33; 
+            break;
+        case 492:
+            cdo.bb_variant = 33;
+            break;
+        default:
+            /*single PCB products,baseband variant same as full product variant*/
+            cdo.bb_variant = cdo.variant;   
+            break;
+    }            
 
     if (memcmp(cdo.eth0addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth0addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
     {
@@ -617,6 +632,10 @@ int characterisation_init(void)
         setenv("board_variant_oscillator", lookup_oscillator(cdo.osc));
         sprintf(evar, "%u", cdo.pcbai);
         setenv("board_pcb_assembly_issue", evar);
+        setenv("bb_variant_part", lookup_variant(cdo.bb_variant)->part);
+        setenv("radio_variant_part", lookup_variant(radio_cdo.variant)->part);
+        sprintf(evar, "%u", radio_cdo.pcbai);
+        setenv("radio_pcbai", evar);
         set_ipat2k_ethernet_mac_addresses();
     }
 
