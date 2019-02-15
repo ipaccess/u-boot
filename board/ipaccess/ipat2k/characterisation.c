@@ -76,9 +76,10 @@ static const variant_record variant_lookup[] = {
     { "470Z", "470", "Z", 470, 'Z' }, /* Bands: 1-48             - Notes: S60 unbanded FDD and TDD                                        */
     { "499_", "499", "_", 499, '_' }, /* Bands: No radio present - Notes: S60 Digital FDD and TDD                                         */
     { "495X", "495", "X", 495, 'X' }, /* Band:  48               - Notes: S60 Digital lvds + band 48 FEM  aka E61                         */
-    { "495T", "495", "T", 495, 'T' }, /* Band:  40               - Notes: S60 Digital lvds + band 40 FEM                                */
+    { "495T", "495", "T", 495, 'T' }, /* Band:  40               - Notes: S60 Digital lvds + band 40 FEM                                  */
     { "496Y", "496", "Y", 496, 'Y' }, /* Band:  1 & 3            - Notes: S60 Digital lvds + band 1 & 3 FEM aka Aero                      */
     { "492R", "492", "R", 492, 'R' }, /* Band:  2                - Notes: S60 Digital lvds + band 2 benetel aka R60                       */
+    { "495Y", "495", "Y", 495, 'Y' }, /* Band:  1 & 3            - Notes: 495 Radio or S60 Digital lvds + band 1 & 3 fem E61              */
 };
 
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
