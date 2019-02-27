@@ -103,7 +103,20 @@ static const variant_record * lookup_variant(uint16_t hw_variant)
     return &variant_lookup[hw_variant];
 }
 
-
+static int get_variant_index(const char * full_variant )
+{
+    int ret = -1;
+    int i;
+    for ( i=1; i < num_variants; i++)
+    {
+        if (0 == strcmp(full_variant,variant_lookup[i].full))
+        {
+            ret = i;
+            break;
+        }
+    }
+    return ret;
+}
 
 
 struct characterisation_data_t
@@ -583,7 +596,7 @@ int characterisation_init(void)
     int ret;
     const variant_record * hw_variant;
     char evar[20];
-
+    const variant_record * rad_hw_variant;
     if (ipat2k_is_board_fused())
     {
         read_characterisation_from_fuses(&cdo);
@@ -625,6 +638,32 @@ int characterisation_init(void)
             break;
     }            
 
+    rad_hw_variant = lookup_variant(radio_cdo.variant);
+
+    /*if 499 baseband and radio present, check if baseband eeprom product variant needs to be modified*/
+    if ( (33 == cdo.bb_variant) && rad_hw_variant->part_num && (hw_variant->variant_char != rad_hw_variant->variant_char) )
+    {
+        char full_variant[5];
+        int index;
+        char payload[2];
+        printf("Detected band mismatch full product variant: %s radio card variant: %s\n",hw_variant->full,rad_hw_variant->full);
+        sprintf(full_variant,"%s%c",hw_variant->part,rad_hw_variant->variant_char);
+
+        if ( -1 != (index = get_variant_index(full_variant)))
+        {
+            cdo.variant = index;
+            /*re-init hw_variant*/
+            hw_variant = lookup_variant(cdo.variant);
+            payload[0] = (((cdo.osc & 0x3) << 6) & 0xC0) | (((cdo.variant & 0x3FF) >> 4) & 0x3F);
+            payload[1] = (((cdo.variant & 0xF) << 4) & 0xF0); /* remaining four bits are reserved */
+
+            if (0 != i2c_write(CONFIG_CHARACTERISATION_EEPROM_ADDR, CONFIG_CHARACTERISATION_IPAT2K_OFFSET + 13, 2,payload, 2))
+                printf("Recharacterising full product variant to %s failed\n",hw_variant->full); 
+            else
+                printf("Product variant recharacterised to %s in bb eeprom\n",hw_variant->full);
+        } 
+    }
+
     if (memcmp(cdo.eth0addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth0addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
     {
         setenv("board_variant_full", hw_variant->full);
@@ -634,7 +673,7 @@ int characterisation_init(void)
         sprintf(evar, "%u", cdo.pcbai);
         setenv("board_pcb_assembly_issue", evar);
         setenv("bb_variant_part", lookup_variant(cdo.bb_variant)->part);
-        setenv("radio_variant_part", lookup_variant(radio_cdo.variant)->part);
+        setenv("radio_variant_part", rad_hw_variant->part);
         sprintf(evar, "%u", radio_cdo.pcbai);
         setenv("radio_pcbai", evar);
         set_ipat2k_ethernet_mac_addresses();
