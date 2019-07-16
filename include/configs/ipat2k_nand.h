@@ -75,17 +75,19 @@
 
 #define MTD_PARTITION_DEFAULT	"nand0,0"
 #define MTDIDS_DEFAULT		"nand0=gen_nand"
-#define MTDPARTS_DEFAULT		\
-	"mtdparts=gen_nand:"		\
-	"1024K@0K(UBOOT0),"		\
-	"128K@1152K(RAW0),"		\
-	"1024K@1280K(UBOOT1),"		\
-	"128K@2432K(RAW1),"		\
-	"1024K@2560K(RES0),"		\
-	"128K@3712K(RAW2),"		\
-	"1024K@3840K(RES1),"		\
-	"128K@4992K(RAW3),"		\
-	"-@5120K(FS)"
+#define MTDPARTS_DEFAULT    \
+    "mtdparts=gen_nand:"    \
+    "1024K@0K(UBOOT0),"     \
+    "128K@1152K(RAW0),"     \
+    "1024K@1280K(UBOOT1),"  \
+    "128K@2432K(RAW1),"     \
+    "1024K@2560K(RES0),"    \
+    "128K@3712K(RAW2),"     \
+    "1024K@3840K(RES1),"    \
+    "128K@4992K(RAW3),"     \
+    "128K@1024K(ENV1),"     \
+    "128K@2304K(ENV2),"     \
+    "-@5120K(FS)"
 
 #define CONFIG_CMD_UBI
 // #define CONFIG_UBI_SILENCE_MSG
