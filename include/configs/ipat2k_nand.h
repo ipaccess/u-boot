@@ -89,6 +89,21 @@
     "128K@2304K(ENV2),"     \
     "-@5120K(FS)"
 
+// uboot environment partition ENV1/ENV2 not exposed to linux for production secure boot units
+#define LINUX_CMD_LINE_MTDPARTS_PROD    \
+    "mtdparts=gen_nand:"                \
+    "1024K@0K(UBOOT0),"                 \
+    "128K@1152K(RAW0),"                 \
+    "1024K@1280K(UBOOT1),"              \
+    "128K@2432K(RAW1),"                 \
+    "1024K@2560K(RES0),"                \
+    "128K@3712K(RAW2),"                 \
+    "1024K@3840K(RES1),"                \
+    "128K@4992K(RAW3),"                 \
+    "-@5120K(FS)"
+
+
+
 #define CONFIG_CMD_UBI
 // #define CONFIG_UBI_SILENCE_MSG
 #define CONFIG_RBTREE
@@ -171,7 +186,6 @@
 #define LINUX_CONSOLEDEV	"ttyS0"
 #define IPA_BASE_BOOTARGS									\
 	" elevator=noop "									\
-	MTDPARTS_DEFAULT									\
 	" mem=512M"										\
 	" hwaddress=eth1,${ethaddr},eth2,${eth1addr}"						\
 	" icc_heap_size=132M icc_part_size=320M icc_amp_heap_size=2M ddr_limit=2G"              \
@@ -180,8 +194,10 @@
 	" board_variant_part=${board_variant_part} bb_variant_part=${bb_variant_part}"          \
 	" radio_variant_part=${radio_variant_part} radio_pcbai=${radio_pcbai}"                  \
 
-#define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS  " console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"
-#define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS " console=tty0 " "quiet"
+#define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS " " MTDPARTS_DEFAULT " console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"
+
+// args for production secure boot units only
+#define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS " " LINUX_CMD_LINE_MTDPARTS_PROD " console=tty0 " "quiet"
 
 #define SET_BOOTARGS							\
 	"if silent_mode_enabled; then "					\
