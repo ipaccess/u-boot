@@ -65,6 +65,7 @@ int cleanup_before_linux(void)
 	 * Some CPU need more cache attention before starting the kernel.
 	 */
 	cpu_cache_initialization();
+    target_uninit();
 
 	return 0;
 }

@@ -135,6 +135,7 @@ static ulong mmc_write_blocks(struct mmc *mmc, lbaint_t start,
 		return 0;
 	}
 
+#ifndef CONFIG_MSM_MMC
 	/* SPI multiblock writes terminate using a special
 	 * token, not a STOP_TRANSMISSION request.
 	 */
@@ -147,7 +148,7 @@ static ulong mmc_write_blocks(struct mmc *mmc, lbaint_t start,
 			return 0;
 		}
 	}
-
+#endif
 	/* Waiting for the ready status */
 	if (mmc_send_status(mmc, timeout))
 		return 0;

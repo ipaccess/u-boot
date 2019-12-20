@@ -215,7 +215,7 @@ static int mmc_read_blocks(struct mmc *mmc, void *dst, lbaint_t start,
 
 	if (mmc_send_cmd(mmc, &cmd, &data))
 		return 0;
-
+#ifndef CONFIG_MSM_MMC
 	if (blkcnt > 1) {
 		cmd.cmdidx = MMC_CMD_STOP_TRANSMISSION;
 		cmd.cmdarg = 0;
@@ -227,7 +227,7 @@ static int mmc_read_blocks(struct mmc *mmc, void *dst, lbaint_t start,
 			return 0;
 		}
 	}
-
+#endif
 	return blkcnt;
 }
 
@@ -360,7 +360,10 @@ static int mmc_send_op_cond_iter(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	cmd->cmdidx = MMC_CMD_SEND_OP_COND;
 	cmd->resp_type = MMC_RSP_R3;
-	cmd->cmdarg = 0;
+#ifdef CONFIG_MSM_MMC
+	cmd->cmdarg = 0x40ff8000;
+#else
+    cmd->cmdarg = 0;
 	if (use_arg && !mmc_host_is_spi(mmc)) {
 		cmd->cmdarg =
 			(mmc->cfg->voltages &
@@ -370,6 +373,7 @@ static int mmc_send_op_cond_iter(struct mmc *mmc, struct mmc_cmd *cmd,
 		if (mmc->cfg->host_caps & MMC_MODE_HC)
 			cmd->cmdarg |= OCR_HCS;
 	}
+#endif
 	err = mmc_send_cmd(mmc, cmd, NULL);
 	if (err)
 		return err;
@@ -394,7 +398,20 @@ int mmc_send_op_cond(struct mmc *mmc)
 
 		/* exit if not busy (flag seems to be inverted) */
 		if (mmc->op_cond_response & OCR_BUSY)
+        {
+#ifdef CONFIG_MSM_MMC
+            mmc->op_cond_pending = 0;
+            mmc->version = MMC_VERSION_UNKNOWN;
+            mmc->ocr = cmd.response[0];
+
+            mmc->high_capacity = ((mmc->ocr & OCR_HCS) == OCR_HCS);
+            mmc->rca = 1;
+#endif
 			return 0;
+        }
+#ifdef CONFIG_MSM_MMC        
+        mdelay(1);
+#endif
 	}
 	return IN_PROGRESS;
 }
@@ -1305,6 +1322,7 @@ int mmc_start_init(struct mmc *mmc)
 	/* The internal partition reset to user partition(0) at every CMD0*/
 	mmc->part_num = 0;
 
+#ifndef CONFIG_MSM_MMC 
 	/* Test for SD version 2 */
 	err = mmc_send_if_cond(mmc);
 
@@ -1325,7 +1343,9 @@ int mmc_start_init(struct mmc *mmc)
 
 	if (err == IN_PROGRESS)
 		mmc->init_in_progress = 1;
-
+#else
+    err = mmc_send_op_cond(mmc);
+#endif
 	return err;
 }
 
@@ -1354,6 +1374,13 @@ int mmc_init(struct mmc *mmc)
 	if (mmc->has_init)
 		return 0;
 
+#ifdef CONFIG_MSM_MMC
+    //mmc initialised already, just fill in the selected card details to this mmc struct
+    lk_mmc_fill_info(mmc);
+    mmc->has_init = 1;
+    err = 0;
+#else
+
 	start = get_timer(0);
 
 	if (!mmc->init_in_progress)
@@ -1362,6 +1389,7 @@ int mmc_init(struct mmc *mmc)
 	if (!err || err == IN_PROGRESS)
 		err = mmc_complete_init(mmc);
 	debug("%s: %d, time %lu\n", __func__, err, get_timer(start));
+#endif
 	return err;
 }
 
