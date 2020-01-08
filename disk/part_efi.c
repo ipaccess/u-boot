@@ -183,7 +183,7 @@ int get_partition_info_efi(block_dev_desc_t * dev_desc, int part,
 
 	debug("%s: start 0x" LBAF ", size 0x" LBAF ", name %s\n", __func__,
 	      info->start, info->size, info->name);
-
+    info->part_num = part;
 	/* Remember to free pte */
 	free(gpt_pte);
 	return 0;

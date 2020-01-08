@@ -591,6 +591,36 @@ static int do_mmc_setdsr(cmd_tbl_t *cmdtp, int flag,
 	return ret;
 }
 
+static int do_mmc_part_name_to_num(cmd_tbl_t *cmdtp, int flag,
+               int argc, char * const argv[])
+{
+    block_dev_desc_t *mmc_dev;
+    struct mmc *mmc;
+    disk_partition_t info;
+
+    if (argc != 2)
+        return CMD_RET_USAGE;
+
+
+    mmc = init_mmc_device(curr_device, false);
+    if (!mmc)
+        return CMD_RET_FAILURE;
+
+    mmc_dev = mmc_get_dev(curr_device);
+    if (mmc_dev != NULL && mmc_dev->type != DEV_TYPE_UNKNOWN) {
+        if (0 == get_partition_info_by_name(mmc_dev, argv[1], &info))
+        {
+            printf("0x%x\n",info.part_num);
+            return CMD_RET_SUCCESS;
+        }
+        else
+        {
+            return CMD_RET_FAILURE;
+        }
+    }
+    return CMD_RET_FAILURE;
+}
+
 static cmd_tbl_t cmd_mmc[] = {
 	U_BOOT_CMD_MKENT(info, 1, 0, do_mmcinfo, "", ""),
 	U_BOOT_CMD_MKENT(read, 4, 1, do_mmc_read, "", ""),
@@ -610,6 +640,7 @@ static cmd_tbl_t cmd_mmc[] = {
 	U_BOOT_CMD_MKENT(rpmb, CONFIG_SYS_MAXARGS, 1, do_mmcrpmb, "", ""),
 #endif
 	U_BOOT_CMD_MKENT(setdsr, 2, 0, do_mmc_setdsr, "", ""),
+    U_BOOT_CMD_MKENT(partnametonum, 2, 0, do_mmc_part_name_to_num, "", ""),
 };
 
 static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
@@ -667,6 +698,7 @@ U_BOOT_CMD(
 	"mmc rpmb counter - read the value of the write counter\n"
 #endif
 	"mmc setdsr <value> - set DSR register value\n"
+    "mmc partnametonum"
 	);
 
 /* Old command kept for compatibility. Same as 'mmc info' */

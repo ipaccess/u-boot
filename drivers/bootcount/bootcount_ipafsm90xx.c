@@ -1,4 +1,4 @@
-
+#include <common.h>
 #include <bootcount.h>
 #include <linux/compiler.h>
 
@@ -7,14 +7,14 @@ void bootcount_store(ulong a)
 
     uint8_t buf = (a & 0xff);
     int ret;
-#if 0
-    ret = i2c_write(CONFIG_BOOTCOUNT_EEPROM_ADDR,
-                    CONFIG_BOOTCOUNT_IPAT2K_OFFSET,
-                    2,
-                    &buf,
-                    1);
-#endif
-    ret=0;
+    char command_buffer[100];
+    char *partition=NULL;
+
+    if (NULL == (partition=getenv("userdata_pnum")))
+        partition = "0xE"; //use default
+    
+    snprintf(command_buffer,sizeof(command_buffer),"ext4write mmc 0:%s 0x%x /bootcount 1",partition,&buf);
+    ret = run_command(command_buffer,0);
     if (ret != 0)
         puts("Error writing bootcount\n");
 }
@@ -23,22 +23,24 @@ ulong bootcount_load(void)
 {
     uint8_t buf = 1;
     int ret;
-#if 0
-    ret = i2c_read(CONFIG_BOOTCOUNT_EEPROM_ADDR,
-                   CONFIG_BOOTCOUNT_IPAT2K_OFFSET,
-                   2,
-                   &buf,
-                   1);
-#endif
-    ret = 0;
+    char command_buffer[100];
+    char *partition=NULL;
+    
+    if (NULL == (partition=getenv("userdata_pnum")))
+        partition = "0xE"; //use default
+
+
+    snprintf(command_buffer,sizeof(command_buffer),"ext4load mmc 0:%s 0x%x /bootcount 1",partition,&buf);
+    ret = run_command(command_buffer,0);
+
     if (ret != 0)
     {
         puts("Error loading bootcount\n");
         return 0;
     }
 
-#if defined(CONFIG_BOOTCOUNT_IPAT2K_MODULUS)
-    return buf % CONFIG_BOOTCOUNT_IPAT2K_MODULUS;
+#if defined(CONFIG_BOOTCOUNT_FSM90XX_MODULUS)
+    return buf % CONFIG_BOOTCOUNT_FSM90XX_MODULUS;
 #else
     return buf;
 #endif

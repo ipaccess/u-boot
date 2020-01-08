@@ -792,7 +792,7 @@ static int check_filename(char *filename, unsigned int blknr)
 		if (strlen(filename) == dir->namelen) {
 			if (strncmp(filename, ptr + sizeof(struct ext2_dirent),
 				dir->namelen) == 0) {
-				printf("file found deleting\n");
+				debug("file found deleting\n");
 				previous_dir->direntlen += dir->direntlen;
 				inodeno = dir->inode;
 				dir->inode = 0;

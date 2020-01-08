@@ -444,6 +444,20 @@ int get_partition_info(block_dev_desc_t *dev_desc, int part
 	return -1;
 }
 
+int get_partition_info_by_name(block_dev_desc_t *dev_desc, const char *name, disk_partition_t *info)
+{
+        switch (dev_desc->part_type) {
+#ifdef CONFIG_EFI_PARTITION
+        case PART_TYPE_EFI:
+            if (get_partition_info_efi_by_name(dev_desc, name, info) == 0) 
+                return 0;
+            break;
+#endif
+        default:
+            break;
+    }
+    return -1;
+}
 int get_device(const char *ifname, const char *dev_hwpart_str,
 	       block_dev_desc_t **dev_desc)
 {

@@ -18,8 +18,6 @@
 #define CONFIG_STACKSIZE    (128*1024)
 
 #define CONFIG_BITREVERSE
-#define CONFIG_ENV_IS_NOWHERE
-#define CONFIG_ENV_SIZE SZ_128K
 #define CONFIG_SYS_GENERIC_BOARD
 #define CONFIG_SYS_BAUDRATE_TABLE { 4800, 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_BAUDRATE 115200
@@ -104,6 +102,8 @@
 #define CONFIG_BOOTCOUNT_IPAFSM90XX
 #define CONFIG_BOOTCOUNT_LIMIT
 #define CONFIG_BOOTCOUNT_LIMIT_COUNT 4
+#define CONFIG_BOOTCOUNT_FSM90XX_MODULUS (CONFIG_BOOTCOUNT_LIMIT_COUNT*2)
+
 
 /*MMC defines*/
 #define CONFIG_GENERIC_MMC
@@ -229,15 +229,13 @@
     "ledc all green red 3 1000;"                        \
     "reset"
 
-//    "setenv fs0_pnum 0x0f; "                                                        \
-//    "setenv fs1_pnum 0x15; " 
 #define STANDARD_BOOT_COMMAND                                                       \
     "ledc nwk svc green off 1 300; "                                                \
     "run select_bootargs; "                                                         \
     "run select_config; "                                                           \
     "setenv fsactive fs1; "                                                         \
     "setenv fsstandby fs0; "                                                        \
-    "if ext4load mmc 0:$fs1_pnum $loadaddr primary.flag; then "                     \
+    "if test -e mmc 0:$fs1_pnum primary.flag; then "                                \
     "  if ext4load mmc 0:$fs1_pnum $loadaddr fitImage; then "                       \
     "     setenv bootargs $bootargs fsactive=$fsactive fsstandby=$fsstandby; "      \
     "     run secureboot; "                                                         \
@@ -258,7 +256,7 @@
     "run select_config; "                                                           \
     "setenv fsactive fs1; "                                                         \
     "setenv fsstandby fs0; "                                                        \
-    "if ext4load mmc 0:$fs1_pnum $loadaddr primary.flag; then "                     \
+    "if test -e mmc 0:$fs1_pnum primary.flag; then "                                \
     "  setenv fsactive fs0; "                                                       \
     "  setenv fsstandby fs1; "                                                      \
     "  if ext4load mmc 0:$fs0_pnum $loadaddr fitImage; then "                       \
@@ -282,13 +280,12 @@
     "autostart=no\0"                                            \
     "fdt_high=0x5C0A000\0"                                      \
     "initrd_high=0x82d3000\0"                                   \
-    "fs0_pnum=0x0f\0"                                           \
-    "fs1_pnum=0x015\0"                                          \
     "select_bootargs=" SET_BOOTARGS "\0"                        \
     "select_config=" SELECT_CONFIG "\0"                         \
     "altbootcmd=" FALLBACK_BOOT_COMMAND "\0"                    \
     "bootlimit=" __stringify(CONFIG_BOOTCOUNT_LIMIT_COUNT) "\0" \
     "secureboot=" SECURE_BOOT_COMMAND "\0"
+
 
 #define CONFIG_BOOTCOMMAND STANDARD_BOOT_COMMAND
 #define CONFIG_SILENT_CONSOLE
@@ -297,6 +294,21 @@
 /*Silent u-boot only with CONFIG_SILENT_CONSOLE, for kernel seprate bootargs environment variable is set*/
 #define CONFIG_SILENT_U_BOOT_ONLY
 
+
+/* MMC ENV related defines */
+#undef CONFIG_ENV_OFFSET
+#undef CONFIG_ENV_SIZE
+
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_SYS_MMC_ENV_DEV      0       /* SLOT2: eMMC(1) */
+//#define CONFIG_SYS_MMC_ENV_PART     0
+#define CONFIG_ENV_OFFSET           (0x0027ad82 * 512)     /* (in bytes) 768 KB */
+#define CONFIG_ENV_SIZE             SZ_256K  /*256 KB*/
+#define CONFIG_ENV_SIZE_REDUND      CONFIG_ENV_SIZE
+#define CONFIG_ENV_OFFSET_REDUND    (0x0027b182 * 512)
+
+#define CONFIG_SYS_REDUNDAND_ENVIRONMENT
+#define CONFIG_CMD_SAVEENV
 
 //debugging configs: keep disabled
 

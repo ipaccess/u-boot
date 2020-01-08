@@ -212,7 +212,7 @@ void print_revoke_blks(char *revk_blk)
 	header = (struct journal_revoke_header_t *) revk_blk;
 	offset = sizeof(struct journal_revoke_header_t);
 	max = be32_to_cpu(header->r_count);
-	printf("total bytes %d\n", max);
+	debug("total bytes %d\n", max);
 
 	while (offset < max) {
 		blocknr = be32_to_cpu(*((long int *)(revk_blk + offset)));
@@ -425,7 +425,7 @@ int ext4fs_check_journal_state(int recovery_flag)
 			printf("Recovery required\n");
 	} else {
 		if (recovery_flag == RECOVER)
-			printf("File System is consistent\n");
+			debug("File System is consistent\n");
 		goto end;
 	}
 
@@ -649,5 +649,5 @@ void ext4fs_update_journal(void)
 	}
 	blknr = read_allocated_block(&inode_journal, jrnl_blk_idx++);
 	update_commit_block(blknr);
-	printf("update journal finished\n");
+	debug("update journal finished\n");
 }

@@ -44,6 +44,44 @@ int board_init(void)
 
 int misc_init_r (void)
 {
+    block_dev_desc_t *mmc_dev;
+    struct mmc *mmc;
+    disk_partition_t info;
+    char value[10];
+    memset(&info,0,sizeof(disk_partition_t));
+
+    /*set the power Led green*/
+    run_command("ledc pwr green",0);
+
+    /*Set the fs0/fs1 userdata partition number environment variable, will be used later*/
+    mmc_dev = mmc_get_dev(0);
+    if (mmc_dev != NULL && mmc_dev->type != DEV_TYPE_UNKNOWN) {
+
+        if (0 == get_partition_info_by_name(mmc_dev, "system", &info))
+            snprintf(value,sizeof(value),"0x%x",info.part_num);
+        else
+            snprintf(value,sizeof(value),"0x%x",15); //default value
+
+        setenv("fs0_pnum",value);
+ 
+        memset(&info,0,sizeof(disk_partition_t));
+        if (0 == get_partition_info_by_name(mmc_dev, "systembro", &info))
+            snprintf(value,sizeof(value),"0x%x",info.part_num);
+        else
+            snprintf(value,sizeof(value),"0x%x",21); //default value
+
+        setenv("fs1_pnum",value);
+
+        memset(&info,0,sizeof(disk_partition_t));
+        if (0 == get_partition_info_by_name(mmc_dev, "userdata", &info))
+            snprintf(value,sizeof(value),"0x%x",info.part_num);
+        else
+            snprintf(value,sizeof(value),"0x%x",14); //default value
+
+        setenv("userdata_pnum",value);
+
+    }
+
     //print_ipa_hardware_info(); //TODO
     return 0;
 }
