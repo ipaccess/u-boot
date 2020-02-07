@@ -83,6 +83,9 @@ int misc_init_r (void)
     }
     characterisation_init();
     print_characterisation();
+    if (0 != load_security_requirements())
+        return 1;
+
     return 0;
 }
 
