@@ -129,7 +129,7 @@
 
 
 #define IPA_BASE_BOOTARGS                               \
-    " earlyprintk hwmanuf=sercom"                       \
+    " earlyprintk"                                     \
     " maxcpus=4"                                        \
     " coherent_pool=3M"                                 \
     " mem=196M@0x03c00000"                              \
@@ -139,7 +139,6 @@
 
 #define LINUX_CONSOLEDEV "ttyHSL0"
 #define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS " console=" LINUX_CONSOLEDEV ","  __stringify(CONFIG_BAUDRATE) " elevator=noop"
-#define CMDLINE_ARGS_LINUX_SILENT CMDLINE_ARGS_LINUX
 #define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS " console=tty0 " "quiet"
 
 #define SET_BOOTARGS                            \
@@ -309,6 +308,12 @@
 
 #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 #define CONFIG_CMD_SAVEENV
+
+
+//board characterisation
+#define CONFIG_CHARACTERISATION
+#define CONFIG_CHARACTERISATION_SIZE 256 //in bytes
+#define CONFIG_CHARACTERISATION_MMC_PART_NAME "chr"
 
 //debugging configs: keep disabled
 
