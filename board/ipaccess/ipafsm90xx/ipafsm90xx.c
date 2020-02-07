@@ -81,8 +81,8 @@ int misc_init_r (void)
         setenv("userdata_pnum",value);
 
     }
-
-    //print_ipa_hardware_info(); //TODO
+    characterisation_init();
+    print_characterisation();
     return 0;
 }
 
