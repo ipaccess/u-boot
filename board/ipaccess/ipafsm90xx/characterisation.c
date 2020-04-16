@@ -83,6 +83,7 @@ static const variant_record variant_lookup[] = {
     { "502N", "502", "N", 502, 'N' }, /* 42: Band:  8            - Notes: S8v2 Picochip + ADI 13dBm band 8                                */
     { "505A", "505", "A", 505, 'A' }, /* 43: Band:  1            - Notes: S8v2 Picochip + ADI 20dBm band 1                                */
     { "505N", "505", "N", 505, 'N' }, /* 44: Band:  8            - Notes: S8v2 Picochip + ADI 20dBm band 8                                */
+    { "509S", "509", "S", 509, 'S' }, /* 45: Band:  3            - Notes: C70 sercom Indiagate based                                      */
 
 };
 
@@ -446,6 +447,7 @@ int characterisation_init(void)
         puts("Error locating hardware variant\n");
         return 0;
     }
+
 
     if (memcmp(cdo.eth0addr, "\0\0\0\0\0\0", 6) && memcmp(cdo.eth0addr, "\xFF\xFF\xFF\xFF\xFF\xFF", 6))
     {
