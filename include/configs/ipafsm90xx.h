@@ -139,15 +139,14 @@
 
 #define LINUX_CONSOLEDEV "ttyHSL0"
 #define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS " console=" LINUX_CONSOLEDEV ","  __stringify(CONFIG_BAUDRATE) " elevator=noop"
-#define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS " console=tty0 " "quiet"
+#define CMDLINE_ARGS_LINUX_SILENT IPA_BASE_BOOTARGS " console=tty0 " " quiet"
 
-#define SET_BOOTARGS                            \
-    "if silent_mode_enabled; then "                 \
-    " setenv bootargs " CMDLINE_ARGS_LINUX_SILENT "; "      \
-    "else; "                            \
-    " setenv bootargs " CMDLINE_ARGS_LINUX "; "         \
+#define SET_BOOTARGS                                   \
+    "if silent_mode_enabled; then "                    \
+    " setenv bootargs " CMDLINE_ARGS_LINUX_SILENT "; " \
+    "else; "                                           \
+    " setenv bootargs " CMDLINE_ARGS_LINUX "; "        \
     "fi; "
-
 
 #define SECURE_BOOT_COMMAND                         \
     "NO_SEC_OK=0; "                             \
@@ -331,6 +330,7 @@
 #define CONFIG_CHARACTERISATION_SIZE 256 //in bytes
 #define CONFIG_CHARACTERISATION_MMC_PART_NAME "chr"
 
+#define CONFIG_CMD_LIE
 //debugging configs: keep disabled
 
 //#define CONFIG_IMAGE_FORMAT_LEGACY

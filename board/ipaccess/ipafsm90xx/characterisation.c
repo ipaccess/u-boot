@@ -4,7 +4,7 @@
 #include <errno.h>
 
 #include "characterisation.h"
-
+#include "ike_api.h"
 #if defined(CONFIG_CHARACTERISATION)
 
 /*RSM bitmap in mmc : r:reserved p:production d:development s:specials t:test*/
@@ -267,6 +267,7 @@ static int do_hwchar_mmc_read()
     return 0;
 }
 
+
 int deserialise_characterisation_info_mmc(struct characterisation_data_t * cd)
 {
     int ret = -1;
@@ -341,6 +342,20 @@ int deserialise_characterisation_info_mmc(struct characterisation_data_t * cd)
 
 }
 
+int is_test_bit_set(void)
+{
+    uint8_t *payload = serialised_characterisation_data ;
+
+    /*read MMC if mmc charaterisation data is not already read*/
+    if ( 0 != strncmp((char *)payload,"IPACCESS",8) )
+        do_hwchar_mmc_read();
+
+    /*Check again if we have the mmc characterisation buffer now*/
+    if ( 0 == strncmp((char *)payload,"IPACCESS",8) )
+        return ((payload[239] & BOARD_RSM_MASK_MMC) == 0x01)?1:0;
+
+    return 0; /*Default return, test mode bit not set*/
+}
 
 int characterisation_is_production_mode(void)
 {
@@ -371,39 +386,27 @@ int is_secure_boot(void)
     return 0;
 }
 
-
-
 static void update_rsm_from_tz(struct characterisation_data_t * cdo)
 {
-    /*Not yet implemented, but I am needed once trustzone RSM is supported*/
-    return;
-#if 0
-    rsm_type = RSM_A_DEV;  
-    //switch (smc_get_active_rsm())
-    switch (rsm_type)
+
+    switch (toeIkeRsm())
     {
-        case RSM_A_PROD:
+        case BL_RSM_PROD:
             {
                 cdo->production_mode = cdo->test_mode = cdo->development_mode = cdo->specials_mode = 0;
                 cdo->production_mode = 1;
                 break;
             }
-        case RSM_A_DEV:
+        case BL_RSM_DEV:
             {
                 cdo->production_mode = cdo->test_mode = cdo->development_mode = cdo->specials_mode = 0;
-                if (is_test_mode())
+                if (is_test_bit_set())
                     cdo->test_mode = 1;
                 else
                     cdo->development_mode = 1;
                 break;
             }
-        case RSM_A_TEST:
-            {
-                cdo->production_mode = cdo->test_mode = cdo->development_mode = cdo->specials_mode = 0;
-                cdo->test_mode = 1;
-                break;
-            }
-        case RSM_A_SPECIALS:
+        case BL_RSM_SPECIALS:
             {
                 cdo->production_mode = cdo->test_mode = cdo->development_mode = cdo->specials_mode = 0;
                 cdo->specials_mode = 1;
@@ -413,7 +416,6 @@ static void update_rsm_from_tz(struct characterisation_data_t * cdo)
             /*Do nothing: keep the mode as read from fuse/eeprom*/
             break;
     }
-#endif
 }
 
 int characterisation_init(void)

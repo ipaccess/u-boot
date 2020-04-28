@@ -81,10 +81,18 @@ int misc_init_r (void)
         setenv("userdata_pnum",value);
 
     }
+
     characterisation_init();
-    print_characterisation();
     if (0 != load_security_requirements())
         return 1;
+
+    if (silent_mode_enabled()) {
+        setenv("silent", "1");
+        setenv("bootdelay", "0");
+    } 
+
+    print_characterisation();
+
 
     return 0;
 }

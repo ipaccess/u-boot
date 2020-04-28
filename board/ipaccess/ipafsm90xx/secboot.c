@@ -164,6 +164,12 @@ int do_lie(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
             g_board_type = BT_PROD;
             return CMD_RET_SUCCESS;
         }
+        else if (0 == strcmp(argv[1], "devmode"))
+        {
+            /*This board has no recovery mechanisim, so this is a jail break for us to fixup a test mode brick*/
+            g_board_type = BT_DEVEL;
+            return CMD_RET_SUCCESS;
+        }
     }
 
     return CMD_RET_FAILURE;

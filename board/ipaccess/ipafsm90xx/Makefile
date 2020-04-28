@@ -6,7 +6,8 @@ obj-y  := \
   lk_sdhci_msm.o \
   lk_sdhci.o \
   acpuclock.o \
-  clock.o  clock_lib2.o  fsm9010-clock.o clock_pll.o lk_crc32.o
+  clock.o  clock_lib2.o  fsm9010-clock.o clock_pll.o lk_crc32.o \
+  ike_api.o fastcall_tz.o
 
 #partition_parser.o lk_mmc_wrapper.o
 
