@@ -124,7 +124,7 @@
                            
 #define LINUX_CONSOLEDEV "ttyS0"
 #define CMD_LINE_ARGS_LINUX "rdinit=/init console=" LINUX_CONSOLEDEV ","  __stringify(CONFIG_BAUDRATE) "n8 elevator=noop " MTDPARTS_DEFAULT PK_ECC_STATUS
-#define CMD_LINE_ARGS_LINUX_SILENT "rdinit=/init console=tty0 elevator=noop " MTDPARTS_DEFAULT PK_ECC_STATUS
+#define CMD_LINE_ARGS_LINUX_SILENT "rdinit=/init console=ttyS1 elevator=noop " MTDPARTS_DEFAULT PK_ECC_STATUS
                            
                            
 /*-----------------------------------------------------------------------------
