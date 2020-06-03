@@ -469,7 +469,7 @@
 #define CONFIG_CMD_HARD_RESET_FB
 
 /* Allow us to track boot progress */
-#define CONFIG_SHOW_BOOT_PROGRESS  1
+//#define CONFIG_SHOW_BOOT_PROGRESS  1
 
 #define CONFIG_BOOTCOUNT_LIMIT 4
 
@@ -602,6 +602,9 @@
     "netdev=eth0\0"
 
 #define CONFIG_BOOTCOMMAND  "run ubiboot"
-    
-   
+/*Silent console when silent env variable is set*/
+#define CONFIG_SILENT_CONSOLE
+#define CONFIG_SILENT_CONSOLE_UPDATE_ON_SET
+#define CONFIG_SILENT_CONSOLE_UPDATE_ON_RELOC
+#define CONFIG_SILENT_U_BOOT_ONLY
 #endif /* __CONFIG_H__ */

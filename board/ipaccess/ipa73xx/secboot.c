@@ -36,12 +36,12 @@ int load_security_requirements(void)
     if (read_ethaddr_from_fuses(ethaddr_str, 0))
     {
         setenv("ethaddr", ethaddr_str);
-        printf("ethaddr set from fuses\n");
     }
     
     secboot = read_secure_boot_fuse();
     prodmode = read_production_mode_fuse();
-    dump_sec_status();
+    if (!prodmode)
+        dump_sec_status();
 
     if (secboot)
     {
@@ -119,7 +119,7 @@ int silent_mode_enabled(void)
 {
     /* If in production mode then we require silence - note that this does not check secboot
      * prodmode set and secboot clear is an invalid combination, so we default to most secure mode
-     */    
+     */  
     return (prodmode);
 }
 
