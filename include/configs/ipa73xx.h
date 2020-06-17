@@ -477,7 +477,7 @@
     "ledc all green off 1 300;"                  \
     "setenv bootargs $bootargs $othbootargs;"    \
     "setenv bootargs $bootargs $bootbankargs;"   \
-    "if secparm blank; then"                     \
+    "if secparm specmode; then"                  \
     "  key unrequire dev;"                       \
     "  key unrequire tstoem0;"                   \
     "  key unrequire ipaoem0;"                   \

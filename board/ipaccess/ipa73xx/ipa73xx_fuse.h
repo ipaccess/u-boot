@@ -30,6 +30,8 @@ int blow_fuse_in_range(unsigned int offset,char *buffer,unsigned int *buffer_len
 int read_ethaddr_from_fuses(char* eth_addr_str, int index);
 int read_secure_boot_fuse(void);
 int read_production_mode_fuse(void);
+int read_development_mode_fuse(void);
+int read_specials_mode_fuse(void);
 
 #endif /* IPA73XX_FUSE_H_ */
 

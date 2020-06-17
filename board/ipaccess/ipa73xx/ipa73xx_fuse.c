@@ -23,6 +23,8 @@
 
 #define SECURE_BOOT_FUSE_INDEX                          992
 #define PRODUCTION_MODE_FUSE_OFFSET                     112
+#define DEVELOPMENT_MODE_FUSE_OFFSET                    113
+#define SPECIALS_MODE_FUSE_OFFSET                       114
 
 u8 test = 0;
 
@@ -222,4 +224,18 @@ int read_production_mode_fuse(void)
 {
     return (  read_fuse(PC73XX_KEY2_OFFSET + PRODUCTION_MODE_FUSE_OFFSET)
             | read_fuse(PC73XX_KEY3_OFFSET + PRODUCTION_MODE_FUSE_OFFSET) );
+}
+
+
+int read_development_mode_fuse(void)
+{
+    return (  read_fuse(PC73XX_KEY2_OFFSET + DEVELOPMENT_MODE_FUSE_OFFSET)
+            | read_fuse(PC73XX_KEY3_OFFSET + DEVELOPMENT_MODE_FUSE_OFFSET) );
+}
+
+
+int read_specials_mode_fuse(void)
+{
+    return (  read_fuse(PC73XX_KEY2_OFFSET + SPECIALS_MODE_FUSE_OFFSET)
+            | read_fuse(PC73XX_KEY3_OFFSET + SPECIALS_MODE_FUSE_OFFSET) );
 }

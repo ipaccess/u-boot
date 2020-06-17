@@ -6,28 +6,91 @@
 #include <asm-generic/errno.h>
 #include "ipa73xx_fuse.h"
 
-static int secboot = 0;
-static int prodmode = 0;
+#define __asmeq(x, y)  ".ifnc " x "," y " ; .err ; .endif\n\t"
+#define SMC_GET_ACTIVE_RSM 6
+
+/*RSM values returned by TZ*/
+#define RSM_A_PROD          0x8
+#define RSM_A_DEV           0x4
+#define RSM_A_SPECIALS      0x2
+#define RSM_A_FUSE          0x0
+#define RSM_A_TEST          0x5
+
+
 static char ethaddr_str[18] = "";
+
+typedef enum {
+    BT_DEVEL,
+    BT_SPECIAL,
+    BT_TEST,
+    BT_PROD
+} board_type_t;
+
+
+board_type_t g_board_type = BT_PROD;
+unsigned int secboot;
+
+
+static unsigned int __smc(unsigned int command, unsigned int buff, unsigned int buff_len)
+{
+    register unsigned int r0 __asm("r0") = command;
+    register unsigned int r1 __asm("r1") = buff;
+    register unsigned int r2 __asm("r2") = buff_len;
+    /*Invalidate and flush d-cache*/
+    asm ( "mcr     p15, 0, r6, c7, c14, 0");
+    asm volatile (
+            __asmeq("%0", "r0")
+            __asmeq("%1", "r0")
+            __asmeq("%2", "r1")
+            __asmeq("%3", "r2")
+            ".arch armv7-a\n"
+            ".arch_extension sec\n"
+            "smc #0 @ switch to secure world\n"
+            : "=r" (r0)
+            : "r" (r0), "r" (r1), "r" (r2)
+            );
+
+    return r0;
+
+}
+
+unsigned int smc_get_active_rsm(void)
+{
+    return __smc(SMC_GET_ACTIVE_RSM,0,0);
+}
 
 
 static void dump_sec_status(void)
 {
-    printf("Ethaddr in fuses     : %s\n", ethaddr_str[0] ? ethaddr_str : "Not set");
-    printf("Secure Boot Flag     : %s\n", secboot ? "Set" : "Not set");
-    printf("Production Mode flag : %s\n", prodmode ? "Set" : "Not set");    
+    printf("Ethaddr in fuses  : %s\n", ethaddr_str[0] ? ethaddr_str : "Not set");
+    printf("Secure Boot Flag  : %s\n", secboot ? "Set" : "Not set");
+    printf("Security Mode     : %s\n", (BT_PROD == g_board_type) ? "production" : ((BT_TEST == g_board_type) ? "test" : ((BT_DEVEL == g_board_type) ? "development" : "specials")));    
     
-    printf("This is a %s board\n", prodmode ? "production" : (secboot ? "test" : (ethaddr_str[0] ? "development" : "blank"))); 
-    if ( prodmode && ((!secboot) || (!ethaddr_str[0])) )
-    {
-        printf("WARNING, invalid setting, secure boot and Ethaddr should both be set for production board\n");
-    }
-    else if (secboot && (!ethaddr_str[0]))
-    {
-        printf("WARNING, invalid setting, Ethaddr should be set for test board\n");
-    }
 }
 
+
+void tz_update_operating_mode(void)
+{
+    switch (smc_get_active_rsm())
+    {
+        case RSM_A_PROD:
+            g_board_type = BT_PROD;
+            break;
+        case RSM_A_SPECIALS:
+            g_board_type = BT_SPECIAL;
+            break;
+        case RSM_A_DEV:
+            g_board_type = BT_DEVEL;
+            break;
+        case RSM_A_TEST:
+            g_board_type = BT_TEST;
+            break;
+        case RSM_A_FUSE:
+        default:
+            /*Nothing to do, RSM should remain as it was initialised from fuses*/
+            break;
+    }
+}
 
 int load_security_requirements(void)
 {
@@ -39,27 +102,37 @@ int load_security_requirements(void)
     }
     
     secboot = read_secure_boot_fuse();
-    prodmode = read_production_mode_fuse();
-    if (!prodmode)
-        dump_sec_status();
 
-    if (secboot)
+    /*Read fuses to derive board RSM*/
+    if (read_production_mode_fuse())
+        g_board_type = BT_PROD;
+    else if (read_development_mode_fuse())
+        g_board_type = BT_DEVEL;
+    else if (read_specials_mode_fuse())
+        g_board_type = BT_SPECIAL;
+    else if (!secboot)
+        /*secboot bit not fused and no RSM mode bit fused, consider this as development*/
+        g_board_type = BT_DEVEL;
+    else
+        g_board_type = BT_PROD; 
+
+    /*Overide  RSM if tz has different active RSM */
+    tz_update_operating_mode(); 
+   
+    //If devmode, then see this needs to be set test mode on the basis of filesystem flag.
+    if ( (BT_DEVEL == g_board_type))
     {
-#if 0
-        /* TODO: use this block once we agree on test mode */
-        if (0 != (ret = require_key(devmode ? "dev" : (tstmode ? "tst" : "ipaoem0"), "conf")))
-        {
-            goto cleanup;
-        }
+        mtdparts_init();
 
-        /* TODO: remove this block once we agree on test mode */
-        if (0 != (ret = require_key(devmode ? "dev" : "ipaoem0", "conf")))
+        if ( (0 == (ubi_part("FS", NULL))) && (0 == ubifs_mount("ubi0:factory_data")) && (0 == ubifs_ls("test-mode")) )
         {
-            goto cleanup;
+            g_board_type = BT_TEST;
         }
-#endif
+        
     }
 
+    if (BT_PROD != g_board_type)
+        dump_sec_status();
 
 cleanup:
     return ret;
@@ -86,7 +159,7 @@ int do_secparm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
     if (0 != strcmp(argv[1], "prodmode") &&
         0 != strcmp(argv[1], "testmode") &&
         0 != strcmp(argv[1], "devmode") &&
-        0 != strcmp(argv[1], "blank"))
+        0 != strcmp(argv[1], "specmode"))
     {
         return CMD_RET_USAGE;
     }
@@ -96,21 +169,21 @@ int do_secparm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         return CMD_RET_SUCCESS;
     }
 
-    if (0 == strcmp(argv[1], "testmode") && (!prodmode) )
+    if (0 == strcmp(argv[1], "testmode") && (BT_PROD != g_board_type) )
     {
         return CMD_RET_SUCCESS;
     }
 
-    if (0 == strcmp(argv[1], "devmode") && ( (!prodmode) && (!secboot) ) )
+    if (0 == strcmp(argv[1], "devmode") && (BT_PROD != g_board_type) && (BT_TEST != g_board_type) )
     {
         return CMD_RET_SUCCESS;
     }
 
-    if (0 == strcmp(argv[1], "blank") && ( (!prodmode) && (!secboot) && (!ethaddr_str[0]) ) )
+    if (0 == strcmp(argv[1], "specmode") && ( (BT_PROD != g_board_type) && (BT_TEST != g_board_type) && (BT_DEVEL != g_board_type)  ) )
     {
         return CMD_RET_SUCCESS;
     }
-    
+   
     return CMD_RET_FAILURE;
 }
 
@@ -120,7 +193,7 @@ int silent_mode_enabled(void)
     /* If in production mode then we require silence - note that this does not check secboot
      * prodmode set and secboot clear is an invalid combination, so we default to most secure mode
      */  
-    return (prodmode);
+    return (BT_PROD == g_board_type);
 }
 
 
@@ -158,59 +231,48 @@ int do_lie(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         return CMD_RET_USAGE;
     }
 
-    if (0 != strcmp(argv[1], "prodmode") &&
-        0 != strcmp(argv[1], "testmode") &&
-        0 != strcmp(argv[1], "devmode") &&
-        0 != strcmp(argv[1], "blank"))
+    /*
+     * If blank we can be anything
+     * If special we are frozen
+     * If development we can be test or production
+     * If test we can be production
+     */
+    if (0 != strcmp(argv[1], "prdmode") &&
+        0 != strcmp(argv[1], "tstmode") &&
+        0 != strcmp(argv[1], "spcmode") &&
+        0 != strcmp(argv[1], "devmode"))
     {
         return CMD_RET_USAGE;
     }
 
-    if (0 == strcmp(argv[1], "prodmode"))
+    if (BT_DEVEL == g_board_type)
     {
-        prodmode = 1;
-        secboot = 1;
-        return CMD_RET_SUCCESS;
+        if (0 == strcmp(argv[1], "tstmode"))
+        {
+            g_board_type = BT_TEST;
+            return CMD_RET_SUCCESS;
+        }
+        else if (0 == strcmp(argv[1], "prdmode"))
+        {
+            g_board_type = BT_PROD;
+            return CMD_RET_SUCCESS;
+        }
+    }
+    else if (BT_TEST == g_board_type)
+    {
+        if (0 == strcmp(argv[1], "prdmode"))
+        {
+            g_board_type = BT_PROD;
+            return CMD_RET_SUCCESS;
+        }
     }
 
-    if (0 == strcmp(argv[1], "testmode"))
-    {
-//        if (prodmode == 1)
-//        {   /* Actually couldn't run this command in prod mode! */
-//            return CMD_RET_USAGE;
-//        }
-        prodmode = 0; // Temp
-        secboot = 1;
-        return CMD_RET_SUCCESS;
-    }
-    
-    if (0 == strcmp(argv[1], "devmode"))
-    {
-//        if ( (prodmode == 1) || (secboot == 1) )
-//        {
-//            return CMD_RET_USAGE;
-//        }
-
-        prodmode = 0; // Temp
-        secboot = 0;  // Temp
-        return CMD_RET_SUCCESS;
-    }
-
-    /* ALL THIS BIT IS TEMP! */
-    if (0 == strcmp(argv[1], "blank"))
-    {
-        prodmode = 0;
-        secboot = 0;
-        ethaddr_str[0] = 0;
-        return CMD_RET_SUCCESS;
-    }
-    
     return CMD_RET_FAILURE;
 }
 
 U_BOOT_CMD(
     lie, 2, 2, do_lie,
     "Lie about the secure boot mode.",
-    "<prodmode|tstmode|devmode> - force blank, development, test or production mode"
+    "<spcmode|devmode|tstmode|prdmode> - force development mode or production secure boot on - you can only elevate the current setting"
 );
 #endif
