@@ -264,6 +264,16 @@ int do_lie(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         {
             g_board_type = BT_PROD;
             return CMD_RET_SUCCESS;
+        } //Allow test mode to be downgranded to dev/spec 
+        else if (0 == strcmp(argv[1], "devmode"))
+        {
+            g_board_type = BT_DEVEL;
+            return CMD_RET_SUCCESS;
+        }
+        else if (0 == strcmp(argv[1], "spcmode"))
+        {
+            g_board_type = BT_SPECIAL;
+            return CMD_RET_SUCCESS;
         }
     }
 
