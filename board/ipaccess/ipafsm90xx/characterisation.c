@@ -183,7 +183,8 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
     cd->development_mode = 0;
     cd->specials_mode = 0;
 
-    offset = QFPROM_CORR_FUSE_PK_HASH_ROW0;
+    /*PK hash row 0 LSB*/
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW0_LSB;
     len = 4;
     read_fuse_in_range(offset, &payload , &len);
  	
@@ -198,7 +199,8 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
 
     payload = 0;
 
-    offset = QFPROM_CORR_FUSE_PK_HASH_ROW0 + 0x04;
+    /*PK hash row 0 MSB*/
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW0_LSB + 0x04;
     len = 4;
     read_fuse_in_range(offset, &payload , &len);
     
@@ -208,7 +210,8 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
 
     payload = 0;
 
-    offset = QFPROM_CORR_FUSE_PK_HASH_ROW1;
+    /*PK hash row 1 LSB*/
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW1_LSB;
     len = 4;
     read_fuse_in_range(offset, &payload, &len);
     
@@ -216,7 +219,8 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
     
     payload = 0;
 
-    offset = QFPROM_CORR_FUSE_PK_HASH_ROW1 + 0x04;
+    /*PK hash row 1 MSB*/
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW1_LSB + 0x04;
     len = 4;
     read_fuse_in_range(offset, &payload, &len);
 
@@ -224,7 +228,8 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
 
     payload = 0;
 
-    offset = QFPROM_CORR_FUSE_PK_HASH_ROW2;
+    /*PK hash row 2 LSB*/
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW2_LSB;
     len = 4;
     read_fuse_in_range(offset, &payload , &len);
     cd->eth0addr[0]= payload & 0x000000FF;
@@ -233,7 +238,8 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
     cd->eth0addr[3]= ((payload & 0xFF000000 ) >> 24) & 0xFF;
     payload = 0;
 
-    offset = QFPROM_CORR_FUSE_PK_HASH_ROW2 + 0x04;
+    /*PK hash row 2 MSB*/
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW2_LSB + 0x04;
     len = 4;
     read_fuse_in_range(offset, &payload , &len);
     cd->eth0addr[4]= payload & 0x000000FF;
@@ -241,7 +247,8 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
 
     payload = 0;
 
-    offset = QFPROM_CORR_FUSE_PK_HASH_ROW3;
+    /*PK hash row 3 LSB*/
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW3_LSB;
     len = 4;
     read_fuse_in_range(offset, &payload , &len);
     cd->eth1addr[0]= payload & 0x000000FF;
@@ -251,14 +258,15 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
 
     payload = 0;
 
-    offset = QFPROM_CORR_FUSE_PK_HASH_ROW3 + 0x04;
+    /*PK hash row 3 MSB*/
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW3_LSB + 0x04;
     len = 4;
     read_fuse_in_range(offset, &payload , &len);
     cd->eth1addr[4]= payload & 0x000000FF;
     cd->eth1addr[5]= ((payload & 0x0000FF00) >> 8) & 0xFF;
     payload = 0;
 
-    offset = QFPROM_CORR_FUSE_IMEI_ESN2;
+    offset = QFPROM_CORR_FUSE_IMEI_ESN2_LSB;
     len = 4;
     read_fuse_in_range(offset, &payload , &len);
     

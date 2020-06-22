@@ -51,7 +51,7 @@ uint8_t ipafsm90xx_is_board_fused()
 
 	for(i=0;i<8;i++)
 	{
-	    offset = QFPROM_CORR_FUSE_PK_HASH_ROW0 + 4*i; 
+	    offset = QFPROM_CORR_FUSE_PK_HASH_ROW0_LSB + 4*i; 
     	val = read_fuse(offset); 
 		if(val != 0)    
 		{
@@ -64,6 +64,6 @@ uint8_t ipafsm90xx_is_board_fused()
 
 int read_secure_boot_fuse(void)
 {
-    return read_fuse(QFPROM_CORR_FUSE_SECURE_BOOT);
+    return read_fuse(QFPROM_CORR_FUSE_SECURE_BOOT_ROW0_LSB);
 }
 
