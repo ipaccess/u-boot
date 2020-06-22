@@ -12,5 +12,5 @@ obj-y  := \
 #partition_parser.o lk_mmc_wrapper.o
 
 obj-$(CONFIG_CMD_KEY)   += key.o
-obj-y += led.o secboot.o characterisation.o
+obj-y += led.o secboot.o characterisation.o ipafsm90xx_fuse.o
 

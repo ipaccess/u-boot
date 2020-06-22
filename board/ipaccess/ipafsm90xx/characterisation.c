@@ -1,15 +1,30 @@
+/********************************************************************
+---------------------------------------------------------------------
+ Copyright (c) 2020 ipaccess, Inc.
+ All Rights Reserved.
+----------------------------------------------------------------------
+*********************************************************************/
 #include <common.h>
 #include <malloc.h>
 #include <linux/compiler.h>
 #include <errno.h>
 
+#include "ipafsm90xx_fuse.h"
 #include "characterisation.h"
 #include "ike_api.h"
+
 #if defined(CONFIG_CHARACTERISATION)
 
 /*RSM bitmap in mmc : r:reserved p:production d:development s:specials t:test*/
 /*p|d|s|r| r|r|r|t*/
 #define BOARD_RSM_MASK_MMC 0xE1
+
+/*p|d|s|r| r|r|r|r*/
+#define BOARD_RSM_MASK_FUSE 0x0E
+#define BOARD_RSM_MASK_PROD 0x08
+#define BOARD_RSM_MASK_DEV  0x04
+#define BOARD_RSM_MASK_SPEC 0x02
+
 
 /*mmc partition charaterisation data buffer*/
 uint8_t serialised_characterisation_data[CONFIG_CHARACTERISATION_SIZE];
@@ -36,6 +51,8 @@ typedef struct variant_record_s {
 
 static int do_hwchar_mmc_read(void);
 static int do_hwchar_mmc_write(uint8_t offset,uint8_t * payload, uint8_t size);
+void print_characterisation(void);
+static int is_test_bit_set(void);
 
 static const variant_record variant_lookup[] = {
     { "0000", "000", "0",   0, '0' }, /* Bands: N/A              - Notes: N/A                                                             */
@@ -92,12 +109,6 @@ static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0
 
 
 static void set_ipafsm90xx_ethernet_mac_addresses(void);
-
-
-uint8_t ipafsm90xx_is_board_fused()
-{
-    return 0;
-}
 
 
 static const char * lookup_oscillator(uint8_t oscillator)
@@ -161,22 +172,134 @@ struct radio_characterisation_data_t
 
 struct characterisation_data_t cdo;
 
-
-
-
 void read_characterisation_from_fuses(struct characterisation_data_t * cd)
 {
-    /*Do nothing for now*/
+    u32 payload = 0;
+    unsigned int offset = 0;
+    unsigned int len = 0;
+
+    cd->production_mode = 1;
+    cd->test_mode = 0;
+    cd->development_mode = 0;
+    cd->specials_mode = 0;
+
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW0;
+    len = 4;
+    read_fuse_in_range(offset, &payload , &len);
+ 	
+    cd->osc = ((payload & 0x000000C0) >> 6) & 0x3;
+    cd->variant = payload & 0x0000003F;
+    cd->variant <<= 4;
+    cd->variant |= (((payload & 0x0000F000) >> 12) & 0xF);
+    
+    cd->pcbai = (uint16_t)(((payload & 0x00FF0000) >> 16) & 0x00FF);
+    cd->pcbai <<= 8;
+    cd->pcbai |= (uint16_t)(((payload & 0xFF000000) >> 24) & 0xFFFF); 
+
+    payload = 0;
+
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW0 + 0x04;
+    len = 4;
+    read_fuse_in_range(offset, &payload , &len);
+    
+    cd->oui[0] =   payload & 0x000000FF ;
+    cd->oui[1] = ((payload & 0x0000FF00) >> 8 ) & 0x000000FF;
+    cd->oui[2] = ((payload & 0x00FF0000) >> 16) & 0x000000FF;
+
+    payload = 0;
+
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW1;
+    len = 4;
+    read_fuse_in_range(offset, &payload, &len);
+    
+    cd->serial = payload; 
+    
+    payload = 0;
+
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW1 + 0x04;
+    len = 4;
+    read_fuse_in_range(offset, &payload, &len);
+
+    cd->serial |= (((uint64_t)payload) << 32) & 0x0300000000; 
+
+    payload = 0;
+
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW2;
+    len = 4;
+    read_fuse_in_range(offset, &payload , &len);
+    cd->eth0addr[0]= payload & 0x000000FF;
+    cd->eth0addr[1]= ((payload & 0x0000FF00 ) >> 8 ) & 0xFF;
+    cd->eth0addr[2]= ((payload & 0x00FF0000 ) >> 16) & 0xFF;
+    cd->eth0addr[3]= ((payload & 0xFF000000 ) >> 24) & 0xFF;
+    payload = 0;
+
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW2 + 0x04;
+    len = 4;
+    read_fuse_in_range(offset, &payload , &len);
+    cd->eth0addr[4]= payload & 0x000000FF;
+    cd->eth0addr[5]= ((payload & 0x0000FF00) >> 8) & 0xFF;
+
+    payload = 0;
+
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW3;
+    len = 4;
+    read_fuse_in_range(offset, &payload , &len);
+    cd->eth1addr[0]= payload & 0x000000FF;
+    cd->eth1addr[1]= ((payload & 0x0000FF00 ) >> 8 ) & 0xFF;
+    cd->eth1addr[2]= ((payload & 0x00FF0000 ) >> 16) & 0xFF;
+    cd->eth1addr[3]= ((payload & 0xFF000000 ) >> 24) & 0xFF;
+
+    payload = 0;
+
+    offset = QFPROM_CORR_FUSE_PK_HASH_ROW3 + 0x04;
+    len = 4;
+    read_fuse_in_range(offset, &payload , &len);
+    cd->eth1addr[4]= payload & 0x000000FF;
+    cd->eth1addr[5]= ((payload & 0x0000FF00) >> 8) & 0xFF;
+    payload = 0;
+
+    offset = QFPROM_CORR_FUSE_IMEI_ESN2;
+    len = 4;
+    read_fuse_in_range(offset, &payload , &len);
+    
+    if ( (payload & BOARD_RSM_MASK_PROD) != 0 )
+    {    
+        cd->production_mode = 1; 
+    }    
+    else if ( (payload & BOARD_RSM_MASK_DEV ) != 0)
+    {    
+        if (is_test_bit_set())
+            cd->test_mode = 1; 
+        else 
+            cd->development_mode = 1; 
+    }    
+    else if ( (payload & BOARD_RSM_MASK_SPEC) != 0 )
+    {    
+        cd->specials_mode = 1; 
+    }    
+    else /*No mode/bit set */
+    {    
+        //check for secure boot enabled
+        if(is_secure_boot())
+        {
+            cd->production_mode = 1; 
+        }
+        else
+        {    
+            cd->development_mode = 1; 
+        }    
+    }    
+
     return;
 }
 
 
 static int do_hwchar_mmc_write(uint8_t offset,uint8_t * payload, uint8_t size)
 {
-    block_dev_desc_t *mmc_dev;
-    struct mmc *mmc;
     return -1;
 #if 0
+    block_dev_desc_t *mmc_dev;
+    struct mmc *mmc;
     disk_partition_t info;
     uint8_t value;
     uint32_t blk, cnt, n;
@@ -342,7 +465,7 @@ int deserialise_characterisation_info_mmc(struct characterisation_data_t * cd)
 
 }
 
-int is_test_bit_set(void)
+static int is_test_bit_set(void)
 {
     uint8_t *payload = serialised_characterisation_data ;
 
@@ -380,10 +503,11 @@ int characterisation_is_specials_mode(void)
     return cdo.specials_mode != 0;
 }
 
-/*TODO: read from fuses*/
 int is_secure_boot(void)
 {
-    return 0;
+    int val = 0;
+    val =  read_secure_boot_fuse();
+    return ((val & 0x20)?1:0);
 }
 
 static void update_rsm_from_tz(struct characterisation_data_t * cdo)
@@ -423,9 +547,10 @@ int characterisation_init(void)
     int ret;
     const variant_record * hw_variant;
     char evar[20];
-    if (ipafsm90xx_is_board_fused())
-    {
+    if(1 == (ret = ipafsm90xx_is_board_fused()))
+    {    
         read_characterisation_from_fuses(&cdo);
+
     }
     else
     {
