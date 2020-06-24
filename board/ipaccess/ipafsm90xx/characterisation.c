@@ -178,24 +178,18 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
     unsigned int offset = 0;
     unsigned int len = 0;
 
-    cd->production_mode = 1;
-    cd->test_mode = 0;
-    cd->development_mode = 0;
-    cd->specials_mode = 0;
 
     /*PK hash row 0 LSB*/
     offset = QFPROM_CORR_FUSE_PK_HASH_ROW0_LSB;
     len = 4;
     read_fuse_in_range(offset, &payload , &len);
+
+
+    cd->osc = payload & 0x3;
+    cd->variant = (payload & 0x00000FFC) >> 2;
+
+    cd->pcbai = (uint16_t)(((payload & 0xFFFF0000) >> 16) & 0xFFFF);
  	
-    cd->osc = ((payload & 0x000000C0) >> 6) & 0x3;
-    cd->variant = payload & 0x0000003F;
-    cd->variant <<= 4;
-    cd->variant |= (((payload & 0x0000F000) >> 12) & 0xF);
-    
-    cd->pcbai = (uint16_t)(((payload & 0x00FF0000) >> 16) & 0x00FF);
-    cd->pcbai <<= 8;
-    cd->pcbai |= (uint16_t)(((payload & 0xFF000000) >> 24) & 0xFFFF); 
 
     payload = 0;
 
@@ -269,7 +263,10 @@ void read_characterisation_from_fuses(struct characterisation_data_t * cd)
     offset = QFPROM_CORR_FUSE_IMEI_ESN2_LSB;
     len = 4;
     read_fuse_in_range(offset, &payload , &len);
+
     
+    cd->production_mode = cd->test_mode = cd->development_mode = cd->specials_mode = 0;
+
     if ( (payload & BOARD_RSM_MASK_PROD) != 0 )
     {    
         cd->production_mode = 1; 
