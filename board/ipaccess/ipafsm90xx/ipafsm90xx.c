@@ -50,8 +50,6 @@ int misc_init_r (void)
     char value[10];
     memset(&info,0,sizeof(disk_partition_t));
 
-    /*set the power Led green*/
-    run_command("ledc pwr green",0);
 
     /*Set the fs0/fs1 userdata partition number environment variable, will be used later*/
     mmc_dev = mmc_get_dev(0);
@@ -94,6 +92,16 @@ int misc_init_r (void)
     print_characterisation();
 
 
+    /*Led confidance test*/
+    run_command("ledc all red green off 1 500",0);
+
+    /*set the power Led green*/
+    run_command("ledc pwr green",0);
+
+#if defined(CONFIG_HW_WATCHDOG)
+    hw_watchdog_enable();
+#endif
+
     return 0;
 }
 
@@ -135,6 +143,42 @@ void reset_cpu(ulong addr)
     printf("Shutdown failed\n");
 
 }
+
+#if defined(CONFIG_HW_WATCHDOG)
+#define WD_GPIO 23
+static int hw_watchdog_enabled = 0;
+static int hw_watchdog_trigger_level;
+
+void hw_watchdog_reset(void)
+{
+    if (1 == hw_watchdog_enabled)
+    {
+        hw_watchdog_trigger_level = hw_watchdog_trigger_level ? 0 : 1;
+        /*Toggle the watchdog IO*/
+        simple_set_gpio(WD_GPIO,hw_watchdog_trigger_level);
+    }
+}
+
+void hw_watchdog_init(void)
+{
+    /*Keep it disabled early on*/
+    hw_watchdog_enabled = 0;
+}
+
+
+void hw_watchdog_enable(void)
+{
+    /*Must be called once we have initialised characterisation*/
+    unsigned char *part_num = getenv("board_variant_part");
+    /*Uncharacterised or not Goa board, enable watchdog tickling*/
+    if ( !part_num || (0 != strncmp(part_num,"503",3)))
+    {
+        hw_watchdog_enabled = 1;
+        hw_watchdog_reset();
+    }
+
+}
+#endif /* defined(CONFIG_HW_WATCHDOG) */
 
 #if 0 //board hangs with this at the moment. But it will be good to enable this for faster bootup.
 void enable_caches(void)

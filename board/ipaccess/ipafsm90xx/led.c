@@ -4,6 +4,7 @@
 #include "iomap.h"
 #include "led.h"
 #include "debug.h"
+#include "gpio.h"
 
 /* These LED control procedures are a little more convoluted than actually required for
  * the S60 board, as they are based on more generalised functions for LEDs which
@@ -16,11 +17,6 @@
 #define GPIO_HI 1
 #define GPIO_LO 0
 
-#define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + 0x1000 + (x)*0x10)
-#define GPIO_IN_OUT_ADDR(x)         (TLMM_BASE_ADDR + 0x1004 + (x)*0x10)
-#define GPIO_OUT_BIT            1
-#define GPIO_IN_BIT         0
-#define GPIO_OE_BIT         9
 /*
  *  LED CONFIGURATION LOGIC
  *  The INDEX values are used for a quick look-up into the gpio_info table below
@@ -37,7 +33,8 @@
 #define LED_SVC_GREEN_INDEX         2
 #define LED_SVC_GREEN_GPIO          22
 #define LED_SVC_RED_INDEX           3
-#define LED_SVC_RED_GPIO            23
+#define LED_SVC_RED_GPIO            23 
+#define LED_SVC_RED_GPIO_509        24 /*India gate*/
 
 /*LED POWER*/
 #define LED_PWR_GREEN_INDEX         4
@@ -65,7 +62,7 @@
 /* Map of GPIO address and states */
 typedef struct
 {
-    const int addr;
+    int addr;
     int state;
 } ledc_gpio;
 
@@ -104,20 +101,7 @@ static const led_lines led_addr_table[NUM_LEDS] =
 static const char* colour_strings[NUM_COLOURS] =
 { "off", "green", "red", "yellow" };
 
-
-static int simple_set_gpio(unsigned int gpio_num, unsigned int value)
-{
-    
-    unsigned int reg_cfg = GPIO_CONFIG_ADDR(gpio_num);
-    unsigned int reg_inout = GPIO_IN_OUT_ADDR(gpio_num);
-
-    /*Make the gpio output*/
-    *REG32(reg_cfg) = *REG32(reg_cfg) | (1 << GPIO_OE_BIT);
-
-    *REG32(reg_inout) = (value ? (1 << GPIO_OUT_BIT):0);
-
-    return 0;
-}
+static int led_init=0;
 
 
 static void set_gpio(int index, int state)
@@ -160,6 +144,22 @@ int setLED(led_index index, led_colour colour)
     return 0;
 }
 
+/*Initialise LEDs on the basis product variants*/
+void initLED()
+{
+    /*already initialised do nothing*/
+    if (led_init)
+        return;
+
+    char *part_num = getenv("board_variant_part");
+    if ( part_num && (0 == strncmp(part_num, "509", 3)))
+    {
+        gpio_info[LED_SVC_RED_INDEX].addr = LED_SVC_RED_GPIO_509;
+    }
+
+    led_init = 1;
+
+}
 
 #if defined(CONFIG_CMD_LEDSET)
 /* Acceptable strings for LED identification (used in setled only)
@@ -305,6 +305,8 @@ int do_ledc(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         printf("Incorrect number of arguments\n");
         return CMD_RET_USAGE;
     }
+
+    initLED();
 
     /* Find mask for specified LED(s) - step through args until we reach a non-led value */
     i = 0; argi = 1; mask = 0;

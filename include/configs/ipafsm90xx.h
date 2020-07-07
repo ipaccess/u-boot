@@ -331,6 +331,8 @@
 #define CONFIG_CHARACTERISATION_MMC_PART_NAME "chr"
 
 #define CONFIG_CMD_LIE
+
+#define CONFIG_HW_WATCHDOG
 //debugging configs: keep disabled
 
 //#define CONFIG_IMAGE_FORMAT_LEGACY
