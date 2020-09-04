@@ -106,6 +106,11 @@ static int led_init=0;
 
 static void set_gpio(int index, int state)
 {
+
+    //skip if gpio addr is set to invalid value
+    if (gpio_info[index].addr < 0)
+        return;
+
     if (gpio_info[index].state != state)
     {
         simple_set_gpio(gpio_info[index].addr, state);
@@ -155,6 +160,8 @@ void initLED()
     if ( part_num && (0 == strncmp(part_num, "509", 3)))
     {
         gpio_info[LED_SVC_RED_INDEX].addr = LED_SVC_RED_GPIO_509;
+        gpio_info[LED_PWR_GREEN_INDEX].addr = -1;
+        gpio_info[LED_PWR_RED_INDEX].addr = -1;
     }
 
     led_init = 1;
