@@ -193,6 +193,7 @@
 	" reth_on=1 ethpoll=1000 pcb_assembly_issue=${board_pcb_assembly_issue}"                \
 	" board_variant_part=${board_variant_part} bb_variant_part=${bb_variant_part}"          \
 	" radio_variant_part=${radio_variant_part} radio_pcbai=${radio_pcbai}"                  \
+	" radio_band=${board_variant_variant}" \
 
 #define CMDLINE_ARGS_LINUX IPA_BASE_BOOTARGS " " MTDPARTS_DEFAULT " console=" LINUX_CONSOLEDEV "," __stringify(CONFIG_BAUDRATE) "n8"
 
