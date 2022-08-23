@@ -1198,21 +1198,32 @@ int ubi_eba_init_scan(struct ubi_device *ubi, struct ubi_scan_info *si)
 	ubi->avail_pebs -= EBA_RESERVED_PEBS;
 	ubi->rsvd_pebs += EBA_RESERVED_PEBS;
 
-	if (ubi->bad_allowed) {
-		ubi_calculate_reserved(ubi);
+    if (ubi->bad_allowed) {
+        ubi_calculate_reserved(ubi);
 
-		if (ubi->avail_pebs < ubi->beb_rsvd_level) {
-			/* No enough free physical eraseblocks */
-			ubi->beb_rsvd_pebs = ubi->avail_pebs;
-			ubi_warn("cannot reserve enough PEBs for bad PEB "
-				 "handling, reserved %d, need %d",
-				 ubi->beb_rsvd_pebs, ubi->beb_rsvd_level);
-		} else
-			ubi->beb_rsvd_pebs = ubi->beb_rsvd_level;
+        // ih3: Keep one spare PEB back for wear levelling
+        if (ubi->avail_pebs < (ubi->beb_rsvd_level + 1)) {
+            /* Not enough free physical eraseblocks */
+            if (ubi->avail_pebs <= 1)
+            {
+                ubi->beb_rsvd_pebs = ubi->avail_pebs;
+                ubi_warn("not enough spare PEBs left on this device. "
+                         "Reserved %d, need %d",
+                         ubi->beb_rsvd_pebs, ubi->beb_rsvd_level);
+            }
+            else
+            {
+                ubi->beb_rsvd_pebs = ubi->avail_pebs - 1; // Keep back one spare PEB for wear levelling
+                ubi_warn("cannot reserve 1%% of PEBs for bad PEB "
+                         "handling, reserved %d, 1%% is %d",
+                          ubi->beb_rsvd_pebs, ubi->beb_rsvd_level);
+            }
+        } else
+            ubi->beb_rsvd_pebs = ubi->beb_rsvd_level;
 
-		ubi->avail_pebs -= ubi->beb_rsvd_pebs;
-		ubi->rsvd_pebs  += ubi->beb_rsvd_pebs;
-	}
+        ubi->avail_pebs -= ubi->beb_rsvd_pebs;
+        ubi->rsvd_pebs  += ubi->beb_rsvd_pebs;
+    }
 
 	dbg_eba("EBA unit is initialized");
 	return 0;
