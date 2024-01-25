@@ -55,53 +55,65 @@ void print_characterisation(void);
 static int is_test_bit_set(void);
 
 static const variant_record variant_lookup[] = {
-    { "0000", "000", "0",   0, '0' }, /* Bands: N/A              - Notes: N/A                                                             */
-    { "230A", "230", "A", 230, 'A' }, /* Bands: 1                - Notes: Europe and RoW                                                  */
-    { "230B", "230", "B", 230, 'B' }, /* Bands: 2, 5             - Notes: United States                                                   */
-    { "267I", "267", "I", 267, 'I' }, /* Bands: N/A              - Notes: No Radio                                                        */
-    { "400D", "400", "D", 400, 'D' }, /* Bands: 1, 3, 8          - Notes: Europe and RoW                                                  */
-    { "400E", "400", "E", 400, 'E' }, /* Bands: 2, 4, 5          - Notes: United States                                                   */
-    { "245F", "245", "F", 245, 'F' }, /* Bands: 7, 13            - Notes: LTE Demonstrator - Freescale bsc9131rdb                         */
-    { "245H", "245", "H", 245, 'H' }, /* Bands: 1, 12            - Notes: LTE Demonstrator - Freescale bsc9131rdb                         */
-    { "248G", "248", "G", 248, 'G' }, /* Bands: 2, 5, 10, 12, 17 - Notes: Freescale bsc9131-based E-40, 1 Tile US, non secure             */
-    { "248J", "248", "J", 248, 'J' }, /* Bands: 1, 3, 7, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU, non secure             */
-    { "247G", "247", "G", 247, 'G' }, /* Bands: 2, 5, 10, 12, 17 - Notes: Freescale bsc9131-based E-40, 2 Tile US (LTE part), non secure  */
-    { "278J", "278", "J", 278, 'J' }, /* Bands: 1, 3, 7, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU, secure boot            */
-    { "278L", "278", "L", 278, 'L' }, /* Bands: 3, 7, 8, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU band 8, secure boot     */
-    { "248L", "248", "L", 248, 'L' }, /* Bands: 3, 7, 8, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU band 8, non secure      */
-    { "431I", "431", "I", 431, 'I' }, /* Bands: N/A              - Notes: Transcede t2200evm Evaluation Board                             */
-    { "248M", "248", "M", 248, 'M' }, /* Bands: 2, 4, 13, 17     - Notes: Freescale bsc9131-based E-40, 1 Tile US vII, non secure         */
-    { "278M", "278", "M", 278, 'M' }, /* Bands: 2, 4, 13, 17     - Notes: Freescale bsc9131-based E-40, 1 Tile US vII, secure boot        */
-    { "400N", "400", "N", 400, 'N' }, /* Bands: 8                - Notes: 2G/3G Product Refresh Band8 Only                                */
-    { "433I", "433", "I", 433, 'I' }, /* Bands: N/A              - Notes: Transcede t3300evm Evaluation Board                             */
-    { "453A", "453", "A", 453, 'A' }, /* Bands: 1                - Notes: P110 integrated AP and WBH, EU                                  */
-    { "453B", "453", "B", 453, 'B' }, /* Bands: 2,5              - Notes: P110 integrated AP and WBH, US                                  */
-    { "435A", "435", "A", 435, 'A' }, /* Bands: 1                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
-    { "436A", "436", "A", 436, 'A' }, /* Bands: 1                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
-    { "435R", "435", "R", 435, 'R' }, /* Bands: 2                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
-    { "436R", "436", "R", 436, 'R' }, /* Bands: 2                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
-    { "435S", "435", "S", 435, 'S' }, /* Bands: 3                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
-    { "436S", "436", "S", 436, 'S' }, /* Bands: 3                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
-    { "431C", "431", "C", 431, 'C' }, /* Bands: 4                - Notes: MitraStar T2K Development Board                                 */
-    { "437T", "437", "T", 437, 'T' }, /* Bands: 40               - Notes: S60 single band TDD HW, T2K 2130 + ADI radio                    */
-    { "438T", "438", "T", 438, 'T' }, /* Bands: 40               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence)         */
-    { "437U", "437", "U", 437, 'U' }, /* Bands: 41               - Notes: S60 single band TDD HW, T2K 2130 + ADI radio                    */
-    { "438U", "438", "U", 438, 'U' }, /* Bands: 41               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence          */
-    { "470Z", "470", "Z", 470, 'Z' }, /* Bands: 1-48             - Notes: S60 unbanded FDD and TDD                                        */
-    { "499_", "499", "_", 499, '_' }, /* Bands: No radio present - Notes: S60 Digital FDD and TDD                                         */
-    { "495X", "495", "X", 495, 'X' }, /* Band:  48               - Notes: S60 Digital lvds + band 48 FEM  aka E61                         */
-    { "495T", "495", "T", 495, 'T' }, /* Band:  40               - Notes: S60 Digital lvds + band 40 FEM                                  */
-    { "496Y", "496", "Y", 496, 'Y' }, /* Band:  1 & 3            - Notes: S60 Digital lvds + band 1 & 3 FEM aka Aero                      */
-    { "492R", "492", "R", 492, 'R' }, /* Band:  2                - Notes: S60 Digital lvds + band 2 benetel aka R60                       */
-    { "495Y", "495", "Y", 495, 'Y' }, /* Band:  1 & 3            - Notes: 495 Radio or S60 Digital lvds + band 1 & 3 fem E61              */
-    { "503S", "503", "S", 503, 'S' }, /* Band:  3                - Notes: C60                                                             */
-    { "503V", "503", "V", 503, 'V' }, /* Band:  7                - Notes: C60                                                             */
-    { "502A", "502", "A", 502, 'A' }, /* 41: Band:  1            - Notes: S8v2 Picochip + ADI 13dBm band 1                                */
-    { "502N", "502", "N", 502, 'N' }, /* 42: Band:  8            - Notes: S8v2 Picochip + ADI 13dBm band 8                                */
-    { "505A", "505", "A", 505, 'A' }, /* 43: Band:  1            - Notes: S8v2 Picochip + ADI 20dBm band 1                                */
-    { "505N", "505", "N", 505, 'N' }, /* 44: Band:  8            - Notes: S8v2 Picochip + ADI 20dBm band 8                                */
-    { "509S", "509", "S", 509, 'S' }, /* 45: Band:  3            - Notes: C70 sercom Indiagate based                                      */
-
+    { "0000", "000", "0",   0, '0' }, /*  0: Bands: N/A              - Notes: N/A                                                             */
+    { "230A", "230", "A", 230, 'A' }, /*  1: Bands: 1                - Notes: Europe and RoW                                                  */
+    { "230B", "230", "B", 230, 'B' }, /*  2: Bands: 2, 5             - Notes: United States                                                   */
+    { "267I", "267", "I", 267, 'I' }, /*  3: Bands: N/A              - Notes: No Radio                                                        */
+    { "400D", "400", "D", 400, 'D' }, /*  4: Bands: 1, 3, 8          - Notes: Europe and RoW                                                  */
+    { "400E", "400", "E", 400, 'E' }, /*  5: Bands: 2, 4, 5          - Notes: United States                                                   */
+    { "245F", "245", "F", 245, 'F' }, /*  6: Bands: 7, 13            - Notes: LTE Demonstrator - Freescale bsc9131rdb                         */
+    { "245H", "245", "H", 245, 'H' }, /*  7: Bands: 1, 12            - Notes: LTE Demonstrator - Freescale bsc9131rdb                         */
+    { "248G", "248", "G", 248, 'G' }, /*  8: Bands: 2, 5, 10, 12, 17 - Notes: Freescale bsc9131-based E-40, 1 Tile US, non secure             */
+    { "248J", "248", "J", 248, 'J' }, /*  9: Bands: 1, 3, 7, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU, non secure             */
+    { "247G", "247", "G", 247, 'G' }, /* 10: Bands: 2, 5, 10, 12, 17 - Notes: Freescale bsc9131-based E-40, 2 Tile US (LTE part), non secure  */
+    { "278J", "278", "J", 278, 'J' }, /* 11: Bands: 1, 3, 7, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU, secure boot            */
+    { "278L", "278", "L", 278, 'L' }, /* 12: Bands: 3, 7, 8, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU band 8, secure boot     */
+    { "248L", "248", "L", 248, 'L' }, /* 13: Bands: 3, 7, 8, 20      - Notes: Freescale bsc9131-based E-40, 1 Tile EU band 8, non secure      */
+    { "431I", "431", "I", 431, 'I' }, /* 14: Bands: N/A              - Notes: Transcede t2200evm Evaluation Board                             */
+    { "248M", "248", "M", 248, 'M' }, /* 15: Bands: 2, 4, 13, 17     - Notes: Freescale bsc9131-based E-40, 1 Tile US vII, non secure         */
+    { "278M", "278", "M", 278, 'M' }, /* 16: Bands: 2, 4, 13, 17     - Notes: Freescale bsc9131-based E-40, 1 Tile US vII, secure boot        */
+    { "400N", "400", "N", 400, 'N' }, /* 17: Bands: 8                - Notes: 2G/3G Product Refresh Band8 Only                                */
+    { "433I", "433", "I", 433, 'I' }, /* 18: Bands: N/A              - Notes: Transcede t3300evm Evaluation Board                             */
+    { "453A", "453", "A", 453, 'A' }, /* 19: Bands: 1                - Notes: P110 integrated AP and WBH, EU                                  */
+    { "453B", "453", "B", 453, 'B' }, /* 20: Bands: 2,5              - Notes: P110 integrated AP and WBH, US                                  */
+    { "435A", "435", "A", 435, 'A' }, /* 21: Bands: 1                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
+    { "436A", "436", "A", 436, 'A' }, /* 22: Bands: 1                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
+    { "435R", "435", "R", 435, 'R' }, /* 23: Bands: 2                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
+    { "436R", "436", "R", 436, 'R' }, /* 24: Bands: 2                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
+    { "435S", "435", "S", 435, 'S' }, /* 25: Bands: 3                - Notes: S60 single band FDD HW, T2K 2130 + ADI radio                    */
+    { "436S", "436", "S", 436, 'S' }, /* 26: Bands: 3                - Notes: S60 single band FDD HW, T2K 2100 + ADI radio (Presence)         */
+    { "431C", "431", "C", 431, 'C' }, /* 27: Bands: 4                - Notes: MitraStar T2K Development Board                                 */
+    { "437T", "437", "T", 437, 'T' }, /* 28: Bands: 40               - Notes: S60 single band TDD HW, T2K 2130 + ADI radio                    */
+    { "438T", "438", "T", 438, 'T' }, /* 29: Bands: 40               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence)         */
+    { "437U", "437", "U", 437, 'U' }, /* 30: Bands: 41               - Notes: S60 single band TDD HW, T2K 2130 + ADI radio                    */
+    { "438U", "438", "U", 438, 'U' }, /* 31: Bands: 41               - Notes: S60 single band TDD HW, T2K 2100 + ADI radio (Presence          */
+    { "470Z", "470", "Z", 470, 'Z' }, /* 32: Bands: 1-48             - Notes: S60 unbanded FDD and TDD                                        */
+    { "499_", "499", "_", 499, '_' }, /* 33: Bands: No radio present - Notes: S60 Digital FDD and TDD                                         */
+    { "495X", "495", "X", 495, 'X' }, /* 34: Band:  48               - Notes: S60 Digital lvds + band 48 FEM  aka E61                         */
+    { "495T", "495", "T", 495, 'T' }, /* 35: Band:  40               - Notes: S60 Digital lvds + band 40 FEM                                  */
+    { "496Y", "496", "Y", 496, 'Y' }, /* 36: Band:  1 & 3            - Notes: S60 Digital lvds + band 1 & 3 FEM aka Aero                      */
+    { "492R", "492", "R", 492, 'R' }, /* 37: Band:  2                - Notes: S60 Digital lvds + band 2 benetel aka R60                       */
+    { "495Y", "495", "Y", 495, 'Y' }, /* 38: Band:  1 & 3            - Notes: 495 Radio or S60 Digital lvds + band 1 & 3 fem E61              */
+    { "503S", "503", "S", 503, 'S' }, /* 39: Band:  3                - Notes: C60                                                             */
+    { "503V", "503", "V", 503, 'V' }, /* 40: Band:  7                - Notes: C60                                                             */
+    { "502A", "502", "A", 502, 'A' }, /* 41: Band:  1                - Notes: S8v2 Picochip + ADI 13dBm band 1                                */
+    { "502N", "502", "N", 502, 'N' }, /* 42: Band:  8                - Notes: S8v2 Picochip + ADI 13dBm band 8                                */
+    { "505A", "505", "A", 505, 'A' }, /* 43: Band:  1                - Notes: S8v2 Picochip + ADI 20dBm band 1                                */
+    { "505N", "505", "N", 505, 'N' }, /* 44: Band:  8                - Notes: S8v2 Picochip + ADI 20dBm band 8                                */
+    { "509S", "509", "S", 509, 'S' }, /* 45: Band:  3                - Notes: C70 sercom Indiagate based                                      */
+    { "509V", "509", "V", 509, 'V' }, /* 46: Band:  7                - Notes: C70: sercom Indiagate                                           */
+    { "514S", "514", "S", 514, 'S' }, /* 47: Band:  3                - Notes: E70: sercom cambridge                                           */
+    { "514V", "514", "V", 514, 'V' }, /* 48: Band:  7                - Notes: E70: sercom cambridge                                           */
+    { "517Y", "517", "Y", 517, 'Y' }, /* 49: Band:  1 & 3            - Notes: O410 S60 digital + 496 band 1/3 radio. T2K 2130 + ADI radio     */
+    { "516N", "516", "N", 516, 'N' }, /* 50: Band:  8                - Notes: R100 Band 8 RF board                                            */
+    { "470N", "470", "N", 470, 'N' }, /* 51: Band:  8                - Notes: R100 integrated S60Z + Band 8 superhet for 2G                   */
+    { "519A", "519", "A", 519, 'A' }, /* 52: Band:  n78              - Notes: 5G Enterprise QC FSM10K n78  VCTCXO (T&W)                       */
+    { "519B", "519", "B", 519, 'B' }, /* 53: Band:  n41              - Notes: 5G Enterprise QC FSM10K n41  VCTCXO (T&W)                       */
+    { "519C", "519", "C", 519, 'C' }, /* 54: Band:  n79              - Notes: 5G Enterprise QC FSM10K n79  VCTCXO (T&W)                       */
+    { "536A", "536", "A", 536, 'A' }, /* 55: Band:  1                - Notes: T60 4G Residential QC FSM90xx VCTCXO (T&W)                      */
+    { "536B", "536", "B", 536, 'B' }, /* 56: Band:  3                - Notes: T60 4G Residential QC FSM90xx VCTCXO (T&W)                      */
+    { "537A", "537", "A", 537, 'A' }, /* 57: Band:  3                - Notes: T70 4G Enterprise  QC FSM90xx VCTCXO (T&W)                      */
+    { "538A", "538", "A", 538, 'A' }, /* 58: Band:  3                - Notes: T80 4G Enterprise  QC FSM90xx VCTCXO (T&W)                      */
 };
 
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
