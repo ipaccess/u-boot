@@ -275,18 +275,22 @@
  * This command block is responsible for selecting the correct FDT to pass to
  * Linux based on the characterised board type.  The "current" state of the art
  * is the default, and older FDTs are selected based on the board variant part
- * number (503, 509 etc.)
+ * number (503, 509, 536, 537, 538)
  *
  * This sets up the 'selected_config' environment variable, which is used by
  * the secure boot command to pass as a config selector to the bootm command.
  */
-#define SELECT_CONFIG                                       \
-    "setenv selected_config config@2; "                     \
-    "if test -n \"${board_variant_part}\"; then "           \
-     "if test ${board_variant_part} -eq 503; then "         \
-      "setenv selected_config config@1; "                   \
-     "fi; "                                                 \
-    "fi"
+#define SELECT_CONFIG                                                     \
+    "SDTCFG=config@2; "                                                   \
+    "if test -n \"${board_variant_part}\"; then "                         \
+     "if test ${board_variant_part} -eq 503; then SDTCFG=config@1;"       \
+     " else if test ${board_variant_part} -eq 536; then SDTCFG=config@3;" \
+     " else if test ${board_variant_part} -eq 537; then SDTCFG=config@4;" \
+     " else if test ${board_variant_part} -eq 538; then SDTCFG=config@5;" \
+     " fi; fi; fi;"                                                       \
+     "fi;"                                                                \
+    "fi;"                                                                 \
+    "setenv selected_config ${SDTCFG}; "
 
 
 #define CONFIG_EXTRA_ENV_SETTINGS                               \
