@@ -114,6 +114,8 @@ static const variant_record variant_lookup[] = {
     { "536B", "536", "B", 536, 'B' }, /* 56: Band:  3                - Notes: T60 4G Residential QC FSM90xx VCTCXO (T&W)                      */
     { "537A", "537", "A", 537, 'A' }, /* 57: Band:  3                - Notes: T70 4G Enterprise  QC FSM90xx VCTCXO (T&W)                      */
     { "538A", "538", "A", 538, 'A' }, /* 58: Band:  3                - Notes: T80 4G Enterprise  QC FSM90xx VCTCXO (T&W)                      */
+    { "544A", "544", "A", 544, 'A' }, /* 59: Band:  3                - Notes: E540 4G board      QC FSM90xx VCTCXO (T&W)                      */
+    { "545A", "545", "A", 545, 'A' }, /* 60: Band:  n78              - Notes: E540 5G board QC FSM10K n78   VCTCXO (T&W)                      */
 };
 
 static const int num_variants = sizeof(variant_lookup) / sizeof(variant_lookup[0]);
